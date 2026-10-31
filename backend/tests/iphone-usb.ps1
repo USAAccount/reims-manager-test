@@ -281,7 +281,7 @@ try {
     Import-ReimsIphoneUsbQmpFunctions
     Assert ((Get-Command Get-ReimsVmProcess).Parameters.ContainsKey('Runtime') -and (Get-Command Invoke-ReimsQmp).Parameters.ContainsKey('Runtime') -and
         (Get-Command Invoke-ReimsQmp).Parameters.ContainsKey('Command') -and (Get-Command Invoke-ReimsQmp).Parameters.ContainsKey('Arguments')) 'Actual worker bootstrap preserves full house function signatures beyond the import call'
-    $script:bootstrapCalls=0;$script:bootstrapProcess=[pscustomobject]@{Id=$runtime.pid;StartTime=[DateTime]::new([long]$runtime.start_ticks,[DateTimeKind]::Utc);Path=$runtime.executable}
+    $script:bootstrapCalls=0;$script:bootstrapProcess=[pscustomobject]@{Id=$runtime.pid;ProcessName=[IO.Path]::GetFileNameWithoutExtension($runtime.executable);StartTime=[DateTime]::new([long]$runtime.start_ticks,[DateTimeKind]::Utc);Path=$runtime.executable}
     function Get-Process { [CmdletBinding()]param([int]$Id);$script:bootstrapCalls++;$script:bootstrapProcess }
     Assert ((Get-ReimsVmProcess $runtime).Id -eq $runtime.pid) 'Imported production identity helper runs with authored process metadata only'
     $script:bootstrapProcess=$null

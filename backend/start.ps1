@@ -137,6 +137,8 @@ function Get-ReimsVmProcess($Runtime) {
     # runtime.json survives Manager/Windows restarts. A reused PID proves the
     # recorded VM has exited; it must not make every status/settings call fail.
     # Unreadable identity remains an error, never permission to start another VM.
+    $name=$process.ProcessName
+    if(![string]::IsNullOrWhiteSpace($name) -and ![string]::Equals($name,[IO.Path]::GetFileNameWithoutExtension($Runtime.executable),[StringComparison]::OrdinalIgnoreCase)){return $null}
     $started = $process.StartTime
     if ($null -eq $started) { throw "Cannot verify the start time of VM process $($Runtime.pid)." }
     if ($started.ToUniversalTime().Ticks -ne [long]$Runtime.start_ticks) { return $null }

@@ -58,9 +58,14 @@ try {
     function Get-Process {
         [CmdletBinding()]param([int]$Id)
         if ($script:LookupDenied) { Write-Error 'Authored access denied' -Category PermissionDenied; return }
-        [pscustomobject]@{ Id = $Id; StartTime = $current.StartTime; Path = $null }
+        [pscustomobject]@{ Id = $Id; ProcessName=$(if($script:ForeignName){'authored-other-service'}else{$current.ProcessName}); StartTime=$(if($script:ForeignName -or $script:StartTimeDenied){$null}else{$current.StartTime}); Path = $null }
     }
-    $script:LookupDenied = $false
+    $script:LookupDenied = $false;$script:StartTimeDenied=$false;$script:ForeignName=$true
+    Assert-True ($null -eq (Get-ReimsVmProcess $runtime)) 'A different process name proves PID reuse even when protected start time and path are unreadable'
+    $script:ForeignName=$false
+    $script:StartTimeDenied=$true
+    Reject { Get-ReimsVmProcess $runtime } 'Cannot verify the start time'
+    $script:StartTimeDenied=$false
     Reject { Get-ReimsVmProcess $runtime } 'Cannot verify the executable'
     $script:LookupDenied = $true
     Reject { Get-ReimsVmProcess $runtime } 'Cannot verify the recorded VM process'
