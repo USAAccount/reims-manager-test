@@ -7,6 +7,11 @@ function Get-ReimsIphoneUsbSessionRoot([string]$Session) {
     Join-Path ([Environment]::GetFolderPath('CommonApplicationData')) "ReimsIphoneUsb-$Session"
 }
 
+function Get-ReimsIphoneUsbTemporaryRoot([string]$EngineRoot,[string]$Session) {
+    if(![IO.Path]::IsPathFullyQualified($EngineRoot) -or $Session -cnotmatch '^[0-9a-f]{32}$'){throw 'Invalid protected temporary session path.'}
+    Join-Path ([IO.Path]::GetPathRoot([IO.Path]::GetFullPath($EngineRoot))) ".cache/reims-iphone-usb-$Session"
+}
+
 function Assert-ReimsIphoneUsbSessionRoot([string]$Root,[string]$Sid) {
     [void](Assert-ReimsIphoneUsbOrdinaryPath $Root)
     $acl=Get-Acl -LiteralPath $Root
@@ -118,7 +123,7 @@ function Remove-ReimsIphoneUsbQmp($Snapshot,[string]$Root,$Lease) {
             Remove-ReimsUsbObject $Snapshot.runtime $Snapshot.profile.id
         }
     }
-    $Lease.qmp_instance='';Write-ReimsIphoneUsbSessionJson (Join-Path $Root 'private/leases.json') $Lease
+    $Lease.qmp_instance='';$Lease.qmp_arrival=0L;Write-ReimsIphoneUsbSessionJson (Join-Path $Root 'private/leases.json') $Lease
 }
 
 function Invoke-ReimsIphoneUsbSession($Snapshot,[string]$Root,[switch]$RestoreOnly) {
@@ -127,7 +132,8 @@ function Invoke-ReimsIphoneUsbSession($Snapshot,[string]$Root,[switch]$RestoreOn
         try{$held=$mutex.WaitOne(0)}catch [Threading.AbandonedMutexException]{$held=$true}
         if(!$held){throw 'この iPhone は別の接続セッションが使用中です。'}
         $leasePath=Join-Path $Root 'private/leases.json'
-        $lease=if(Test-Path -LiteralPath $leasePath){Read-ReimsIphoneUsbSessionJson $leasePath}else{@{qmp_instance='';instances=@{}}}
+        $lease=if(Test-Path -LiteralPath $leasePath){Read-ReimsIphoneUsbSessionJson $leasePath}else{@{qmp_instance='';qmp_arrival=0L;instances=@{}}}
+        if(!$lease.ContainsKey('qmp_arrival')){$lease.qmp_arrival=0L}
         $stopping=[bool]$RestoreOnly;$waitExit=$false;$errorText=''
         $context=if(!$stopping -and (Get-ReimsVmProcess $Snapshot.runtime)){Get-ReimsIphoneUsbContext $Snapshot.runtime}
         while($true) {
@@ -135,6 +141,11 @@ function Invoke-ReimsIphoneUsbSession($Snapshot,[string]$Root,[switch]$RestoreOn
             if(!$alive -or (Test-Path -LiteralPath (Join-Path $Root 'stop'))){$stopping=$true}
             if($waitExit -and $alive){Publish-ReimsIphoneUsbStatus $Snapshot $Root 'qmp-wait-exit' '' $errorText;Start-Sleep -Seconds 2;continue}
             try {
+                if($alive){
+                    $vmStatus=Invoke-ReimsQmp $Snapshot.runtime 'query-status'
+                    if($vmStatus.status -isnot [string]){throw 'Invalid QEMU power state.'}
+                    if($vmStatus.status -ceq 'shutdown'){$stopping=$true}
+                }
                 if($stopping) {
                     Remove-ReimsIphoneUsbQmp $Snapshot $Root $lease
                     Publish-ReimsIphoneUsbStatus $Snapshot $Root 'restoring' '' $errorText
@@ -161,6 +172,8 @@ function Invoke-ReimsIphoneUsbSession($Snapshot,[string]$Root,[switch]$RestoreOn
                     $selected=$matches[0];$id=$selected.instance;$key=Get-ReimsIphoneUsbId $id
                     $product=([regex]::Match($id,'(?i)PID_([0-9a-f]{4})')).Groups[1].Value
                     Assert-ReimsUsbSafe @(@{vendor='05ac';product=$product})
+                    $arrival=Get-ReimsIphoneUsbArrival $id
+                    if($lease.qmp_instance -ieq $id -and $lease.qmp_arrival -ne $arrival){Remove-ReimsIphoneUsbQmp $Snapshot $Root $lease}
                     if(!$selected.receipt -or $selected.receipt.phase -ceq 'restored') {
                         $objects=Invoke-ReimsQmp $Snapshot.runtime 'qom-list' @{path='/machine/peripheral'}
                         if($objects | Where-Object name -CEQ $Snapshot.profile.id){throw 'An unowned QEMU iPhone object already exists.'}
@@ -170,12 +183,13 @@ function Invoke-ReimsIphoneUsbSession($Snapshot,[string]$Root,[switch]$RestoreOn
                         $selected.receipt=Read-ReimsUsbDriverBindingReceipt $selected.path
                     }
                     $ready=Test-ReimsIphoneUsbLiveModel $id $selected.receipt.target
-                    if($selected.receipt.needs_reboot -and (Get-ReimsIphoneUsbArrival $id) -le $lease.instances[$key].binding_ticks){$ready=$false}
+                    $arrival=Get-ReimsIphoneUsbArrival $id
+                    if($selected.receipt.needs_reboot -and $arrival -le $lease.instances[$key].binding_ticks){$ready=$false}
                     if(!$ready){Publish-ReimsIphoneUsbStatus $Snapshot $Root 'replug-waiting' $id;Start-Sleep -Seconds 2;continue}
                     if(!$lease.qmp_instance) {
                         $objects=Invoke-ReimsQmp $Snapshot.runtime 'qom-list' @{path='/machine/peripheral'}
                         if($objects | Where-Object name -CEQ $Snapshot.profile.id){throw 'An unowned QEMU iPhone object already exists.'}
-                        $lease.qmp_instance=$id;Write-ReimsIphoneUsbSessionJson $leasePath $lease
+                        $lease.qmp_instance=$id;$lease.qmp_arrival=$arrival;Write-ReimsIphoneUsbSessionJson $leasePath $lease
                         Invoke-ReimsQmp $Snapshot.runtime 'device_add' (Get-ReimsIphoneUsbArgument $Snapshot.profile $id)|Out-Null
                     }
                     $attached=Wait-ReimsUsbAttachment $Snapshot.runtime $Snapshot.profile.id
@@ -191,18 +205,26 @@ function Invoke-ReimsIphoneUsbSession($Snapshot,[string]$Root,[switch]$RestoreOn
     } finally {if($held){$mutex.ReleaseMutex()};$mutex.Dispose()}
 }
 
+function Import-ReimsIphoneUsbQmpFunctions {
+    # Import full declarations: Body alone omits parameters declared after the name.
+    # Never execute start.ps1/environment.ps1 or their caller-tree setup code.
+    $tokens=$null;$errors=$null
+    $ast=[Management.Automation.Language.Parser]::ParseFile("$PSScriptRoot/start.ps1",[ref]$tokens,[ref]$errors)
+    if($errors.Count){throw 'Cannot parse the installed QMP helpers.'}
+    foreach($name in @('Get-ReimsVmProcess','Invoke-ReimsQmp')) {
+        $definitions=@($ast.FindAll({param($node)$node -is [Management.Automation.Language.FunctionDefinitionAst]},$false)|Where-Object Name -CEQ $name)
+        if($definitions.Count -ne 1){throw 'Missing or ambiguous installed QMP helper.'}
+        $text=$definitions[0].Extent.Text -replace ('^function\s+'+[regex]::Escape($name)+'\b'),"function script:$name"
+        . ([scriptblock]::Create($text))
+    }
+}
+
 function Start-ReimsIphoneUsbSessionWorker([string]$SnapshotPath,[string]$Hash,[string]$Session,[switch]$Stop,[string]$Sid) {
     if(!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){throw 'Administrator required.'}
     . "$PSScriptRoot/iphone-usb-package.ps1"
     . "$PSScriptRoot/iphone-usb.ps1"
     . "$PSScriptRoot/usb.ps1"
-    # Load only the house's read-only process identity and QMP functions. Never dot
-    # start.ps1/environment.ps1: they create directories in the caller's VM tree.
-    $ast=[Management.Automation.Language.Parser]::ParseFile("$PSScriptRoot/start.ps1",[ref]$null,[ref]$null)
-    foreach($name in @('Get-ReimsVmProcess','Invoke-ReimsQmp')) {
-        $definition=$ast.FindAll({param($node)$node -is [Management.Automation.Language.FunctionDefinitionAst]},$false)|Where-Object Name -CEQ $name
-        Set-Item -Path "Function:$name" -Value $definition.Body.GetScriptBlock()
-    }
+    Import-ReimsIphoneUsbQmpFunctions
     $root=Get-ReimsIphoneUsbSessionRoot $Session
     if($Stop) {
         # shortcut: after Windows restarts, explicit Detach resumes this protected
@@ -225,7 +247,14 @@ function Start-ReimsIphoneUsbSessionWorker([string]$SnapshotPath,[string]$Hash,[
         Write-ReimsIphoneUsbSessionJson (Join-Path $root 'private/snapshot.json') $snapshot
     }
     $ProjectRoot=$snapshot.engine_root;$VmRoot=$snapshot.vm_root;$env:REIMS_MANAGER_TOOLS_ROOT=$snapshot.tools_root
-    $env:TEMP=$env:TMP=Join-Path $root 'private/tmp';[void][IO.Directory]::CreateDirectory($env:TEMP)
+    $temporaryRoot=Get-ReimsIphoneUsbTemporaryRoot $ProjectRoot $Session
+    if(Test-Path -LiteralPath $temporaryRoot){Assert-ReimsIphoneUsbSessionRoot $temporaryRoot $snapshot.caller_sid}else{New-ReimsIphoneUsbSessionRoot $temporaryRoot $snapshot.caller_sid}
+    # Keep the sparse protected task cache for explicit owner cleanup; never use
+    # the caller's VM tree or ProgramData for elevated temporary/cache writes.
+    $env:TEMP=$env:TMP=$env:TMPDIR=Join-Path $temporaryRoot 'private/tmp'
+    $env:XDG_CACHE_HOME=Join-Path $temporaryRoot 'private/cache';$env:DOTNET_CLI_HOME=Join-Path $env:XDG_CACHE_HOME 'dotnet-home'
+    $env:NUGET_PACKAGES=Join-Path $env:XDG_CACHE_HOME 'nuget';$env:NUGET_HTTP_CACHE_PATH=Join-Path $env:XDG_CACHE_HOME 'nuget-http'
+    [void][IO.Directory]::CreateDirectory($env:TEMP)
     if($Stop) {
         $statusPath=Join-Path $root 'status.json'
         if(Test-Path -LiteralPath $statusPath){$status=Read-ReimsIphoneUsbSessionJson $statusPath;if(Get-ReimsVmProcess $status){return}}

@@ -14,10 +14,12 @@ function Test-ReimsIphoneUsbLegacy($Config) {
 function Get-ReimsIphoneUsbProfile($Config) {
     if(!$Config.PSObject.Properties['iphone_usb'] -or !$Config.iphone_usb) { return }
     $p=$Config.iphone_usb | ConvertTo-Json -Depth 8 | ConvertFrom-Json -AsHashtable
-    if($p -isnot [Collections.IDictionary] -or @($p.Keys | Where-Object {$_ -cnotin @('id','ecid','udid','initial_instance','enabled','session_id')}).Count -or
+    if($p -isnot [Collections.IDictionary]){throw 'iPhone の保存済み設定が無効です。'}
+    foreach($key in @('id','ecid','initial_instance','session_id')){if($p[$key] -isnot [string]){throw 'iPhone の保存済み設定が無効です。'}}
+    if(@($p.Keys | Where-Object {$_ -cnotin @('id','ecid','udid','initial_instance','enabled','session_id')}).Count -or
         !(Test-ReimsIphoneUsbInstance $p.initial_instance) -or $p.id -cne (Get-ReimsIphoneUsbId $p.initial_instance) -or
         $p.ecid -cnotmatch '^[0-9a-f]{16}$' -or $p.ecid -eq ('0'*16) -or $p.enabled -isnot [bool] -or
-        $p.session_id -cnotmatch '^[0-9a-f]{32}$' -or ($p.Contains('udid') -and $p.udid -cnotmatch '^[0-9A-Fa-f-]{16,64}$')) { throw 'iPhone の保存済み設定が無効です。' }
+        $p.session_id -cnotmatch '^[0-9a-f]{32}$' -or ($p.Contains('udid') -and ($p.udid -isnot [string] -or $p.udid -cnotmatch '^[0-9A-Fa-f-]{16,64}$'))) { throw 'iPhone の保存済み設定が無効です。' }
     $p
 }
 
@@ -43,12 +45,15 @@ function Get-ReimsIphoneUsbRows($Config) {
         $id=if($owned){$profile.id}else{Get-ReimsIphoneUsbId $device.InstanceId}
         $attached=[bool]($owned -and $status -and $status.state -ceq 'connected')
         $label="iPhone ($product)"
-        if($owned -and $status){$label+=' ［'+$(switch($status.state){'connected'{'接続中'} 'replug-waiting'{'抜き差し待ち'} 'restored'{'復元済み'} 'restore-pending'{'元ドライバーの復元待ち'} 'qmp-wait-exit'{'VM 完全終了後に復元'} default{'接続・復元処理中'}})+'］'}
-        [pscustomobject]@{id=$id;label=$label;present=$true;selected=[bool]($owned -and $profile.enabled);
+        if($owned -and $status){$label+=' ［'+$(switch($status.state){'connected'{'接続中'} 'replug-waiting'{'抜き差し待ち'} 'restored'{'復元済み'} 'restore-pending'{'元ドライバーの復元待ち'} 'qmp-wait-exit'{'VM 完全終了後に復元'} 'error'{'エラー・復元の確認が必要'} default{'接続・復元処理中'}})+'］'}
+        $row=[pscustomobject]@{id=$id;label=$label;present=$true;selected=[bool]($owned -and $profile.enabled);
             active=[bool]($owned -and $status -and $status.active);attached=$attached;vendor='05ac';product=$product;bus=0;address=0;port=''}
+        if($owned){$row|Add-Member error $(if($status -and $status.ContainsKey('error')){[string]$status.error}else{''})}
+        $row
     }
     if($profile -and !$seen) {
-        [pscustomobject]@{id=$profile.id;label='iPhone ［再接続・復元待ち］';present=$false;selected=$profile.enabled;
+        [pscustomobject]@{id=$profile.id;label=$(if($status -and $status.state -ceq 'error'){'iPhone ［エラー・復元の確認が必要］'}else{'iPhone ［再接続・復元待ち］'});present=$false;selected=$profile.enabled;
+            error=$(if($status -and $status.ContainsKey('error')){[string]$status.error}else{''});
             active=[bool]($status -and $status.active);attached=$false;vendor='05ac';product=([regex]::Match($profile.initial_instance,'(?i)PID_([0-9a-f]{4})')).Groups[1].Value.ToLowerInvariant();bus=0;address=0;port=''}
     }
 }
