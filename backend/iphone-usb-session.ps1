@@ -140,7 +140,9 @@ function Invoke-ReimsIphoneUsbSession($Snapshot,[string]$Root,[switch]$RestoreOn
         $leasePath=Join-Path $Root 'private/leases.json'
         $lease=if(Test-Path -LiteralPath $leasePath){Read-ReimsIphoneUsbSessionJson $leasePath}else{@{qmp_instance='';qmp_arrival=0L;instances=@{}}}
         if(!$lease.ContainsKey('qmp_arrival')){$lease.qmp_arrival=0L}
-        $stopping=[bool]$RestoreOnly -or (Test-ReimsIphoneUsbStopRequested $Snapshot $Root);$waitExit=$false;$errorText=''
+        $stopping=[bool]$RestoreOnly -or (Test-ReimsIphoneUsbStopRequested $Snapshot $Root)
+        # A dead client's add can still be queued even when qom-list is empty.
+        $waitExit=[bool]$RestoreOnly -and [bool]$lease.qmp_instance -and [bool](Get-ReimsVmProcess $Snapshot.runtime);$errorText=''
         $context=if(!$stopping -and (Get-ReimsVmProcess $Snapshot.runtime)){Get-ReimsIphoneUsbContext $Snapshot.runtime}
         while($true) {
             $alive=[bool](Get-ReimsVmProcess $Snapshot.runtime)
@@ -177,7 +179,6 @@ function Invoke-ReimsIphoneUsbSession($Snapshot,[string]$Root,[switch]$RestoreOn
                     if(!$matches.Count){Publish-ReimsIphoneUsbStatus $Snapshot $Root 'waiting' '' $identityFailure;Start-Sleep -Seconds 2;continue}
                     $selected=$matches[0];$id=$selected.instance;$key=Get-ReimsIphoneUsbId $id
                     $product=([regex]::Match($id,'(?i)PID_([0-9a-f]{4})')).Groups[1].Value
-                    Assert-ReimsUsbSafe @(@{vendor='05ac';product=$product})
                     $arrival=Get-ReimsIphoneUsbArrival $id
                     if($lease.qmp_instance -ieq $id -and $lease.qmp_arrival -ne $arrival){Remove-ReimsIphoneUsbQmp $Snapshot $Root $lease}
                     if(!$selected.receipt -or $selected.receipt.phase -ceq 'restored') {
@@ -185,6 +186,7 @@ function Invoke-ReimsIphoneUsbSession($Snapshot,[string]$Root,[switch]$RestoreOn
                         if($objects | Where-Object name -CEQ $Snapshot.profile.id){throw 'An unowned QEMU iPhone object already exists.'}
                         $lease.instances[$key]=@{binding_ticks=[DateTime]::UtcNow.Ticks;instance=$id}
                         Write-ReimsIphoneUsbSessionJson $leasePath $lease
+                        Assert-ReimsUsbSafe @(@{vendor='05ac';product=$product})
                         if(Test-ReimsIphoneUsbStopRequested $Snapshot $Root){$stopping=$true;continue}
                         [void](Set-ReimsUsbDriverBinding -InstanceId $id -ReceiptPath $selected.path -PackageInf $context.package.infPath)
                         $selected.receipt=Read-ReimsUsbDriverBindingReceipt $selected.path

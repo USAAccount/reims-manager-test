@@ -25,7 +25,7 @@ function Get-ReimsIphoneUsbCandidates {$script:candidates}
 function Get-ReimsIphoneUsbStatus($Profile){$script:status}
 function Get-ReimsProtectedUsbIds {,[Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)}
 function Get-ReimsVmProcess($Runtime){if($script:alive){[pscustomobject]@{Id=$Runtime.pid}}}
-function Assert-ReimsUsbSafe($Selections){if($script:fixture -and $script:fixture.blocked){throw 'Fixture protected USB'}}
+function Assert-ReimsUsbSafe($Selections){if($script:fixture){$script:fixture.safeChecks++;if($script:fixture.blocked){throw 'Fixture protected USB'}}}
 function Get-ReimsIphoneUsbContext($Runtime){if($Runtime.usb_backend -cne 'winusb' -or !$script:capability){throw 'Fixture unsupported engine'};@{package=@{infPath=(Join-Path $root 'libusb0.inf')};python='unused';native_library='unused'}}
 function Get-ReimsIphoneUsbIdentity($Instance,$Context){if($script:fixture){$script:fixture.events.Add('identity');if($script:fixture.scenario -ceq 'cancel-identity'){Write-ReimsJson (Get-ReimsIphoneUsbAdvisoryStopPath $snapshot.vm_root $snapshot.profile.session_id) @{stop=$true}};return @{ecid=$script:fixture.ecid}};@{ecid=$profile.ecid;udid='00008120-000000000000BEEF'}}
 function Start-ReimsIphoneUsbElevation($Arguments){
@@ -159,6 +159,7 @@ try {
         if($f.scenario -eq 'same-id' -and $f.tick -eq 1){$f.arrival=22L}
         if($f.scenario -eq 'shutdown' -and $f.tick -eq 1){$f.vmStatus='shutdown'}
         if($f.scenario -eq 'paused' -and $f.tick -eq 1){$f.vmStatus='paused'}
+        if($f.scenario -eq 'guard-once' -and $f.tick -eq 1){$f.blocked=$true}
         if($f.scenario -in @('replug','qmp') -and $f.tick -eq 1){$f.arrival=[DateTime]::UtcNow.AddSeconds(1).Ticks;$f.stacks[$normal]='libusb0'}
         if($f.scenario -eq 'qmp' -and $f.objects.Count){$f.qmpFail=$true}
         if($f.scenario -eq 'foreign-qmp' -and $f.tick -eq 1){$f.objects[$profile.id]['host-instance-id']='USB\VID_05AC&PID_12A8\FOREIGN';Write-ReimsIphoneUsbSessionJson (Join-Path $f.root 'stop') @{stop=$true}}
@@ -172,7 +173,7 @@ try {
             Section='AuthoredInstall';SectionExtension='.NT';Provider='Authored Driver';Version='1.2.3.4';ClassGuid='{36FC9E60-C465-11CF-8056-444553540000}';Service='usbccgp';MatchingId='USB\COMPOSITE'}}
         $script:fixture=@{root=$folder;tick=0;exitTick=2;models=$models;present=@{$normal=$true;$recovery=$true};stacks=@{$normal='usbccgp';$recovery='usbccgp'};
             events=[Collections.Generic.List[string]]::new();states=[Collections.Generic.List[string]]::new();objects=@{};added=[Collections.Generic.List[object]]::new();
-            arrivals=[Collections.Generic.List[long]]::new();candidates=@($normal);arrival=0L;reboot=$false;qmpFail=$false;blocked=$false;scenario=$Name;ecid=$profile.ecid;lastError='';restoreTick=-1;vmStatus='running'}
+            arrivals=[Collections.Generic.List[long]]::new();candidates=@($normal);arrival=0L;reboot=$false;qmpFail=$false;blocked=$false;safeChecks=0;scenario=$Name;ecid=$profile.ecid;lastError='';restoreTick=-1;vmStatus='running'}
         $folder
     }
     $folder=New-Fixture 'acl';$sid=[Security.Principal.WindowsIdentity]::GetCurrent().User.Value
@@ -211,10 +212,13 @@ try {
     Assert ($fixture.events.Contains('bind') -and $fixture.events.Contains('remove') -and $fixture.events.Contains('restore') -and $fixture.states[-1] -ceq 'restored') "Connect/remove/restore order failed: events=$($fixture.events -join ','); states=$($fixture.states -join ','); error=$($fixture.lastError)"
     Assert ($fixture.events.IndexOf('remove') -lt $fixture.events.IndexOf('restore')) 'Driver restoration never precedes confirmed QMP removal'
     Assert ($fixture.added.Count -eq 1 -and $fixture.added[0]['guest-resets-all']) 'Production loop uses phone reset argument helper'
+    $folder=New-Fixture 'guard-once';$fixture.exitTick=3
+    Invoke-ReimsIphoneUsbSession $snapshot $folder
+    Assert ($fixture.safeChecks -eq 1 -and $fixture.added.Count -eq 1 -and !$fixture.states.Contains('qmp-wait-exit') -and $fixture.restoreTick -eq 3) 'Connected polling does not repeat the expensive protected-device check or stop on its later transient failure'
     $folder=New-Fixture 'same-id';$fixture.exitTick=3
     Invoke-ReimsIphoneUsbSession $snapshot $folder
     Assert ($fixture.added.Count -eq 2 -and $fixture.added[0]['host-instance-id'] -ceq $fixture.added[1]['host-instance-id'] -and
-        @($fixture.events|Where-Object {$_ -ceq 'bind'}).Count -eq 1) 'Same-instance physical re-enumeration re-adds QMP without an unnecessary driver bind'
+        @($fixture.events|Where-Object {$_ -ceq 'bind'}).Count -eq 1 -and $fixture.safeChecks -eq 1) 'Same-instance physical re-enumeration re-adds QMP without an unnecessary driver bind or protected-device check'
     Assert ($fixture.events.IndexOf('device_add') -lt $fixture.events.IndexOf('remove') -and $fixture.events.IndexOf('remove') -lt $fixture.events.LastIndexOf('device_add') -and
         @($fixture.events|Where-Object {$_ -ceq 'remove'}).Count -eq 1 -and $fixture.arrivals[0] -eq 0 -and $fixture.arrivals[1] -eq 22) 'Confirmed owned removal precedes recreation and each QMP arrival is persisted before add'
     $folder=New-Fixture 'shutdown';$fixture.exitTick=5
@@ -236,7 +240,7 @@ try {
     }
     $folder=New-Fixture 'mode'
     Invoke-ReimsIphoneUsbSession $snapshot $folder
-    Assert ($fixture.added.Count -eq 2 -and $fixture.added[1]['host-instance-id'] -ceq $recovery) 'Mode change follows actual ECID to an exact new instance'
+    Assert ($fixture.added.Count -eq 2 -and $fixture.added[1]['host-instance-id'] -ceq $recovery -and $fixture.safeChecks -eq 2) 'Every new mode checks protected devices before binding the exact ECID-matched instance'
     Assert (@(Get-ChildItem -LiteralPath (Join-Path $folder 'private/receipts') -File).Count -eq 2 -and $fixture.states.Contains('restore-pending')) 'All mode receipts survive disappearance and wait for restoration arrival'
     Assert (@($fixture.events|Where-Object {$_ -ceq 'restore'}).Count -eq 2) 'Every owned mode is restored; no new capture during restore-only wait'
     $folder=New-Fixture 'qmp';$fixture.exitTick=4
@@ -264,6 +268,14 @@ try {
     Write-ReimsIphoneUsbSessionJson (Join-Path $folder 'private/leases.json') @{qmp_instance=$normal;instances=@{}}
     Invoke-ReimsIphoneUsbSession $snapshot $folder -RestoreOnly
     Assert ($fixture.events.Contains('restore') -and !$fixture.events.Contains('identity') -and !$fixture.events.Contains('bind') -and $fixture.states[-1] -ceq 'restored') 'Explicit detach resumes protected recovery after process loss without a new capture'
+    $folder=New-Fixture 'resume-unknown-intent';$fixture.exitTick=3
+    $receiptPath=Join-Path $folder "private/receipts/$($profile.id).json"
+    [void](Set-ReimsUsbDriverBinding -InstanceId $normal -ReceiptPath $receiptPath -PackageInf (Join-Path $root 'libusb0.inf'))
+    $fixture.events.Clear()
+    Write-ReimsIphoneUsbSessionJson (Join-Path $folder 'private/leases.json') @{qmp_instance=$normal;instances=@{}}
+    Assert (!$fixture.objects.Count) 'Dead-worker recovery fixture has an unconfirmed add intent but no current QMP object'
+    Invoke-ReimsIphoneUsbSession $snapshot $folder -RestoreOnly
+    Assert ($fixture.states.Contains('qmp-wait-exit') -and $fixture.restoreTick -eq 3 -and !$fixture.events.Contains('qom-list') -and !$fixture.events.Contains('remove')) 'Unknown persisted QMP intent prevents restoration until VM exit even when enumeration would be empty'
     # Run the same bootstrap as the elevated entry, not replacements for its functions.
     $temporaryBefore=$env:TEMP
     Import-ReimsIphoneUsbQmpFunctions
