@@ -65,6 +65,7 @@ try {
     Initialize-ReimsUsbDriverBindingNative
     [ReimsUsbDriverBinding.Native]::CheckLayout()
     Assert $true 'Native C# compiles and 64-bit SetupAPI structures match; no native operation invoked'
+    Assert ([ReimsUsbDriverBinding.Native]::ClassDriverFlagsEx -eq (0x08000000 -bor 0x00000800)) 'Class lists must retain distinct hardware-ID nodes and include excluded pinned drivers'
 
     $f=New-Fixture 'success';$result=Bind $f
     Assert ($result.bound -and $result.state -eq 'bound' -and !$result.needs_reboot) 'Binding result must confirm success only after readback'

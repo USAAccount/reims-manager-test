@@ -1,7 +1,7 @@
 # Native calls are deferred until an explicit operation. Importing this file only defines functions.
 function Initialize-ReimsUsbDriverBindingNative {
     if ('ReimsUsbDriverBinding.Native' -as [type]) {
-        if(![ReimsUsbDriverBinding.Model].GetField('ReadState')) { throw 'Use a fresh PowerShell process for the updated native driver definitions.' }
+        if(![ReimsUsbDriverBinding.Model].GetField('ReadState') -or ![ReimsUsbDriverBinding.Native].GetField('ClassDriverFlagsEx')) { throw 'Use a fresh PowerShell process for the updated native driver definitions.' }
         return
     }
     Add-Type -TypeDefinition @'
@@ -21,6 +21,8 @@ public sealed class Model {
     public uint Problem;
 }
 public static class Native {
+    // Keep distinct hardware-ID models even when their INF descriptions and ranks match.
+    public const uint ClassDriverFlagsEx = 0x08000800; // NO_CLASSLIST_NODE_MERGE | ALLOWEXCLUDEDDRVS
     [StructLayout(LayoutKind.Sequential)] struct Device { public uint Size; public Guid ClassGuid; public uint DevInst; public UIntPtr Reserved; }
     [StructLayout(LayoutKind.Sequential)] struct FileTime { public uint Low, High; }
     [StructLayout(LayoutKind.Sequential, CharSet=CharSet.Unicode)] struct Driver {
@@ -150,7 +152,7 @@ public static class Native {
         try {
             var parameters=new Parameters { Size=(uint)Marshal.SizeOf<Parameters>() };
             Check(SetupDiGetDeviceInstallParamsW(set,IntPtr.Zero,ref parameters));
-            parameters.Flags|=0x10000; parameters.FlagsEx|=0x800; parameters.DriverPath=wanted.InfPath;
+            parameters.Flags|=0x10000; parameters.FlagsEx|=ClassDriverFlagsEx; parameters.DriverPath=wanted.InfPath;
             Check(SetupDiSetDeviceInstallParamsW(set,IntPtr.Zero,ref parameters));
             Check(SetupDiBuildDriverInfoList(set,IntPtr.Zero,1));
             Check(SetupDiOpenDeviceInfoW(set,id,IntPtr.Zero,2,ref device));
