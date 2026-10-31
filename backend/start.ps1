@@ -143,6 +143,41 @@ function Get-ReimsVmProcess($Runtime) {
     if ($null -eq $started) { throw "Cannot verify the start time of VM process $($Runtime.pid)." }
     if ($started.ToUniversalTime().Ticks -ne [long]$Runtime.start_ticks) { return $null }
     $executable = $process.Path
+    if ([string]::IsNullOrWhiteSpace($executable)) {
+        # MainModule needs VM_READ; elevated helpers still permit limited identity queries.
+        if (!('ReimsProcessImage' -as [type])) {
+            Add-Type -TypeDefinition @'
+using System;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
+using System.Text;
+using Microsoft.Win32.SafeHandles;
+[assembly: DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+public static class ReimsProcessImage {
+    [StructLayout(LayoutKind.Sequential)] struct FileTime { public uint Low, High; }
+    [DllImport("kernel32.dll", SetLastError=true)] static extern SafeProcessHandle OpenProcess(uint access, bool inherit, uint id);
+    [DllImport("kernel32.dll", SetLastError=true)] static extern bool GetProcessTimes(SafeProcessHandle process, out FileTime created, out FileTime exited, out FileTime kernel, out FileTime user);
+    [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)] static extern bool QueryFullProcessImageNameW(SafeProcessHandle process, uint flags, StringBuilder path, ref uint length);
+    public static string Read(int id, long expectedTicks) {
+        using (var process=OpenProcess(0x1000,false,checked((uint)id))) {
+            if (process.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
+            FileTime created, exited, kernel, user;
+            if (!GetProcessTimes(process,out created,out exited,out kernel,out user)) throw new Win32Exception(Marshal.GetLastWin32Error());
+            long fileTime=(long)(((ulong)created.High<<32)|created.Low);
+            if (DateTime.FromFileTimeUtc(fileTime).Ticks!=expectedTicks) return null;
+            var path=new StringBuilder(32768); uint length=(uint)path.Capacity;
+            if (!QueryFullProcessImageNameW(process,0,path,ref length)) throw new Win32Exception(Marshal.GetLastWin32Error());
+            if (length==0) throw new InvalidOperationException("Process image name was empty.");
+            return path.ToString();
+        }
+    }
+}
+'@
+        }
+        try { $executable=[ReimsProcessImage]::Read([int]$Runtime.pid,[long]$Runtime.start_ticks) }
+        catch { throw "Cannot verify the executable of VM process $($Runtime.pid): $($_.Exception.Message)" }
+        if ($null -eq $executable) { return $null }
+    }
     if ([string]::IsNullOrWhiteSpace($executable)) { throw "Cannot verify the executable of VM process $($Runtime.pid)." }
     if (![string]::Equals($executable, $Runtime.executable, [StringComparison]::OrdinalIgnoreCase)) { return $null }
     return $process

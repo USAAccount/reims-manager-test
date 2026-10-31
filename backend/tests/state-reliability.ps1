@@ -55,6 +55,7 @@ try {
     $stale = $runtime.PSObject.Copy(); $stale.executable += '.old'
     Assert-True ($null -eq (Get-ReimsVmProcess $stale)) 'A different executable was treated as this VM'
     # Missing permissions are not evidence that a matching process has stopped.
+    Add-Type 'public static class ReimsProcessImage { public static string Read(int id,long ticks) { throw new System.ComponentModel.Win32Exception(5); } }'
     function Get-Process {
         [CmdletBinding()]param([int]$Id)
         if ($script:LookupDenied) { Write-Error 'Authored access denied' -Category PermissionDenied; return }
