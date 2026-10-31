@@ -307,7 +307,8 @@ function Get-ReimsUsbDevices {
         if ($property.PSObject.Properties['Data']) { $descriptions[$property.InstanceId]=$property.Data }
     }
     $names=Get-ReimsUsbProductNames $pnp $descriptions
-    $devices = @(ConvertFrom-ReimsUsbInventory $text $names (Get-ReimsProtectedUsbIds) | Where-Object {
+    $blocked=Get-ReimsProtectedUsbIds
+    $devices = @(ConvertFrom-ReimsUsbInventory $text $names $blocked | Where-Object {
         # Retain old registrations so they can be explicitly removed.
         $_.vendor -ne '05ac' -or $_.product -notmatch '^(12a8|128[0-3]|122[0-7])$' -or $_.id -in $savedIds
     })
@@ -343,7 +344,7 @@ function Get-ReimsUsbDevices {
                 else {' ［登録済み・再接続が必要］'})
         }
     }
-    return @($devices) + @(Get-ReimsIphoneUsbRows $config)
+    return @($devices) + @(Get-ReimsIphoneUsbRows $config $blocked)
 }
 
 function Set-ReimsUsbSelection([string]$Id, [bool]$Connect) {

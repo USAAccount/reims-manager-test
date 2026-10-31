@@ -34,12 +34,12 @@ function Get-ReimsIphoneUsbCandidates {
     $rows
 }
 
-function Get-ReimsIphoneUsbRows($Config) {
+function Get-ReimsIphoneUsbRows($Config,$Blocked=$null) {
     if(Test-ReimsIphoneUsbLegacy $Config) { return }
     if(!(Get-Command Get-ReimsIphoneUsbStatus -ErrorAction SilentlyContinue)){. "$PSScriptRoot/iphone-usb-session.ps1"}
     $profile=Get-ReimsIphoneUsbProfile $Config
     $status=if($profile){Get-ReimsIphoneUsbStatus $profile}
-    $blocked=Get-ReimsProtectedUsbIds
+    if($null -eq $Blocked){$Blocked=Get-ReimsProtectedUsbIds}
     $seen=$false
     foreach($device in Get-ReimsIphoneUsbCandidates) {
         $product=([regex]::Match($device.InstanceId,'(?i)PID_([0-9a-f]{4})')).Groups[1].Value.ToLowerInvariant()
