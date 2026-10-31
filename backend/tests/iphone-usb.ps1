@@ -157,6 +157,8 @@ try {
         if($f.scenario -eq 'normal' -and $f.tick -eq 1){Write-ReimsIphoneUsbSessionJson (Join-Path $f.root 'stop') @{stop=$true}}
         if($f.scenario -eq 'mode' -and $f.tick -eq 1){$f.present[$normal]=$false;$f.candidates=@($recovery)}
         if($f.scenario -eq 'same-id' -and $f.tick -eq 1){$f.arrival=22L}
+        if($f.scenario -eq 'unplug-replug' -and $f.tick -eq 1){$f.present[$normal]=$false}
+        if($f.scenario -eq 'unplug-replug' -and $f.tick -eq 2){$f.present[$normal]=$true;$f.arrival=33L}
         if($f.scenario -eq 'shutdown' -and $f.tick -eq 1){$f.vmStatus='shutdown'}
         if($f.scenario -eq 'paused' -and $f.tick -eq 1){$f.vmStatus='paused'}
         if($f.scenario -eq 'guard-once' -and $f.tick -eq 1){$f.blocked=$true}
@@ -221,6 +223,13 @@ try {
         @($fixture.events|Where-Object {$_ -ceq 'bind'}).Count -eq 1 -and $fixture.safeChecks -eq 1) 'Same-instance physical re-enumeration re-adds QMP without an unnecessary driver bind or protected-device check'
     Assert ($fixture.events.IndexOf('device_add') -lt $fixture.events.IndexOf('remove') -and $fixture.events.IndexOf('remove') -lt $fixture.events.LastIndexOf('device_add') -and
         @($fixture.events|Where-Object {$_ -ceq 'remove'}).Count -eq 1 -and $fixture.arrivals[0] -eq 0 -and $fixture.arrivals[1] -eq 22) 'Confirmed owned removal precedes recreation and each QMP arrival is persisted before add'
+    $folder=New-Fixture 'unplug-replug';$fixture.exitTick=4
+    Invoke-ReimsIphoneUsbSession $snapshot $folder
+    Assert ($fixture.states.Contains('waiting') -and $fixture.added.Count -eq 2 -and !$fixture.lastError -and $fixture.restoreTick -eq 4) 'A real absence between unplug and replug keeps the session waiting, then reconnects without an array error or early restoration'
+    Assert (@($fixture.events|Where-Object {$_ -ceq 'bind'}).Count -eq 1 -and $fixture.events.IndexOf('remove') -lt $fixture.events.LastIndexOf('device_add')) 'A reappearing exact instance reuses its owned binding only after removing the previous QMP device'
+    $folder=New-Fixture 'absent-start';$fixture.present[$normal]=$false
+    Invoke-ReimsIphoneUsbSession $snapshot $folder
+    Assert ($fixture.states.Contains('waiting') -and !$fixture.lastError -and !$fixture.added.Count -and !$fixture.events.Contains('bind')) 'Absence before the first binding is a waiting state, not a failed or fabricated capture'
     $folder=New-Fixture 'shutdown';$fixture.exitTick=5
     Invoke-ReimsIphoneUsbSession $snapshot $folder
     Assert ($fixture.tick -eq 1 -and $fixture.events.Contains('remove') -and $fixture.events.Contains('restore') -and $snapshot.profile.enabled) 'Guest power off restores the phone while retained QEMU stays alive and selection remains enabled'

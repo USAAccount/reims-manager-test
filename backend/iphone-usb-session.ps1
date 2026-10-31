@@ -175,7 +175,8 @@ function Invoke-ReimsIphoneUsbSession($Snapshot,[string]$Root,[switch]$RestoreOn
                         if($identity.ecid -ceq $Snapshot.profile.ecid){$matches+=@{instance=$id;receipt=$receipt;path=$receiptPath}}
                     }
                     if($matches.Count -gt 1){throw '同じ ECID の iPhone が複数あります。接続しません。'}
-                    if(!$matches.Count -or $lease.qmp_instance -and $lease.qmp_instance -ine $matches[0].instance){Remove-ReimsIphoneUsbQmp $Snapshot $Root $lease}
+                    # PowerShell gives -and/-or equal precedence; group before indexing.
+                    if(!$matches.Count -or ($lease.qmp_instance -and $lease.qmp_instance -ine $matches[0].instance)){Remove-ReimsIphoneUsbQmp $Snapshot $Root $lease}
                     if(!$matches.Count){Publish-ReimsIphoneUsbStatus $Snapshot $Root 'waiting' '' $identityFailure;Start-Sleep -Seconds 2;continue}
                     $selected=$matches[0];$id=$selected.instance;$key=Get-ReimsIphoneUsbId $id
                     $product=([regex]::Match($id,'(?i)PID_([0-9a-f]{4})')).Groups[1].Value
