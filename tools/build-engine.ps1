@@ -52,7 +52,7 @@ if ($pin.sources.Contains('libusb')) {
     Invoke-EngineGit -Arguments @('-C',$libusbSource,'archive','--format=tar',"--output=$snapshot",$pin.sources.libusb.commit)
     $env:REIMS_LIBUSB_WORK=$libusbWork
     $env:REIMS_LIBUSB_PREFIX=$libusbPrefix
-    Invoke-ReimsMsys 'set -e; work="$(cygpath -u "$REIMS_LIBUSB_WORK")"; tar -xf "$work/source.tar" -C "$work/source"; cd "$work/source"; ./bootstrap.sh; cd "$work/build"; CC=clang ../source/configure --host=x86_64-w64-mingw32 --prefix="$(cygpath -m "$REIMS_LIBUSB_PREFIX")" --enable-shared --disable-static --disable-tests-build --disable-examples-build; make -j1; make -j1 install'
+    Invoke-ReimsMsys 'set -e; work="$(cygpath -u "$REIMS_LIBUSB_WORK")"; tar -xf "$work/source.tar" -C "$work/source"; cd "$work/source"; ./bootstrap.sh; cd "$work/build"; export MSYS2_ARG_CONV_EXCL="-ffile-prefix-map="; CC=clang CFLAGS="-O2 -g0 -ffile-prefix-map=\"$(cygpath -m "$work/source")=/src/libusb\" -ffile-prefix-map=../../source=/src/libusb" ../source/configure --host=x86_64-w64-mingw32 --prefix="$(cygpath -m "$REIMS_LIBUSB_PREFIX")" --enable-shared --disable-static --disable-tests-build --disable-examples-build; make -j1; make -j1 install; strip --strip-unneeded "$(cygpath -u "$REIMS_LIBUSB_PREFIX")/bin/libusb-1.0.dll"'
     $dll=Join-Path $libusbPrefix 'bin/libusb-1.0.dll'
     @{schema=1;source=$pin.sources.libusb;sha256=(Get-FileHash -LiteralPath $dll).Hash.ToLowerInvariant()} |
         ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $libusbPrefix 'reims-libusb-build.json') -Encoding utf8NoBOM
