@@ -3,6 +3,11 @@ function Get-ReimsIphoneUsbId([string]$Instance) {
     'hostiphone-'+[Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($Instance.ToUpperInvariant()))).ToLowerInvariant()
 }
 
+function Get-ReimsIphoneUsbAdvisoryStopPath([string]$Directory,[string]$Session) {
+    if(![IO.Path]::IsPathFullyQualified($Directory) -or $Session -cnotmatch '^[0-9a-f]{32}$'){throw 'Invalid iPhone cancellation path.'}
+    Join-Path ([IO.Path]::GetFullPath($Directory)) "state/iphone-$Session.stop"
+}
+
 function Test-ReimsIphoneUsbInstance([string]$Instance) {
     $Instance -imatch '^USB\\VID_05AC&PID_(12A8|128[0-3]|122[0-7])(?:&REV_[0-9A-F]{4})?\\[^\\/\x00-\x20*?]{1,200}$'
 }
@@ -140,7 +145,13 @@ function Set-ReimsIphoneUsbSelection([string]$Id,[bool]$Connect) {
         'iPhone の接続を登録しました。ドライバー切替の確認画面を許可してください。再接続待ちの場合は抜き差ししてください。'
     } else {
         if(!$profile -or $profile.id -cne $Id){throw 'この iPhone は登録されていません。'}
-        [void](Start-ReimsIphoneUsbElevation @('-StopSession','-SessionId',$profile.session_id,'-CallerSid',[Security.Principal.WindowsIdentity]::GetCurrent().User.Value))
+        # This advisory can only revoke this session, including a delayed UAC start.
+        Write-ReimsJson (Get-ReimsIphoneUsbAdvisoryStopPath $VmRoot $profile.session_id) @{session_id=$profile.session_id;stop=$true}
+        $status=Get-ReimsIphoneUsbStatus $profile
+        $resident=$status -and $status.ContainsKey('pid') -and (Get-ReimsVmProcess $status)
+        if(!$resident -and (Test-Path -LiteralPath (Get-ReimsIphoneUsbSessionRoot $profile.session_id))){
+            [void](Start-ReimsIphoneUsbElevation @('-StopSession','-SessionId',$profile.session_id,'-CallerSid',[Security.Principal.WindowsIdentity]::GetCurrent().User.Value))
+        }
         $profile.enabled=$false;$config|Add-Member -Force iphone_usb ([pscustomobject]$profile)
         Write-ReimsJson (Join-Path $VmRoot 'state/config.json') $config
         'iPhone の自動接続を解除し、元ドライバーへの復元を要求しました。未接続のモードがある場合は再接続後に復元します。'

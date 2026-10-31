@@ -16,23 +16,27 @@ $normal='USB\VID_05AC&PID_12A8\AUTHORED-PHONE'
 $recovery='USB\VID_05AC&PID_1281\AUTHORED-RECOVERY'
 $profile=@{id=(Get-ReimsIphoneUsbId $normal);initial_instance=$normal;ecid='000000000000beef';enabled=$true;session_id=('a'*32)}
 $runtime=@{pid=123;start_ticks=456;executable='D:\authored-engine\bin\qemu.exe';qmp_port=4455;usb_backend='winusb'}
-$snapshot=@{schema=1;profile=$profile;runtime=$runtime;caller_sid='S-1-5-21-1-2-3-1001'}
+$snapshot=@{schema=1;profile=$profile;runtime=$runtime;vm_root=$root;caller_sid='S-1-5-21-1-2-3-1001'}
 $ProjectRoot=$root;$VmRoot=$root
 $config=[pscustomobject]@{usb_devices=@();iphone_usb=[pscustomobject]$profile;usb_backend='winusb'}
 $script:candidates=@([pscustomobject]@{InstanceId=$normal})
-$script:status=$null;$script:elevations=@();$script:capability=$true;$script:alive=$true
+$script:status=$null;$script:elevations=@();$script:capability=$true;$script:alive=$true;$script:normalWrites=[Collections.Generic.List[string]]::new()
 function Get-ReimsIphoneUsbCandidates {$script:candidates}
 function Get-ReimsIphoneUsbStatus($Profile){$script:status}
 function Get-ReimsProtectedUsbIds {,[Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)}
 function Get-ReimsVmProcess($Runtime){if($script:alive){[pscustomobject]@{Id=$Runtime.pid}}}
 function Assert-ReimsUsbSafe($Selections){if($script:fixture -and $script:fixture.blocked){throw 'Fixture protected USB'}}
 function Get-ReimsIphoneUsbContext($Runtime){if($Runtime.usb_backend -cne 'winusb' -or !$script:capability){throw 'Fixture unsupported engine'};@{package=@{infPath=(Join-Path $root 'libusb0.inf')};python='unused';native_library='unused'}}
-function Get-ReimsIphoneUsbIdentity($Instance,$Context){if($script:fixture){$script:fixture.events.Add('identity');return @{ecid=$script:fixture.ecid}};@{ecid=$profile.ecid;udid='00008120-000000000000BEEF'}}
-function Start-ReimsIphoneUsbElevation($Arguments){$script:elevations+=,@($Arguments);[pscustomobject]@{Id=321}}
+function Get-ReimsIphoneUsbIdentity($Instance,$Context){if($script:fixture){$script:fixture.events.Add('identity');if($script:fixture.scenario -ceq 'cancel-identity'){Write-ReimsJson (Get-ReimsIphoneUsbAdvisoryStopPath $snapshot.vm_root $snapshot.profile.session_id) @{stop=$true}};return @{ecid=$script:fixture.ecid}};@{ecid=$profile.ecid;udid='00008120-000000000000BEEF'}}
+function Start-ReimsIphoneUsbElevation($Arguments){
+    if($Arguments[0] -ceq '-StopSession' -and !(Test-Path -LiteralPath (Get-ReimsIphoneUsbAdvisoryStopPath $VmRoot $Arguments[2]))){throw 'Fixture stop elevated before advisory cancellation'}
+    $script:elevations+=,@($Arguments);[pscustomobject]@{Id=321}
+}
 function ConvertTo-ReimsWindowsArgument($Value){'"'+$Value+'"'}
-function Write-ReimsJson($Path,$Value){[void][IO.Directory]::CreateDirectory((Split-Path $Path));[IO.File]::WriteAllText($Path,($Value|ConvertTo-Json -Depth 16))}
+function Write-ReimsJson($Path,$Value){$script:normalWrites.Add($Path);[void][IO.Directory]::CreateDirectory((Split-Path $Path));[IO.File]::WriteAllText($Path,($Value|ConvertTo-Json -Depth 16))}
 function Get-ReimsVmConfig {$script:config}
 function Get-ReimsRuntime {$runtime}
+function Get-ReimsIphoneUsbSessionRoot($Session){Join-Path $root $Session}
 $script:fixture=$null
 try {
     Assert ((Get-ReimsIphoneUsbId $normal) -ceq (Get-ReimsIphoneUsbId $normal.ToLowerInvariant())) 'Initial PnP ID hashes canonically'
@@ -86,8 +90,19 @@ try {
     Assert ($script:elevations.Count -eq 1 -and $config.iphone_usb.session_id -cne ('a'*32)) 'Normal process saves session GUID before elevation'
     $saved=Get-Content -Raw -LiteralPath (Join-Path $root 'state/config.json')|ConvertFrom-Json
     Assert ($saved.iphone_usb.session_id -ceq $config.iphone_usb.session_id) 'Persisted profile owns the launched session'
+    $advisory=Get-ReimsIphoneUsbAdvisoryStopPath $VmRoot $config.iphone_usb.session_id
+    Assert (!(Test-Path -LiteralPath (Get-ReimsIphoneUsbSessionRoot $config.iphone_usb.session_id))) 'Delayed start fixture has no protected root yet'
+    $writeCount=$script:normalWrites.Count
     Set-ReimsIphoneUsbSelection $config.iphone_usb.id $false|Out-Null
-    Assert (!$config.iphone_usb.enabled -and $script:elevations[1][0] -ceq '-StopSession') 'Detach requests elevated stop and saves disabled selection normally'
+    Assert (!$config.iphone_usb.enabled -and $script:elevations.Count -eq 1 -and (Test-Path -LiteralPath $advisory)) 'Detach before worker root creation cancels the delayed start without another UAC'
+    Assert ($script:normalWrites[$writeCount] -ceq $advisory -and $script:normalWrites[$writeCount+1] -ceq (Join-Path $root 'state/config.json')) 'Advisory cancellation is committed before the disabled profile'
+    [void][IO.Directory]::CreateDirectory((Get-ReimsIphoneUsbSessionRoot $config.iphone_usb.session_id))
+    $script:status=@{state='connected';active=$true;pid=321;start_ticks=654;executable='D:\authored-worker.exe'}
+    Set-ReimsIphoneUsbSelection $config.iphone_usb.id $false|Out-Null
+    Assert ($script:elevations.Count -eq 1) 'Verified live resident observes the advisory without additional UAC'
+    $script:status=$null
+    Set-ReimsIphoneUsbSelection $config.iphone_usb.id $false|Out-Null
+    Assert ($script:elevations.Count -eq 2 -and $script:elevations[1][0] -ceq '-StopSession') 'Existing dead protected session still requests elevated restoration resume'
     $config.iphone_usb.enabled=$true
     $script:status=@{state='restoring';active=$true;qemu_pid=$runtime.pid;qemu_start_ticks=$runtime.start_ticks;pid=321}
     Reject {Start-ReimsIphoneUsbAutoConnect $config $runtime} '復元が未完了'
@@ -102,7 +117,6 @@ try {
     Reject {Read-ReimsIphoneUsbSessionJson $file -ExpectedHash ('0'*64)} 'input changed'
 
     # Remaining cases run the production resident loop with fake driver/PnP/QMP calls.
-    function Get-ReimsIphoneUsbSessionRoot($Session){Join-Path $root $Session}
     function Publish-ReimsIphoneUsbStatus($Snapshot,$Root,$State,$Instance='',$ErrorText=''){$script:fixture.states.Add($State);$script:fixture.lastError=$ErrorText}
     function Get-ReimsIphoneUsbArrival($Instance){$script:fixture.arrival}
     function Get-PnpDeviceProperty($InstanceId,$KeyName){[pscustomobject]@{Data=@("\Driver\$($script:fixture.stacks[$InstanceId])")}}
@@ -116,6 +130,7 @@ try {
                 if(!(Test-ReimsUsbDriverBindingModel $script:fixture.models[$id] $expected)){throw 'Fixture foreign state'}
                 $script:fixture.models[$id]=$wanted.Clone()
                 if(!$capture -or !$script:fixture.reboot){$script:fixture.stacks[$id]=$wanted.Service}
+                if($capture -and $script:fixture.scenario -ceq 'cancel-after-bind'){Write-ReimsJson (Get-ReimsIphoneUsbAdvisoryStopPath $snapshot.vm_root $snapshot.profile.session_id) @{stop=$true}}
                 [bool]($capture -and $script:fixture.reboot)
             }
         }
@@ -152,6 +167,7 @@ try {
     }
     function New-Fixture($Name) {
         $folder=Join-Path $root $Name;[void][IO.Directory]::CreateDirectory((Join-Path $folder 'private/receipts'))
+        $snapshot.vm_root=Join-Path $root "$Name-caller-vm";[void][IO.Directory]::CreateDirectory($snapshot.vm_root)
         $models=@{};foreach($id in @($normal,$recovery)){$models[$id]=@{Present=$true;Problem=0;InfPath=(Join-Path $root 'authored-original.inf');InfHash=('a'*64);
             Section='AuthoredInstall';SectionExtension='.NT';Provider='Authored Driver';Version='1.2.3.4';ClassGuid='{36FC9E60-C465-11CF-8056-444553540000}';Service='usbccgp';MatchingId='USB\COMPOSITE'}}
         $script:fixture=@{root=$folder;tick=0;exitTick=2;models=$models;present=@{$normal=$true;$recovery=$true};stacks=@{$normal='usbccgp';$recovery='usbccgp'};
@@ -178,6 +194,18 @@ try {
     $fixture.exitTick=0
     $orphan=&$realStatus $profile
     Assert (!$orphan.active -and $orphan.state -ceq 'restore-pending') 'A dead worker cannot leave a stale attached-success row'
+    $snapshot.vm_root=Join-Path $root 'cancel-before-root-caller-vm'
+    Write-ReimsJson (Get-ReimsIphoneUsbAdvisoryStopPath $snapshot.vm_root $snapshot.profile.session_id) @{stop=$true}
+    Assert (!(Test-Path -LiteralPath (Join-Path $root 'cancel-before-root'))) 'Cancellation marker exists before the delayed protected worker root'
+    $folder=New-Fixture 'cancel-before-root'
+    Invoke-ReimsIphoneUsbSession $snapshot $folder
+    Assert (!$fixture.events.Contains('identity') -and !$fixture.events.Contains('bind') -and !$fixture.added.Count -and $fixture.states[-1] -ceq 'restored') 'Delayed start after cancellation performs no identity/capture and finishes restore-only'
+    $folder=New-Fixture 'cancel-identity'
+    Invoke-ReimsIphoneUsbSession $snapshot $folder
+    Assert ($fixture.events.Contains('identity') -and !$fixture.events.Contains('bind') -and !$fixture.added.Count -and $fixture.states[-1] -ceq 'restored') 'Cancellation during identity prevents both binding and QMP add'
+    $folder=New-Fixture 'cancel-after-bind'
+    Invoke-ReimsIphoneUsbSession $snapshot $folder
+    Assert ($fixture.events.Contains('bind') -and $fixture.events.Contains('restore') -and !$fixture.added.Count -and !$fixture.events.Contains('remove') -and $fixture.states[-1] -ceq 'restored') 'Cancellation after binding restores without issuing QMP add or claiming an unissued object'
     $folder=New-Fixture 'normal'
     Invoke-ReimsIphoneUsbSession $snapshot $folder
     Assert ($fixture.events.Contains('bind') -and $fixture.events.Contains('remove') -and $fixture.events.Contains('restore') -and $fixture.states[-1] -ceq 'restored') "Connect/remove/restore order failed: events=$($fixture.events -join ','); states=$($fixture.states -join ','); error=$($fixture.lastError)"

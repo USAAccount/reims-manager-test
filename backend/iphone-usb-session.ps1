@@ -126,6 +126,12 @@ function Remove-ReimsIphoneUsbQmp($Snapshot,[string]$Root,$Lease) {
     $Lease.qmp_instance='';$Lease.qmp_arrival=0L;Write-ReimsIphoneUsbSessionJson (Join-Path $Root 'private/leases.json') $Lease
 }
 
+function Test-ReimsIphoneUsbStopRequested($Snapshot,[string]$Root) {
+    # Never parse or execute caller-controlled data; existence only cancels our session.
+    (Test-Path -LiteralPath (Join-Path $Root 'stop')) -or
+        (Test-Path -LiteralPath (Get-ReimsIphoneUsbAdvisoryStopPath $Snapshot.vm_root $Snapshot.profile.session_id))
+}
+
 function Invoke-ReimsIphoneUsbSession($Snapshot,[string]$Root,[switch]$RestoreOnly) {
     $mutex=[Threading.Mutex]::new($false,"Global\ReimsManager.IphoneUsb.$($Snapshot.profile.ecid)");$held=$false
     try {
@@ -134,11 +140,11 @@ function Invoke-ReimsIphoneUsbSession($Snapshot,[string]$Root,[switch]$RestoreOn
         $leasePath=Join-Path $Root 'private/leases.json'
         $lease=if(Test-Path -LiteralPath $leasePath){Read-ReimsIphoneUsbSessionJson $leasePath}else{@{qmp_instance='';qmp_arrival=0L;instances=@{}}}
         if(!$lease.ContainsKey('qmp_arrival')){$lease.qmp_arrival=0L}
-        $stopping=[bool]$RestoreOnly;$waitExit=$false;$errorText=''
+        $stopping=[bool]$RestoreOnly -or (Test-ReimsIphoneUsbStopRequested $Snapshot $Root);$waitExit=$false;$errorText=''
         $context=if(!$stopping -and (Get-ReimsVmProcess $Snapshot.runtime)){Get-ReimsIphoneUsbContext $Snapshot.runtime}
         while($true) {
             $alive=[bool](Get-ReimsVmProcess $Snapshot.runtime)
-            if(!$alive -or (Test-Path -LiteralPath (Join-Path $Root 'stop'))){$stopping=$true}
+            if(!$alive -or (Test-ReimsIphoneUsbStopRequested $Snapshot $Root)){$stopping=$true}
             if($waitExit -and $alive){Publish-ReimsIphoneUsbStatus $Snapshot $Root 'qmp-wait-exit' '' $errorText;Start-Sleep -Seconds 2;continue}
             try {
                 if($alive){
@@ -179,6 +185,7 @@ function Invoke-ReimsIphoneUsbSession($Snapshot,[string]$Root,[switch]$RestoreOn
                         if($objects | Where-Object name -CEQ $Snapshot.profile.id){throw 'An unowned QEMU iPhone object already exists.'}
                         $lease.instances[$key]=@{binding_ticks=[DateTime]::UtcNow.Ticks;instance=$id}
                         Write-ReimsIphoneUsbSessionJson $leasePath $lease
+                        if(Test-ReimsIphoneUsbStopRequested $Snapshot $Root){$stopping=$true;continue}
                         [void](Set-ReimsUsbDriverBinding -InstanceId $id -ReceiptPath $selected.path -PackageInf $context.package.infPath)
                         $selected.receipt=Read-ReimsUsbDriverBindingReceipt $selected.path
                     }
@@ -190,6 +197,10 @@ function Invoke-ReimsIphoneUsbSession($Snapshot,[string]$Root,[switch]$RestoreOn
                         $objects=Invoke-ReimsQmp $Snapshot.runtime 'qom-list' @{path='/machine/peripheral'}
                         if($objects | Where-Object name -CEQ $Snapshot.profile.id){throw 'An unowned QEMU iPhone object already exists.'}
                         $lease.qmp_instance=$id;$lease.qmp_arrival=$arrival;Write-ReimsIphoneUsbSessionJson $leasePath $lease
+                        if(Test-ReimsIphoneUsbStopRequested $Snapshot $Root){
+                            $lease.qmp_instance='';$lease.qmp_arrival=0L;Write-ReimsIphoneUsbSessionJson $leasePath $lease
+                            $stopping=$true;continue
+                        }
                         Invoke-ReimsQmp $Snapshot.runtime 'device_add' (Get-ReimsIphoneUsbArgument $Snapshot.profile $id)|Out-Null
                     }
                     $attached=Wait-ReimsUsbAttachment $Snapshot.runtime $Snapshot.profile.id
