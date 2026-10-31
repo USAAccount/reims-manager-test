@@ -41,21 +41,52 @@ $rustup=(Get-Command rustup.exe -ErrorAction Stop).Source
 $env:REIMS_PROJECT_ROOT_OVERRIDE=$source
 $env:REIMS_MSYS2_ROOT=[IO.Path]::GetFullPath($MsysRoot)
 . "$source/scripts/windows/environment.ps1"
+$libusbSource=$null; $libusbPrefix=$null; $driverPackage=$null
+if ($pin.sources.Contains('libusb')) {
+    $libusbSource=Join-Path $work 'libusb-source'
+    Checkout $pin.sources.libusb $libusbSource
+    $libusbWork=Join-Path $work 'libusb-build'
+    $libusbPrefix=Join-Path $libusbWork 'install'
+    New-Item -ItemType Directory -Path "$libusbWork/source","$libusbWork/build" -Force | Out-Null
+    $snapshot=Join-Path $libusbWork 'source.tar'
+    Invoke-EngineGit -Arguments @('-C',$libusbSource,'archive','--format=tar',"--output=$snapshot",$pin.sources.libusb.commit)
+    $env:REIMS_LIBUSB_WORK=$libusbWork
+    $env:REIMS_LIBUSB_PREFIX=$libusbPrefix
+    Invoke-ReimsMsys 'set -e; work="$(cygpath -u "$REIMS_LIBUSB_WORK")"; tar -xf "$work/source.tar" -C "$work/source"; cd "$work/source"; ./bootstrap.sh; cd "$work/build"; CC=clang ../source/configure --host=x86_64-w64-mingw32 --prefix="$(cygpath -m "$REIMS_LIBUSB_PREFIX")" --enable-shared --disable-static --disable-tests-build --disable-examples-build; make -j1; make -j1 install'
+    $dll=Join-Path $libusbPrefix 'bin/libusb-1.0.dll'
+    @{schema=1;source=$pin.sources.libusb;sha256=(Get-FileHash -LiteralPath $dll).Hash.ToLowerInvariant()} |
+        ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $libusbPrefix 'reims-libusb-build.json') -Encoding utf8NoBOM
+    # Root replaces PKG_CONFIG_PATH with its dist. Keep the pinned libusb
+    # ahead of MSYS stock even after that replacement.
+    $pkg=Join-Path $libusbPrefix 'lib/pkgconfig'
+    $env:PKG_CONFIG_PATH=$pkg
+    $env:PKG_CONFIG_LIBDIR=($pkg,(Join-Path $MsysRoot 'ucrt64/lib/pkgconfig'),(Join-Path $MsysRoot 'ucrt64/share/pkgconfig')) -join ';'
+    Invoke-ReimsMsys 'test "$(pkg-config --variable=prefix libusb-1.0)" = "$(cygpath -m "$REIMS_LIBUSB_PREFIX")"'
+    & "$PSScriptRoot/fetch-iphone-usb-driver.ps1" -ArchiveDirectory $downloads
+    $driverPackage=Join-Path $work 'iphone-usb-driver'
+    & "$PSScriptRoot/bundle-iphone-usb-driver.ps1" -ArchiveDirectory $downloads -OutputDirectory $driverPackage -SevenZip (Join-Path $seven '7z.exe') | Out-Null
+}
 & $rustup toolchain install $env:RUSTUP_TOOLCHAIN --profile minimal
 if ($LASTEXITCODE -ne 0) { throw 'Rust toolchain installation failed.' }
 Invoke-ReimsMsys 'pacman -Q > "$TEMP/../diagnostics/msys2-packages-current.txt"'
 # The pinned xtask dist copies the committed C header; only header/check needs external cbindgen.
 & "$source/scripts/windows/build.ps1" -Profile release
 if ($LASTEXITCODE -ne 0) { throw 'Native engine build failed.' }
-foreach ($tree in @(@($source,$pin.sources.reims.commit),@((Join-Path $source 'vendor/qemu'),$pin.sources.qemu.commit))) {
+$trees=@(@($source,$pin.sources.reims.commit),@((Join-Path $source 'vendor/qemu'),$pin.sources.qemu.commit))
+if ($libusbSource) { $trees+=,@($libusbSource,$pin.sources.libusb.commit) }
+foreach ($tree in $trees) {
     $head=(& git -C $tree[0] rev-parse HEAD) -join ''
     if ($LASTEXITCODE -ne 0 -or $head -ne $tree[1]) { throw 'Source revision changed during the build.' }
-    $changes=(& git -C $tree[0] status --porcelain --untracked-files=normal) -join ''
+    $status=@('-C',$tree[0],'status','--porcelain','--untracked-files=normal')
+    if ($tree[0] -eq $source) { $status+=@('--','.',':(exclude)vendor/qemu') }
+    $changes=(& git @status) -join ''
     if ($LASTEXITCODE -ne 0 -or $changes) { throw 'Build source changed; refusing to publish mismatched binaries.' }
 }
 $package=Join-Path $work 'package'
 $python=Join-Path $MsysRoot 'ucrt64/bin/python.exe'
-& $python -X utf8 "$PSScriptRoot/package_engine.py" --source $source --msys $MsysRoot --downloads $downloads --sevenzip $seven --output $package
+$extra=@()
+if ($libusbSource) { $extra=@('--libusb-source',$libusbSource,'--libusb-build',$libusbPrefix,'--iphone-driver-package',$driverPackage) }
+& $python -X utf8 "$PSScriptRoot/package_engine.py" --source $source --msys $MsysRoot --downloads $downloads --sevenzip $seven --output $package @extra
 if ($LASTEXITCODE -ne 0) { throw 'Engine packaging failed.' }
 [void](Read-ReimsEngine $package -VerifyFiles)
 Test-ReimsNativeEngine $package
