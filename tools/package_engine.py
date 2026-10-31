@@ -230,6 +230,8 @@ def package_engine(args, lock):
         shutil.copy2(args.sevenzip/name, out/'licenses'/('7zip-'+name))
     shutil.copy2(args.source/'.work/diagnostics/msys2-packages-current.txt', out/'licenses/msys2-packages.txt')
     shutil.copy2(Path(__file__).parent.parent/'docs/engine-setup.md', out/'README.md')
+    if usb:
+        shutil.copy2(Path(__file__).parent.parent/'docs/iphone-usb.md', out/'iphone-usb.md')
     paths = dict(qemu='bin/qemu-system-x86_64.exe', qemu_img='bin/qemu-img.exe', qemu_io='bin/qemu-io.exe',
                  seven_zip='bin/7z.exe', firmware='share/qemu', firmware_code='share/qemu/edk2-x86_64-code.fd',
                  firmware_vars='share/qemu/edk2-i386-vars.fd', rom='share/reims/ReimsVgpu.rom',

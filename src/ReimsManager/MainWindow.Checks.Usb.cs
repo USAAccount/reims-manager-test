@@ -101,6 +101,11 @@ public partial class MainWindow
             if (!UsbAttachButton.IsEnabled || !UsbSelectionHint.Text.Contains("一時的に切り替え", StringComparison.Ordinal) ||
                 !UsbSelectionHint.Text.Contains("元ドライバーの復元", StringComparison.Ordinal))
                 throw new Exception("iPhone connection must explain the temporary driver handoff.");
+            rows = [rows[0] with { Active = true, Selected = true }];
+            if (!await RefreshUsbCore()) throw new Exception("Pending iPhone inventory parsing failed.");
+            UsbDevices.SelectedIndex = 0; UpdateUsbControls();
+            if (UsbAttachButton.IsEnabled || !UsbDetachButton.IsEnabled || !UsbSelectionHint.Text.Contains("一度切断", StringComparison.Ordinal))
+                throw new Exception("An active iPhone handoff must finish or disconnect before another attachment.");
             rows = genericRows;
             if (!await RefreshUsbCore()) throw new Exception("Generic USB inventory recovery failed.");
 

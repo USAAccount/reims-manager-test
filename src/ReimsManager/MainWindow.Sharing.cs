@@ -164,12 +164,13 @@ public partial class MainWindow
         bool current = usbInventoryContext == contextVersion;
         bool available = current && !refreshingUsb && !IsUiBusy;
         var selected = UsbDevices.SelectedItem as UsbEntry;
+        bool iphonePending = selected is { Active: true, Attached: false } && selected.Id.StartsWith("hostiphone-", StringComparison.Ordinal);
         UsbRefreshButton.IsEnabled = !IsUiBusy && !refreshingUsb && CanOperate("ListUsb");
         InstallUsbDkButton.IsEnabled = !IsUiBusy && !refreshingUsb && CanOperate("InstallUsbDk");
         UsbDevices.IsEnabled = available;
-        UsbAttachButton.IsEnabled = available && CanOperate("AttachUsb") && selected is { Present: true, Attached: false };
+        UsbAttachButton.IsEnabled = available && !iphonePending && CanOperate("AttachUsb") && selected is { Present: true, Attached: false };
         UsbDetachButton.IsEnabled = available && CanOperate("DetachUsb") && selected is not null && (selected.Selected || selected.Active);
-        UsbAttachButton.Content = selected is { Selected: true } or { Active: true } ? "再接続" : "接続して自動接続に登録";
+        UsbAttachButton.Content = iphonePending ? "接続処理中" : selected is { Selected: true } or { Active: true } ? "再接続" : "接続して自動接続に登録";
         UsbSelectionHint.Text = refreshingUsb ? "USB の一覧を確認しています…" : !current
             ? "一覧を更新してから操作してください。" : selected is null
                 ? "操作する USB デバイスを一覧から選択してください。" : selected.Attached
@@ -178,6 +179,7 @@ public partial class MainWindow
                         : selected.Id.StartsWith("hostiphone-", StringComparison.Ordinal)
                             ? "iPhone は署名済みドライバーへ一時的に切り替えます。管理者確認後、再接続が必要な場合があります。解除時は元のドライバーへ戻します。"
                             : "接続すると、この VM の次回起動時にも同じ USB ポートから自動接続します。";
+        if (iphonePending) UsbSelectionHint.Text = "iPhone の接続・復元処理中です。抜き差し待ちの場合は USB を再接続してください。やり直す場合は、一度切断してください。";
         if (selected is { ErrorText.Length: > 0 }) UsbSelectionHint.Text += "\n" + selected.ErrorText;
 
         string Mode(int index) => index == 1 ? "UsbDk" : "WinUSB";
