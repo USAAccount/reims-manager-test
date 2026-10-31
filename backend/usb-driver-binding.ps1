@@ -1,6 +1,9 @@
 # Native calls are deferred until an explicit operation. Importing this file only defines functions.
 function Initialize-ReimsUsbDriverBindingNative {
-    if ('ReimsUsbDriverBinding.Native' -as [type]) { return }
+    if ('ReimsUsbDriverBinding.Native' -as [type]) {
+        if(![ReimsUsbDriverBinding.Model].GetField('ReadState')) { throw 'Use a fresh PowerShell process for the updated native driver definitions.' }
+        return
+    }
     Add-Type -TypeDefinition @'
 using System;
 using System.ComponentModel;
@@ -13,6 +16,7 @@ using Microsoft.Win32;
 namespace ReimsUsbDriverBinding {
 public sealed class Model {
     public string InfPath, InfHash, Section, SectionExtension, Provider, Version, ClassGuid, Service, MatchingId;
+    public string ReadState, DriverKey;
     public bool Present;
     public uint Problem;
 }
@@ -41,6 +45,7 @@ public static class Native {
     [DllImport("setupapi.dll", SetLastError=true)] static extern IntPtr SetupDiCreateDeviceInfoList(IntPtr cls, IntPtr parent);
     [DllImport("setupapi.dll", CharSet=CharSet.Unicode, SetLastError=true)] static extern bool SetupDiOpenDeviceInfoW(IntPtr set, string id, IntPtr parent, uint flags, ref Device device);
     [DllImport("setupapi.dll", SetLastError=true)] static extern bool SetupDiDestroyDeviceInfoList(IntPtr set);
+    [DllImport("setupapi.dll", SetLastError=true)] static extern IntPtr SetupDiOpenDevRegKey(IntPtr set, ref Device device, uint scope, uint profile, uint keyType, uint access);
     [DllImport("setupapi.dll", CharSet=CharSet.Unicode, SetLastError=true)] static extern bool SetupDiGetDeviceRegistryPropertyW(IntPtr set, ref Device device, uint property, out uint type, byte[] data, uint size, out uint required);
     [DllImport("setupapi.dll", CharSet=CharSet.Unicode, SetLastError=true)] static extern bool SetupDiGetDeviceInstallParamsW(IntPtr set, IntPtr device, ref Parameters parameters);
     [DllImport("setupapi.dll", CharSet=CharSet.Unicode, SetLastError=true)] static extern bool SetupDiSetDeviceInstallParamsW(IntPtr set, IntPtr device, ref Parameters parameters);
@@ -63,15 +68,20 @@ public static class Native {
             Marshal.OffsetOf<Detail>("HardwareId").ToInt32()!=1576 || Marshal.OffsetOf<Parameters>("DriverPath").ToInt32()!=60)
             throw new InvalidOperationException("Unsupported native SetupAPI layout; a 64-bit host is required.");
     }
-    static string Property(IntPtr set, ref Device device, uint property) {
+    static string Property(IntPtr set, ref Device device, uint property, RegistryKey hardware=null, string valueName=null) {
         var data=new byte[4096]; uint type, required;
-        Check(SetupDiGetDeviceRegistryPropertyW(set, ref device, property, out type, data, (uint)data.Length, out required));
+        if (!SetupDiGetDeviceRegistryPropertyW(set, ref device, property, out type, data, (uint)data.Length, out required)) {
+            int error=Marshal.GetLastWin32Error();
+            if (error==13 && hardware!=null && !hardware.GetValueNames().Contains(valueName,StringComparer.OrdinalIgnoreCase)) return null;
+            throw new Win32Exception(error);
+        }
         if (type!=1 || required<2 || required>data.Length || (required&1)!=0) throw new InvalidDataException("Invalid device property.");
         return Encoding.Unicode.GetString(data,0,(int)required).TrimEnd('\0');
     }
-    static string RegistryString(RegistryKey key, string name) {
-        var value=key.GetValue(name) as string;
-        if (String.IsNullOrWhiteSpace(value) || value.Length>1024) throw new InvalidDataException("Missing installed driver metadata: "+name);
+    static string RegistryString(RegistryKey key, string name, bool allowEmpty=false) {
+        if (!key.GetValueNames().Contains(name,StringComparer.OrdinalIgnoreCase)) return null;
+        var value=key.GetValue(name,null,RegistryValueOptions.DoNotExpandEnvironmentNames) as string;
+        if (value==null || (!allowEmpty && String.IsNullOrWhiteSpace(value)) || value.Length>1024) throw new InvalidDataException("Invalid installed driver metadata: "+name);
         return value;
     }
     static string Hash(string path) { using (var file=File.OpenRead(path)) return Convert.ToHexString(SHA256.HashData(file)).ToLowerInvariant(); }
@@ -86,22 +96,43 @@ public static class Native {
             uint status, problem; uint result=CM_Get_DevNode_Status(out status,out problem,device.DevInst,0);
             if (result==13) return new Model { Present=false };
             if (result!=0) throw new InvalidOperationException("Cannot confirm target device presence.");
-            string driverKey=Property(set,ref device,9);
+            string cls=Property(set,ref device,8);
+            var handle=SetupDiOpenDevRegKey(set,ref device,1,0,1,0x20019);
+            if (handle==Invalid) throw new Win32Exception(Marshal.GetLastWin32Error());
+            string driverKey,service;
+            using (var hardware=RegistryKey.FromHandle(new Microsoft.Win32.SafeHandles.SafeRegistryHandle(handle,true))) {
+                driverKey=Property(set,ref device,9,hardware,"Driver");
+                service=Property(set,ref device,4,hardware,"Service");
+            }
+            var model=new Model { Present=true, Problem=problem, ReadState="unbound", ClassGuid=cls, Service=service, DriverKey=driverKey };
+            if (driverKey==null) return model;
             if (!System.Text.RegularExpressions.Regex.IsMatch(driverKey,@"^\{[0-9a-fA-F-]{36}\}\\[0-9]{4}$")) throw new InvalidDataException("Invalid driver registry path.");
+            model.ReadState="incomplete";
             using (var key=Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Class\"+driverKey)) {
-                if (key==null) throw new InvalidDataException("Installed driver key unavailable.");
+                if (key==null) return model;
                 string inf=RegistryString(key,"InfPath");
-                if (Path.GetFileName(inf)!=inf || !inf.EndsWith(".inf",StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Invalid installed INF name.");
-                string path=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows),"INF",inf);
-                return new Model { Present=true, Problem=problem, InfPath=path, InfHash=Hash(path),
-                    Section=RegistryString(key,"InfSection"), SectionExtension=key.GetValue("InfSectionExt", "") as string ?? "",
-                    Provider=RegistryString(key,"ProviderName"), Version=RegistryString(key,"DriverVersion"),
-                    MatchingId=RegistryString(key,"MatchingDeviceId"), ClassGuid=Property(set,ref device,8), Service=Property(set,ref device,4) };
+                if (inf!=null) {
+                    if (Path.GetFileName(inf)!=inf || !inf.EndsWith(".inf",StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Invalid installed INF name.");
+                    model.InfPath=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows),"INF",inf);
+                    try { model.InfHash=Hash(model.InfPath); } catch (FileNotFoundException) { }
+                }
+                model.Section=RegistryString(key,"InfSection");
+                model.SectionExtension=RegistryString(key,"InfSectionExt",true) ?? "";
+                model.Provider=RegistryString(key,"ProviderName"); model.Version=RegistryString(key,"DriverVersion");
+                model.MatchingId=RegistryString(key,"MatchingDeviceId");
+                if (model.InfHash!=null && model.Section!=null && model.Provider!=null && model.Version!=null && model.MatchingId!=null && service!=null) model.ReadState="bound";
+                return model;
             }
         } finally { SetupDiDestroyDeviceInfoList(set); }
     }
     static bool Equal(string a,string b) { return String.Equals(a,b,StringComparison.OrdinalIgnoreCase); }
     public static bool Same(Model a,Model b) {
+        if (b!=null && (b.ReadState=="unbound" || b.ReadState=="incomplete")) {
+            return a!=null && a.Present && b.Present && a.ReadState==b.ReadState && a.Problem==b.Problem &&
+                Equal(a.DriverKey,b.DriverKey) && Equal(a.ClassGuid,b.ClassGuid) && Equal(a.Service,b.Service) &&
+                Equal(a.InfPath,b.InfPath) && Equal(a.InfHash,b.InfHash) && Equal(a.Section,b.Section) &&
+                Equal(a.SectionExtension,b.SectionExtension) && Equal(a.Provider,b.Provider) && Equal(a.Version,b.Version) && Equal(a.MatchingId,b.MatchingId);
+        }
         return a!=null && b!=null && a.Present && b.Present && Equal(Path.GetFileName(a.InfPath),Path.GetFileName(b.InfPath)) &&
             Equal(a.InfHash,b.InfHash) && Equal(a.Section+a.SectionExtension,b.Section+b.SectionExtension) && Equal(a.Provider,b.Provider) &&
             Equal(a.Version,b.Version) && Equal(a.ClassGuid,b.ClassGuid) && Equal(a.Service,b.Service) && Equal(a.MatchingId,b.MatchingId);
@@ -202,6 +233,7 @@ function Assert-ReimsUsbDriverBindingInstance([string[]]$InstanceId) {
 
 function Test-ReimsUsbDriverBindingModel($Actual,$Expected,[switch]$IgnoreClass) {
     if(!$Actual -or !$Expected -or !$Actual.Present -or !$Expected.Present) { return $false }
+    if($Actual['ReadState'] -in @('unbound','incomplete')) { return $false }
     foreach($name in @('InfHash','Provider','Version','Service','MatchingId')) {
         if([string]$Actual[$name] -ine [string]$Expected[$name]) { return $false }
     }
@@ -211,6 +243,7 @@ function Test-ReimsUsbDriverBindingModel($Actual,$Expected,[switch]$IgnoreClass)
 }
 
 function Assert-ReimsUsbDriverBindingModel($Model) {
+    if($Model['ReadState'] -and $Model.ReadState -cne 'bound') { throw 'A complete original driver model is required.' }
     foreach($key in @('InfPath','InfHash','Section','Provider','Version','ClassGuid','Service','MatchingId')) {
         if($Model[$key] -isnot [string] -or !$Model[$key].Length -or $Model[$key].Length -gt 1024) { throw 'Invalid typed driver binding model.' }
     }
@@ -272,6 +305,27 @@ function Invoke-ReimsUsbDriverBindingLock([string]$Id,[scriptblock]$Action) {
     } finally { if($held) { $mutex.ReleaseMutex() }; $mutex.Dispose() }
 }
 
+function Test-ReimsUsbDriverBindingRecovery($Current,$Receipt) {
+    if(!$Current.Present -or $Current['ReadState'] -cnotin @('unbound','incomplete') -or !$Receipt.mutation_attempted -or
+        $Receipt.phase -in @('prepared','staged','restored') -or $Current.ClassGuid -notin @($Receipt.original.ClassGuid,$Receipt.target.ClassGuid)) { return $false }
+    if($Current.ReadState -ceq 'unbound' -and $Current['DriverKey']) { return $false }
+    if($Current.ReadState -ceq 'incomplete') {
+        if($Current['DriverKey'] -notmatch '^\{[0-9a-fA-F-]{36}\}\\[0-9]{4}$') { return $false }
+        if($Current.DriverKey -ine $Receipt.original['DriverKey'] -and $Current.DriverKey.Split('\')[0] -ine $Receipt.target.ClassGuid) { return $false }
+    }
+    foreach($known in @($Receipt.original,$Receipt.target)) {
+        $matches=$true
+        foreach($name in @('Service','InfHash','Provider','Version','MatchingId')) {
+            if($null -ne $Current[$name] -and $Current[$name] -ine $known[$name]) { $matches=$false }
+        }
+        if($Current['InfPath'] -and [IO.Path]::GetFileName($Current.InfPath) -ine [IO.Path]::GetFileName($known.InfPath)) { $matches=$false }
+        if($Current['Section'] -and ($Current.Section+$Current.SectionExtension) -ine ($known.Section+$known.SectionExtension) -and
+            !($Current.Section -ieq $known.Section -and !$Current.SectionExtension)) { $matches=$false }
+        if($matches) { return $true }
+    }
+    return $false
+}
+
 function Restore-ReimsUsbDriverBindingCore([string]$Id,[string]$ReceiptPath,$Receipt,$Operations) {
     $current=& $Operations.Read $Id
     if($Receipt.phase -eq 'restored' -and !(Test-ReimsUsbDriverBindingModel $current $Receipt.original)) { throw 'Completed receipt no longer owns this driver binding.' }
@@ -284,9 +338,10 @@ function Restore-ReimsUsbDriverBindingCore([string]$Id,[string]$ReceiptPath,$Rec
         return @{state='restored';needs_reboot=$false;restored=$true}
     }
     $partial=(Test-ReimsUsbDriverBindingModel $current $Receipt.original -IgnoreClass) -and $current.ClassGuid -ieq $Receipt.target.ClassGuid
+    $unbound=Test-ReimsUsbDriverBindingRecovery $current $Receipt
     if(!$Receipt.mutation_attempted) { throw 'This receipt never changed the device; refusing to restore a later binding.' }
     if(!(Test-ReimsUsbDriverBindingModel $current $Receipt.target) -and !(Test-ReimsUsbDriverBindingModel $current $Receipt.original) -and
-        !($partial -and $Receipt.phase -in @('binding','restoring','rollback-failed','failed'))) { throw 'Current driver is foreign to this receipt; refusing to overwrite it.' }
+        !($partial -and $Receipt.phase -in @('binding','restoring','rollback-failed','failed')) -and !$unbound) { throw 'Current driver is foreign to this receipt; refusing to overwrite it.' }
     $Receipt.phase='restoring'; Write-ReimsUsbDriverBindingReceipt $ReceiptPath $Receipt
     $reboot=& $Operations.Install $Id $Receipt.original $current
     $Receipt.needs_reboot=[bool]$Receipt.needs_reboot -or [bool]$reboot

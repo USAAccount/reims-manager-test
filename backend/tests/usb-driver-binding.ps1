@@ -14,15 +14,17 @@ function New-Fixture([string]$Name) {
     $folder=Join-Path $root $Name; New-Item -ItemType Directory -Path $folder | Out-Null
     $original=@{Present=$true;Problem=0;InfPath=(Join-Path $folder 'original-apple.inf');InfHash=('a'*64);
         Section='AuthoredComposite';SectionExtension='.NT';Provider='Authored Apple Driver';Version='1.2.3.4';
-        ClassGuid='{36FC9E60-C465-11CF-8056-444553540000}';Service='usbccgp';MatchingId='USB\COMPOSITE'}
+        ClassGuid='{36FC9E60-C465-11CF-8056-444553540000}';Service='usbccgp';MatchingId='USB\COMPOSITE';
+        DriverKey='{36FC9E60-C465-11CF-8056-444553540000}\0538';ReadState='bound'}
     $state=@{Id='USB\VID_05AC&PID_12A8\AUTHORED-PHONE';Path=(Join-Path $folder 'receipt.json');
         PackageInf=(Join-Path $folder 'libusb0.inf');PublishedInf=(Join-Path $folder 'oem-libusb0.inf');
         Current=($original|ConvertTo-Json|ConvertFrom-Json -AsHashtable);Original=$original;
         Calls=[Collections.Generic.List[string]]::new();StageFail=$false;ChangeFail=$false;RollbackFail=$false;
-        Reboot=$false;ForeignStage=$false;PartialFail=$false;Unhealthy=$false}
+        Reboot=$false;ForeignStage=$false;PartialFail=$false;Unhealthy=$false;MissingDriver=$false;IncompleteDriver=$false;ForeignIncomplete=$false;ReadDenied=$false}
     $read={ param($id)
         if($id -cne $state.Id) { throw 'Fixture wrong instance' }
         $state.Calls.Add('read')
+        if($state.ReadDenied -and $state.Calls.Contains('bind')) { throw [UnauthorizedAccessException]::new('Fixture metadata read denied') }
         $state.Current | ConvertTo-Json | ConvertFrom-Json -AsHashtable
     }.GetNewClosure()
     $stage={ param($inf)
@@ -42,6 +44,14 @@ function New-Fixture([string]$Name) {
         if(!$capture -and $state.RollbackFail) { throw 'Fixture rollback failed' }
         if($capture -and $state.PartialFail) { $state.Current.ClassGuid=$wanted.ClassGuid;throw 'Fixture class selection failed' }
         $state.Current=$wanted | ConvertTo-Json | ConvertFrom-Json -AsHashtable
+        if($capture -and ($state.MissingDriver -or $state.IncompleteDriver)) {
+            $state.Current.ReadState=$(if($state.MissingDriver){'unbound'}else{'incomplete'})
+            $state.Current.DriverKey=$(if($state.MissingDriver){$null}else{$wanted.ClassGuid+'\0042'})
+            foreach($field in @('InfPath','InfHash','Section','SectionExtension','Provider','Version','MatchingId','Service')) { $state.Current[$field]=$null }
+            if($state.ForeignIncomplete) { $state.Current.Service='ForeignService' }
+            $state.Current.Problem=28
+            throw 'Fixture install lost driver metadata'
+        }
         if($capture -and $state.ChangeFail) { throw 'Fixture change failed after mutation' }
         if($capture -and $state.Unhealthy) { $state.Current.Problem=31 }
         [bool]$state.Reboot
@@ -82,6 +92,19 @@ try {
     $f=New-Fixture 'class-partial';$f.PartialFail=$true
     Reject { Bind $f } 'class selection failed'
     Assert ((Test-ReimsUsbDriverBindingModel $f.Current $f.Original) -and $f.Calls.Contains('restore')) 'Class-only native selection failure restores the original class and model'
+
+    foreach($kind in @('MissingDriver','IncompleteDriver')) {
+        $f=New-Fixture $kind;$f[$kind]=$true
+        Reject { Bind $f } 'lost driver metadata'
+        Assert ((Test-ReimsUsbDriverBindingModel $f.Current $f.Original) -and $f.Calls.Contains('restore') -and
+            (Read-ReimsUsbDriverBindingReceipt $f.Path).phase -eq 'restored') 'Proven missing/incomplete driver state must restore the exact original model'
+    }
+    $f=New-Fixture 'foreign-incomplete';$f.IncompleteDriver=$f.ForeignIncomplete=$true
+    Reject { Bind $f } 'foreign'
+    Assert (!$f.Calls.Contains('restore') -and (Read-ReimsUsbDriverBindingReceipt $f.Path).phase -eq 'rollback-failed') 'Partial metadata identifying a foreign service must not be overwritten'
+    $f=New-Fixture 'read-denied';$f.ChangeFail=$f.ReadDenied=$true
+    Reject { Bind $f } 'metadata read denied'
+    Assert (!$f.Calls.Contains('restore') -and (Read-ReimsUsbDriverBindingReceipt $f.Path).phase -eq 'rollback-failed') 'Access-denied reads must not become no-driver recovery authority'
 
     $f=New-Fixture 'reboot';$f.Reboot=$true;$result=Bind $f
     Assert (!$result.bound -and $result.needs_reboot -and $result.state -eq 'reboot-required') 'Reboot-required is neither success nor an automatic reboot'
