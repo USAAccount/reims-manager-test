@@ -309,10 +309,14 @@ function Set-ReimsUsbDriverBinding {
         if($receipt -and $receipt.instance_id -ine $id) { throw 'Receipt belongs to another device.' }
         if($receipt -and $receipt.phase -ne 'restored') {
             $current=& $Operations.Read $id
-            if($receipt.phase -eq 'bound' -and (Test-ReimsUsbDriverBindingModel $current $receipt.target)) { return @{state='bound';needs_reboot=$false;bound=$true} }
+            if($receipt.phase -eq 'bound' -and (Test-ReimsUsbDriverBindingModel $current $receipt.target)) {
+                if($current.Problem -ne 0 -or $receipt.needs_reboot) { throw 'Owned driver binding is not healthy or still requires a reboot.' }
+                return @{state='bound';needs_reboot=$false;bound=$true}
+            }
             throw 'An unfinished driver transaction must be restored first.'
         }
         $original=& $Operations.Read $id; Assert-ReimsUsbDriverBindingModel $original
+        if($original.Problem -ne 0) { throw 'Original driver is not healthy; refusing automatic replacement.' }
         if($original.Service -ieq 'libusb0') { throw 'An unowned libusb0 binding cannot become the original driver.' }
         $target=@{Present=$true;Problem=0;InfPath=[IO.Path]::GetFullPath($PackageInf);InfHash='62abab852a7fe61cfc9490a57908ed2793f3681575fabfb52987feb44fd51aa3';
             Section='LIBUSB_WIN32_DEV_NEW';SectionExtension='.NTAMD64';Provider='libusb-win32';Version='1.4.0.2';ClassGuid='{EB781AAF-9C70-4523-A5DF-642A87ECA567}';Service='libusb0';MatchingId='USB\VID_0B05&PID_190E'}

@@ -113,6 +113,13 @@ try {
     Reject { Bind $f } 'not confirmed healthy'
     Assert ((Test-ReimsUsbDriverBindingModel $f.Current $f.Original)) 'Unhealthy target binding cannot be reported captured'
 
+    $f=New-Fixture 'unhealthy-original';$f.Current.Problem=31
+    Reject { Bind $f } 'Original driver is not healthy'
+    Assert (!$f.Calls.Contains('stage') -and !(Test-Path $f.Path)) 'Unhealthy original driver is refused before staging or creating a lease'
+    $f=New-Fixture 'owned-later-unhealthy';Bind $f | Out-Null;$f.Current.Problem=31
+    Reject { Bind $f } 'Owned driver binding is not healthy'
+    Assert (@($f.Calls|Where-Object {$_ -eq 'bind'}).Count -eq 1) 'A later device problem is not reported as another successful capture'
+
     $f=New-Fixture 'multiple'
     Reject { Set-ReimsUsbDriverBinding -InstanceId @($f.Id,'USB\VID_05AC&PID_12A8\OTHER') -ReceiptPath $f.Path -PackageInf $f.PackageInf -Operations $f.Operations } 'Exactly one'
     Reject { Set-ReimsUsbDriverBinding -InstanceId 'USB\VID_05AC&PID_12A8&MI_01\CHILD' -ReceiptPath $f.Path -PackageInf $f.PackageInf -Operations $f.Operations } 'Exactly one'
