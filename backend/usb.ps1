@@ -290,15 +290,15 @@ function Get-ReimsUsbProductNames($Pnp, $Descriptions) {
 function Get-ReimsUsbDevices {
     $config = Get-ReimsVmConfig
     $saved = @(Get-ReimsUsbSelections $config)
+    $savedIds=@($saved | ForEach-Object id)
     $runtime = Get-ReimsRuntime
     $devices = @()
     $states=@{}
     $running=$runtime -and (Get-ReimsVmProcess $runtime)
+    # Host enumeration can block inside a USB driver; keep it off the live VM's main loop.
+    $text = Get-ReimsStoppedUsbInventory $config
     if ($running) {
-        $text = Invoke-ReimsQmp $runtime human-monitor-command @{'command-line'='info usbhost'}
         $states=Get-ReimsUsbObjectStates $runtime
-    } else {
-        $text = Get-ReimsStoppedUsbInventory $config
     }
     if ($text -match 'not available|unknown command') { throw 'USB 転送に対応した QEMU へ更新してください。' }
     $pnp = @(Get-PnpDevice -PresentOnly | Where-Object InstanceId -Like 'USB\VID_*')
@@ -307,7 +307,10 @@ function Get-ReimsUsbDevices {
         if ($property.PSObject.Properties['Data']) { $descriptions[$property.InstanceId]=$property.Data }
     }
     $names=Get-ReimsUsbProductNames $pnp $descriptions
-    $devices = @(ConvertFrom-ReimsUsbInventory $text $names (Get-ReimsProtectedUsbIds))
+    $devices = @(ConvertFrom-ReimsUsbInventory $text $names (Get-ReimsProtectedUsbIds) | Where-Object {
+        # Retain old registrations so they can be explicitly removed.
+        $_.vendor -ne '05ac' -or $_.product -notmatch '^(12a8|128[0-3]|122[0-7])$' -or $_.id -in $savedIds
+    })
     foreach ($device in $saved) {
         $row = $devices | Where-Object id -EQ $device.id | Select-Object -First 1
         if ($row) { $row.selected=$true }
@@ -340,10 +343,14 @@ function Get-ReimsUsbDevices {
                 else {' ［登録済み・再接続が必要］'})
         }
     }
-    return $devices
+    return @($devices) + @(Get-ReimsIphoneUsbRows $config)
 }
 
 function Set-ReimsUsbSelection([string]$Id, [bool]$Connect) {
+    if($Id.StartsWith('hostiphone-',[StringComparison]::Ordinal)) {
+        Set-ReimsIphoneUsbSelection $Id $Connect
+        return
+    }
     $config=Get-ReimsVmConfig
     $saved=@(Get-ReimsUsbSelections $config)
     $existing=$saved | Where-Object id -EQ $Id | Select-Object -First 1
@@ -404,3 +411,5 @@ function Set-ReimsUsbSelection([string]$Id, [bool]$Connect) {
         'USB の自動接続を解除しました。VM からの切断を確認しました。'
     }
 }
+
+. "$PSScriptRoot/iphone-usb.ps1"

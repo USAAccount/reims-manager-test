@@ -363,6 +363,8 @@ if (!$DryRun -and $runtime -and (Get-ReimsVmProcess $runtime)) {
     } while ($true)
     if ($wifiMacNat) { Start-ReimsWifiForwarder $config $runtime }
     if (!$Paused) { Invoke-ReimsQmp $runtime 'cont' | Out-Null }
+    try { Start-ReimsIphoneUsbAutoConnect $config $runtime }
+    catch { Write-Warning ('VM は起動済みですが、iPhone の自動接続を開始できません: '+$_.Exception.Message) }
     "Powered on the existing QEMU process, PID $($runtime.pid). Logs: $($runtime.run_directory)"
     return
 }
@@ -439,4 +441,6 @@ try {
     if ($owned) { Stop-Process -InputObject $owned -Force }
     throw
 }
+try { Start-ReimsIphoneUsbAutoConnect $config $runtime }
+catch { Write-Warning ('VM は起動済みですが、iPhone の自動接続を開始できません: '+$_.Exception.Message) }
 "Started PID $($process.Id), QMP 127.0.0.1:$($config.qmp_port), SSH 127.0.0.1:$($config.ssh_port). Logs: $run"

@@ -142,7 +142,7 @@ public partial class MainWindow
         return true;
     }
 
-    private sealed record UsbEntry(string Id, string Label, bool Present, bool Selected, bool Active, bool Attached);
+    private sealed record UsbEntry(string Id, string Label, bool Present, bool Selected, bool Active, bool Attached, string ErrorText = "");
     private long usbRequestVersion, usbInventoryContext = -1;
     private long usbAutoRefreshAttemptContext = -1;
     private bool refreshingUsb, usbDriverRestartPending;
@@ -175,7 +175,10 @@ public partial class MainWindow
                 ? "操作する USB デバイスを一覧から選択してください。" : selected.Attached
                     ? "VM に接続中です。解除すると自動接続の登録も削除します。" : selected.Selected || selected.Active
                         ? selected.Present ? "接続待ちです。「再接続」で転送をやり直せます。" : "この機器は接続待ちです。登録の解除は VM の停止中でもできます。"
-                        : "接続すると、この VM の次回起動時にも同じ USB ポートから自動接続します。";
+                        : selected.Id.StartsWith("hostiphone-", StringComparison.Ordinal)
+                            ? "iPhone は署名済みドライバーへ一時的に切り替えます。管理者確認後、再接続が必要な場合があります。解除時は元のドライバーへ戻します。"
+                            : "接続すると、この VM の次回起動時にも同じ USB ポートから自動接続します。";
+        if (selected is { ErrorText.Length: > 0 }) UsbSelectionHint.Text += "\n" + selected.ErrorText;
 
         string Mode(int index) => index == 1 ? "UsbDk" : "WinUSB";
         if (!loadedHardware || committedHardware is null) {
@@ -188,6 +191,7 @@ public partial class MainWindow
         UsbBackendHint.Text = $"保存済み: {saved}" + (currentState is "stopped" or "unprepared" ? "。" : $" ／ 実行中: {active}。") +
             (UsbBackend.SelectedIndex != committedHardware.UsbBackend ? $" 未保存の変更: {Mode(UsbBackend.SelectedIndex)}。" : "") +
             "\n方式を変更するには USB の登録を解除し、VM を完全終了して変更を保存します。UsbDk は導入後にここで選択してください。再起動後、機器を選び直します。";
+        UsbBackendHint.Text += "\niPhone の通常・復旧・DFU 接続には WinUSB 方式を使用します。";
         if (active == "未確認" && currentState is not ("stopped" or "unprepared"))
             UsbBackendHint.Text += " 現在の方式は VM の完全終了と再起動後に確認できます。";
         if ((saved == "UsbDk" || active == "UsbDk" || UsbBackend.SelectedIndex == 1) && latest.ValueKind == JsonValueKind.Object &&
@@ -255,7 +259,9 @@ public partial class MainWindow
             var devices = list.RootElement.EnumerateArray().Select(x => new UsbEntry(
                 x.GetProperty("id").GetString() ?? throw new JsonException("USB の識別情報がありません。"),
                 x.GetProperty("label").GetString() ?? "USB デバイス", x.GetProperty("present").GetBoolean(), x.GetProperty("selected").GetBoolean(),
-                x.TryGetProperty("active", out var active) && active.GetBoolean(), x.TryGetProperty("attached", out var attached) && attached.GetBoolean())).ToArray();
+                x.TryGetProperty("active", out var active) && active.GetBoolean(), x.TryGetProperty("attached", out var attached) && attached.GetBoolean(),
+                x.TryGetProperty("error", out var error) ? error.GetString() ?? "" : "")).ToArray();
+            if (devices.Any(x => x.ErrorText.Length > 2048)) throw new JsonException("USB エラー情報が長すぎます。");
             UsbDevices.ItemsSource = devices;
             UsbDevices.SelectedItem = devices.FirstOrDefault(x => x.Id == selectedId);
             usbInventoryContext = version;

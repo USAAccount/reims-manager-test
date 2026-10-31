@@ -21,13 +21,15 @@ function Get-ReimsRuntime { @{pid=1} }
 function Get-ReimsVmProcess($Runtime) { $script:running }
 function Get-ReimsStoppedUsbInventory($Config) { $script:inventory }
 function Get-PnpDevice { }
+$script:iphoneRows=@()
+function Get-ReimsIphoneUsbRows($Config) { $script:iphoneRows }
 function Get-ReimsProtectedUsbIds {
     $blocked=[Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
     [void]$blocked.Add('0BDA:9210'); [void]$blocked.Add('046D:C539'); return ,$blocked
 }
 function Invoke-ReimsQmp($Runtime,$Command,$Arguments) {
     switch ($Command) {
-        human-monitor-command { $script:inventory }
+        human-monitor-command { throw 'Physical USB enumeration must not run on the live VM main loop.' }
         device_add { $script:objects[$Arguments.id]=$Arguments }
         device_del { $script:objects.Remove($Arguments.id) }
         qom-list { foreach ($key in $script:objects.Keys) { [pscustomobject]@{name=$key} } }
@@ -63,6 +65,15 @@ try {
     Assert ((Get-ReimsUsbProductNames @($second,$adb,$parent) $descriptions)['1234:5678'] -eq 'First Fixture Model') 'A shared confirmed model can name multiple identical devices'
     $descriptions[$parent.InstanceId]='Fixture Product _SN:AUTHORED-NOT-A-DEVICE-SERIAL'
     Assert ((Get-ReimsUsbProductNames @($parent,$adb) $descriptions)['1234:5678'] -eq 'Fixture Product') 'Product labels must not persist an appended bus serial'
+
+    $originalInventory=$script:inventory
+    $script:inventory += "`n  Bus 2, Addr 20, Port 9, Speed 480 Mb/s`n    Class 00: USB device 05ac:12a8"
+    $phoneId='hostiphone-'+('a'*64)
+    $script:iphoneRows=@([pscustomobject]@{id=$phoneId;label='Authored iPhone';present=$true;selected=$false;active=$false;attached=$false})
+    Write-ReimsJson (Join-Path $VmRoot 'state/config.json') @{schema=1}
+    $phoneRows=@(Get-ReimsUsbDevices)
+    Assert ($phoneRows.Count -eq 2 -and @($phoneRows | Where-Object id -CEQ $phoneId).Count -eq 1) 'iPhone rows must use the exact-instance handoff rather than a duplicate generic port selection'
+    $script:iphoneRows=@();$script:inventory=$originalInventory
 
     Write-ReimsJson (Join-Path $VmRoot 'state/config.json') @{schema=1}
     $rows=@(Get-ReimsUsbDevices)
