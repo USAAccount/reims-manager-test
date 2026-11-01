@@ -69,12 +69,20 @@ silently substituted. The build pin is `engine-28979c8c-fbba9f15-15`; a pin
 does not by itself mean its release has been published or qualified.
 Engine `engine-07460212-fbba9f15-13` completed a Windows/WHPX cold boot of
 macOS 26.7.1, recognized an iPhone through USB mux and Finder, and passed a
-clipboard transport check. This private candidate keeps its QEMU/libusb USB
+clipboard transport check. The new engine keeps its QEMU/libusb USB
 implementation and changes GPU allocation reuse and allocator-lock scope.
-The runtime's native
-allocation and rendering tests passed on Windows; the new engine's full check,
-Release build and guest performance comparison are still pending. A source
-pin or compatibility-list entry does not qualify those unfinished checks.
+Its Windows native allocation/rendering checks, Reims's 2918 tests and
+doc-tests, and the matching GNU Release build completed. One load-sensitive
+resolve test passed alone after interrupting the check; the remaining tests
+then passed. The header and option ROM stayed unchanged. All 150 package
+files were verified before local installation. A 16 GiB WHPX cold boot of
+macOS 26.7.1 reached the desktop and the original 3392x2400 O+ Connect
+extension without a GPU fatal during the comparison. An authored movement
+probe delivered 197 timer callbacks in 21.176 seconds, not a displayed-FPS
+measurement. High-density motion remains slow: this is not a smoothness or
+end-to-end speedup qualification. The low-density comparison timed out;
+the original modes and absence of an outstanding managed change were
+subsequently confirmed. The new release ZIP has not been published.
 Physical recovery, DFU and firmware restoration remain unqualified.
 The original required engine and recorded guest-bridge qualifications remain
 unchanged. This does not qualify additional guest versions or system-dialog
@@ -230,7 +238,6 @@ not copied from a developer machine. USB drivers and microphone permission
 remain explicit host setup steps. No Apple binaries, macOS installer, guest
 disk, serialized GPU data, credentials or personal SMBIOS values are shipped.
 
-This engine-9 pin adds private resource-creation diagnostics and makes no new
-performance claim. The matching GNU Release build, integration checks and macOS
-boot need their own receipts. Its compatibility entry retains the immutable addon
-artifact and does not add an OS qualification.
+The current engine retains the immutable addon artifact and adds no new addon
+OS qualification. Diagnostic log filters may be explicitly supplied for a
+comparison; ordinary launches retain the default log level.
