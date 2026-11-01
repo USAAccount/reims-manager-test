@@ -48,6 +48,14 @@ driver stack and ECID were confirmed again afterward.
 The recovery/DFU identity paths have CPU fixtures using authored descriptors.
 QEMU's exact-instance property has passed paused device realization with an
 authored absent identity, and rejects a DLL without the extension API.
-Physical recovery, DFU, guest-driven firmware restoration and a complete
-Manager-to-guest USB session are still unqualified. This source pin is a
-private candidate until those acceptance checks are recorded.
+A Manager-to-guest normal-mode session was verified on Windows with engine
+`engine-07460212-fbba9f15-13` and macOS 26.7.1: an iPhone 8 was identified,
+switched to the signed transfer driver, reconnected and recognized by the
+guest USB mux service. A standard lockdown query matched its ECID, and the
+user confirmed its appearance in Finder. QEMU's xHCI short-transfer repair
+preserves the first ISP event and also reports the tail IOC event; suppressing
+that second event had stalled guest communication despite completed host I/O.
+
+Physical recovery, DFU and guest-driven firmware restoration remain
+unqualified; the normal-mode check does not authorize or prove an erase or
+firmware restore. The engine remains unpublished until separately released.

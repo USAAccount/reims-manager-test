@@ -71,12 +71,14 @@ An earlier engine completed a macOS 26.7.1 cold boot on Windows with WHPX;
 GPU rendering, Android USB and bidirectional clipboard were confirmed there.
 This private candidate fixes GPU pipeline replanning after moving color writes.
 The GPU check passed all 2,918 tests, and a macOS cold boot reached its GUI.
-The USB candidate also creates a temporary API handle for physical resets
-before interface claims; guest iPhone recognition is still being qualified.
-The QEMU candidate also reports the tail IOC event after a short transfer
-event on an earlier TRB. Its authored CPU tests and paused controller
-realization passed; the resulting iPhone communication still needs a guest run.
-Its physical iPhone configuration tests do not qualify guest DFU/restore or frame pacing.
+The USB implementation also creates a temporary API handle for physical resets
+before interface claims. QEMU reports the tail IOC event after a short transfer
+event on an earlier TRB, retaining the first short event's residual length.
+Its authored CPU tests and paused controller realization passed. A Windows
+cold boot of macOS 26.7.1 with this engine then recognized the selected iPhone
+through the guest USB mux service, matched its ECID through a standard lockdown
+query, and displayed it in Finder. This qualifies that normal-mode connection;
+physical recovery, DFU, firmware restoration and frame pacing remain unqualified.
 The original required engine and recorded guest-bridge qualifications remain
 unchanged. This does not qualify additional guest versions or system-dialog
 cursor behavior.
