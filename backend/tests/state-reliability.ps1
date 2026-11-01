@@ -21,7 +21,7 @@ function Reject([scriptblock]$Call, [string]$Pattern) {
 }
 
 $start = [scriptblock]::Create((Get-Content -Raw "$PSScriptRoot/../start.ps1")).Ast
-foreach ($name in @('Assert-ReimsArtifactPath', 'Write-ReimsJson', 'Enter-ReimsVmMutation', 'Get-ReimsVmConfig', 'Get-ReimsVmProcess', 'Get-ReimsRuntime', 'Assert-ReimsVmStopped', 'Invoke-ReimsQmp', 'Get-ReimsNetworkMode')) {
+foreach ($name in @('Assert-ReimsArtifactPath', 'Write-ReimsJson', 'Enter-ReimsVmMutation', 'Get-ReimsVmConfig', 'Get-ReimsVmProcess', 'Get-ReimsRuntime', 'Assert-ReimsVmStopped', 'Invoke-ReimsQmp', 'Get-ReimsNetworkMode', 'Get-ReimsVmStartFailure')) {
     $definition = $start.Find({ param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq $name }, $true)
     . ([scriptblock]::Create($definition.Extent.Text))
 }
@@ -45,6 +45,15 @@ $config = [pscustomobject]@{
     extension_field = [pscustomobject]@{ retained = '未対応の設定も保持' }
 }
 try {
+    $failedRun = Join-Path $work 'memory-failure'
+    [void][IO.Directory]::CreateDirectory($failedRun)
+    $failedLog = Join-Path $failedRun 'stderr.log'
+    Assert-True ((Get-ReimsVmStartFailure $failedRun 16384) -ceq "QEMU exited. Read $failedLog") 'A missing startup log keeps the original error'
+    [IO.File]::WriteAllText($failedLog, "qemu: Cannot set up 16 GiB of guest memory 'pc.ram': Not enough space")
+    $memoryFailure = Get-ReimsVmStartFailure $failedRun 16384
+    Assert-True ($memoryFailure -match '16384 MiB' -and $memoryFailure.Contains('メモリを Windows が確保できません') -and $memoryFailure.Contains($failedLog)) 'Guest RAM allocation failure must not be presented as a disk-space failure'
+    [IO.File]::WriteAllText($failedLog, 'qemu: Could not open disk: Not enough space')
+    Assert-True ((Get-ReimsVmStartFailure $failedRun 16384) -ceq "QEMU exited. Read $failedLog") 'Other startup failures must not be classified as guest RAM exhaustion'
     Write-ReimsJson $configPath $config
     Assert-True ((Get-ReimsVmProcess $runtime).Id -eq $PID) 'A fully matching live identity was lost'
     $stale = $runtime.PSObject.Copy(); $stale.start_ticks--

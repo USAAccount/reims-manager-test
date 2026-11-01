@@ -23,6 +23,16 @@ function Get-ReimsSshKnownHostsOption([string]$Path) {
     return 'UserKnownHostsFile="' + $Path.Replace('\','/') + '"'
 }
 
+function Get-ReimsVmStartFailure([string]$Run, [int]$MemoryMiB) {
+    $log = Join-Path $Run 'stderr.log'
+    if (Test-Path -LiteralPath $log -PathType Leaf) {
+        if (Get-Content -LiteralPath $log -TotalCount 20 | Where-Object { $_ -match 'Cannot set up .+ of guest memory' }) {
+            return "VM 用の $MemoryMiB MiB のメモリを Windows が確保できませんでした。他のアプリを閉じて再試行してください。VM のメモリ設定は変更していません。ログ: $log"
+        }
+    }
+    return "QEMU exited. Read $log"
+}
+
 function Get-ReimsEnginePath([string]$Key, [string]$SourceFallback) {
     if ($script:ReimsEngine) { return Join-ReimsPackagePath $ProjectRoot $script:ReimsEngine.paths[$Key] }
     return Join-Path $ProjectRoot $SourceFallback
@@ -461,7 +471,7 @@ Write-ReimsJson (Join-Path $VmRoot 'state/runtime.json') $runtime
 try {
     $deadline = [DateTime]::UtcNow.AddSeconds(20)
     do {
-        if (!(Get-ReimsVmProcess $runtime)) { throw "QEMU exited. Read $run/stderr.log" }
+        if (!(Get-ReimsVmProcess $runtime)) { throw (Get-ReimsVmStartFailure $run $config.memory_mib) }
         try { $status = Invoke-ReimsQmp $runtime 'query-status'; break } catch {
             if ([DateTime]::UtcNow -gt $deadline) { throw }
             Start-Sleep -Milliseconds 250
