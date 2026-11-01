@@ -162,5 +162,5 @@ function Get-ReimsIphoneUsbArgument($Profile,[string]$Instance) {
     if(!(Test-ReimsIphoneUsbInstance $Instance)){throw 'Invalid exact iPhone instance.'}
     $product=([regex]::Match($Instance,'(?i)PID_([0-9a-f]{4})')).Groups[1].Value
     @{driver='usb-host';id=$Profile.id;bus='xhci.0';'host-instance-id'=$Instance;vendorid=0x05ac;
-        productid=[Convert]::ToInt32($product,16);'guest-reset'=$true;'guest-resets-all'=$true}
+        productid=[Convert]::ToInt32($product,16);'guest-reset'=$true;'guest-resets-all'=$false}
 }

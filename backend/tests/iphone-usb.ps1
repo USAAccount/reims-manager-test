@@ -72,8 +72,8 @@ try {
     Assert ($temporaryRoot -ceq "D:\.cache\reims-iphone-usb-$($profile.session_id)") 'Elevated temporary/cache root follows the engine volume outside ProgramData and VM data'
     Reject {Get-ReimsIphoneUsbTemporaryRoot 'relative-engine' $profile.session_id} 'temporary session path'
     $args=Get-ReimsIphoneUsbArgument $profile $recovery
-    Assert ($args['host-instance-id'] -ceq $recovery -and $args['guest-reset'] -eq $true -and $args['guest-resets-all'] -eq $true -and
-        !$args.ContainsKey('hostbus') -and !$args.ContainsKey('hostport')) 'Only exact iPhone QMP path forwards full guest resets'
+    Assert ($args['host-instance-id'] -ceq $recovery -and $args['guest-reset'] -eq $true -and $args['guest-resets-all'] -eq $false -and
+        !$args.ContainsKey('hostbus') -and !$args.ContainsKey('hostport')) 'Exact iPhone QMP path forwards addressed resets and keeps initial proxy enumeration virtual'
     $generic=Get-ReimsUsbArgument ([pscustomobject]@{id='fixture';bus=1;port='1';vendor='05ac';product='12a8'})
     Assert ($generic['guest-reset'] -eq $false) 'Generic USB reset behavior stays unchanged'
     $script:capability=$false
@@ -244,7 +244,7 @@ try {
     Invoke-ReimsIphoneUsbSession $snapshot $folder
     Assert ($fixture.events.Contains('bind') -and $fixture.events.Contains('remove') -and $fixture.events.Contains('restore') -and $fixture.states[-1] -ceq 'restored') "Connect/remove/restore order failed: events=$($fixture.events -join ','); states=$($fixture.states -join ','); error=$($fixture.lastError)"
     Assert ($fixture.events.IndexOf('remove') -lt $fixture.events.IndexOf('restore')) 'Driver restoration never precedes confirmed QMP removal'
-    Assert ($fixture.added.Count -eq 1 -and $fixture.added[0]['guest-resets-all']) 'Production loop uses phone reset argument helper'
+    Assert ($fixture.added.Count -eq 1 -and $fixture.added[0]['guest-reset'] -and !$fixture.added[0]['guest-resets-all']) 'Production loop preserves real addressed resets without cycling initial enumeration'
     $folder=New-Fixture 'guard-once';$fixture.exitTick=3
     Invoke-ReimsIphoneUsbSession $snapshot $folder
     Assert ($fixture.safeChecks -eq 1 -and $fixture.added.Count -eq 1 -and !$fixture.states.Contains('qmp-wait-exit') -and $fixture.restoreTick -eq 3) 'Connected polling does not repeat the expensive protected-device check or stop on its later transient failure'

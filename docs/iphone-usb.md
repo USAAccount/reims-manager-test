@@ -19,7 +19,10 @@ handoff. The supervisor follows that identity across mode changes and gives
 QEMU the complete Windows instance ID. USB addresses and physical ports
 do not authorize a different phone.
 
-The iPhone path permits guest-requested USB resets. The generic USB path's
+The iPhone path permits guest-requested USB resets after address assignment.
+It retains QEMU's default virtual initial reset while the guest address is
+zero: forwarding that reset to the already enumerated Windows device caused
+a reset/close/reopen loop before the guest could enumerate it. The generic USB path's
 reset policy is unchanged. Selecting the phone does not itself enter DFU,
 restore firmware or erase its data; those operations belong to guest tools.
 
