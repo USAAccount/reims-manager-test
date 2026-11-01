@@ -12,6 +12,7 @@ Assert (!$('ReimsUsbDriverBinding.Native' -as [type])) 'Import must not initiali
 $realStatus=(Get-Command Get-ReimsIphoneUsbStatus).ScriptBlock
 $realRootGuard=(Get-Command Assert-ReimsIphoneUsbSessionRoot).ScriptBlock
 $realContext=(Get-Command Get-ReimsIphoneUsbContext).ScriptBlock
+$realArrival=(Get-Command Get-ReimsIphoneUsbArrival).ScriptBlock
 $normal='USB\VID_05AC&PID_12A8\AUTHORED-PHONE'
 $recovery='USB\VID_05AC&PID_1281\AUTHORED-RECOVERY'
 $profile=@{id=(Get-ReimsIphoneUsbId $normal);initial_instance=$normal;ecid='000000000000beef';enabled=$true;session_id=('a'*32)}
@@ -118,8 +119,18 @@ try {
 
     # Remaining cases run the production resident loop with fake driver/PnP/QMP calls.
     function Publish-ReimsIphoneUsbStatus($Snapshot,$Root,$State,$Instance='',$ErrorText=''){$script:fixture.states.Add($State);$script:fixture.lastError=$ErrorText}
-    function Get-ReimsIphoneUsbArrival($Instance){$script:fixture.arrival}
-    function Get-PnpDeviceProperty($InstanceId,$KeyName){[pscustomobject]@{Data=@("\Driver\$($script:fixture.stacks[$InstanceId])")}}
+    function Get-ReimsIphoneUsbArrival($Instance){
+        $f=$script:fixture
+        if($f.tick -eq 0 -and ($f.scenario -ceq 'arrival-gap' -or ($f.scenario -ceq 'arrival-after-bind' -and $f.events.Contains('bind')))){return 0L}
+        $f.arrival
+    }
+    function Get-PnpDeviceProperty($InstanceId,$KeyName){
+        $f=$script:fixture
+        if($f.metadataDenied){throw [UnauthorizedAccessException]::new('Fixture metadata access denied')}
+        if($f.metadataMissing -or ($f.scenario -ceq 'stack-gap' -and $f.tick -eq 0)){return [pscustomobject]@{Type='Empty'}}
+        if($KeyName -ceq 'DEVPKEY_Device_LastArrivalDate'){return [pscustomobject]@{Data=[DateTime]::new($f.arrival,[DateTimeKind]::Utc)}}
+        [pscustomobject]@{Data=@("\Driver\$($f.stacks[$InstanceId])")}
+    }
     function Get-ReimsUsbDriverBindingOperations {
         @{
             Read={param($id)$m=$script:fixture.models[$id].Clone();$m.Present=$script:fixture.present[$id];$m}
@@ -175,8 +186,21 @@ try {
             Section='AuthoredInstall';SectionExtension='.NT';Provider='Authored Driver';Version='1.2.3.4';ClassGuid='{36FC9E60-C465-11CF-8056-444553540000}';Service='usbccgp';MatchingId='USB\COMPOSITE'}}
         $script:fixture=@{root=$folder;tick=0;exitTick=2;models=$models;present=@{$normal=$true;$recovery=$true};stacks=@{$normal='usbccgp';$recovery='usbccgp'};
             events=[Collections.Generic.List[string]]::new();states=[Collections.Generic.List[string]]::new();objects=@{};added=[Collections.Generic.List[object]]::new();
-            arrivals=[Collections.Generic.List[long]]::new();candidates=@($normal);arrival=0L;reboot=$false;qmpFail=$false;blocked=$false;safeChecks=0;scenario=$Name;ecid=$profile.ecid;lastError='';restoreTick=-1;vmStatus='running'}
+            arrivals=[Collections.Generic.List[long]]::new();candidates=@($normal);arrival=11L;reboot=$false;qmpFail=$false;blocked=$false;safeChecks=0;scenario=$Name;ecid=$profile.ecid;lastError='';restoreTick=-1;vmStatus='running';metadataMissing=$false;metadataDenied=$false}
         $folder
+    }
+    $folder=New-Fixture 'metadata';$fixture.metadataMissing=$true
+    Assert ((&$realArrival $normal) -eq 0 -and !(Test-ReimsIphoneUsbLiveModel $normal $fixture.models[$normal])) 'Missing PnP Data is unconfirmed, never an arrival or service-stack success'
+    $fixture.metadataMissing=$false
+    Assert ((&$realArrival $normal) -eq 11 -and (Test-ReimsIphoneUsbLiveModel $normal $fixture.models[$normal])) 'Actual metadata helpers accept the subsequent complete typed values'
+    $fixture.metadataDenied=$true
+    Reject {&$realArrival $normal} 'access denied'
+    Reject {Test-ReimsIphoneUsbLiveModel $normal $fixture.models[$normal]} 'access denied'
+    foreach($case in @('arrival-gap','arrival-after-bind','stack-gap')){
+        $folder=New-Fixture $case;$fixture.exitTick=3
+        Invoke-ReimsIphoneUsbSession $snapshot $folder
+        Assert (!$fixture.lastError -and $fixture.added.Count -eq 1 -and @($fixture.events|Where-Object {$_ -ceq 'bind'}).Count -eq 1 -and $fixture.states.Contains('connected')) 'A metadata gap retries and reconnects without ending the session or rebinding'
+        Assert ($fixture.states[0] -cin @('waiting','replug-waiting') -and $fixture.restoreTick -eq 3) 'No QMP attachment or restoration occurs while metadata is unconfirmed'
     }
     $folder=New-Fixture 'acl';$sid=[Security.Principal.WindowsIdentity]::GetCurrent().User.Value
     $script:fixtureAcl=[Security.AccessControl.DirectorySecurity]::new();$fixtureAcl.SetAccessRuleProtection($true,$false)
@@ -222,7 +246,7 @@ try {
     Assert ($fixture.added.Count -eq 2 -and $fixture.added[0]['host-instance-id'] -ceq $fixture.added[1]['host-instance-id'] -and
         @($fixture.events|Where-Object {$_ -ceq 'bind'}).Count -eq 1 -and $fixture.safeChecks -eq 1) 'Same-instance physical re-enumeration re-adds QMP without an unnecessary driver bind or protected-device check'
     Assert ($fixture.events.IndexOf('device_add') -lt $fixture.events.IndexOf('remove') -and $fixture.events.IndexOf('remove') -lt $fixture.events.LastIndexOf('device_add') -and
-        @($fixture.events|Where-Object {$_ -ceq 'remove'}).Count -eq 1 -and $fixture.arrivals[0] -eq 0 -and $fixture.arrivals[1] -eq 22) 'Confirmed owned removal precedes recreation and each QMP arrival is persisted before add'
+        @($fixture.events|Where-Object {$_ -ceq 'remove'}).Count -eq 1 -and $fixture.arrivals[0] -eq 11 -and $fixture.arrivals[1] -eq 22) 'Confirmed owned removal precedes recreation and each QMP arrival is persisted before add'
     $folder=New-Fixture 'unplug-replug';$fixture.exitTick=4
     Invoke-ReimsIphoneUsbSession $snapshot $folder
     Assert ($fixture.states.Contains('waiting') -and $fixture.added.Count -eq 2 -and !$fixture.lastError -and $fixture.restoreTick -eq 4) 'A real absence between unplug and replug keeps the session waiting, then reconnects without an array error or early restoration'

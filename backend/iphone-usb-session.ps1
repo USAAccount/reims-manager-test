@@ -72,7 +72,10 @@ function Get-ReimsIphoneUsbStatus($Profile) {
 }
 
 function Get-ReimsIphoneUsbArrival([string]$Instance) {
-    $value=(Get-PnpDeviceProperty -InstanceId $Instance -KeyName DEVPKEY_Device_LastArrivalDate -ErrorAction Stop).Data
+    $property=@(Get-PnpDeviceProperty -InstanceId $Instance -KeyName DEVPKEY_Device_LastArrivalDate -ErrorAction Stop)
+    if(!$property.Count -or ($property.Count -eq 1 -and !$property[0].PSObject.Properties['Data'])){return 0L}
+    if($property.Count -ne 1){throw 'Ambiguous iPhone arrival time.'}
+    $value=$property[0].Data
     if($value -isnot [DateTime]){throw 'Cannot verify iPhone arrival time.'}
     $value.ToUniversalTime().Ticks
 }
@@ -80,7 +83,10 @@ function Get-ReimsIphoneUsbArrival([string]$Instance) {
 function Test-ReimsIphoneUsbLiveModel([string]$Instance,$Model) {
     $operations=Get-ReimsUsbDriverBindingOperations;$actual=& $operations.Read $Instance
     if(!(Test-ReimsUsbDriverBindingModel $actual $Model) -or $actual.Problem -ne 0){return $false}
-    $stack=@((Get-PnpDeviceProperty -InstanceId $Instance -KeyName DEVPKEY_Device_Stack -ErrorAction Stop).Data)
+    $property=@(Get-PnpDeviceProperty -InstanceId $Instance -KeyName DEVPKEY_Device_Stack -ErrorAction Stop)
+    if(!$property.Count -or ($property.Count -eq 1 -and !$property[0].PSObject.Properties['Data'])){return $false}
+    if($property.Count -ne 1){throw 'Ambiguous iPhone service stack.'}
+    $stack=@($property[0].Data)
     [bool]($stack | Where-Object {$_ -imatch ('(^|\\)'+[regex]::Escape($Model.Service)+'$')})
 }
 
@@ -181,6 +187,7 @@ function Invoke-ReimsIphoneUsbSession($Snapshot,[string]$Root,[switch]$RestoreOn
                     $selected=$matches[0];$id=$selected.instance;$key=Get-ReimsIphoneUsbId $id
                     $product=([regex]::Match($id,'(?i)PID_([0-9a-f]{4})')).Groups[1].Value
                     $arrival=Get-ReimsIphoneUsbArrival $id
+                    if($arrival -le 0){Remove-ReimsIphoneUsbQmp $Snapshot $Root $lease;Publish-ReimsIphoneUsbStatus $Snapshot $Root 'waiting' $id;Start-Sleep -Seconds 2;continue}
                     if($lease.qmp_instance -ieq $id -and $lease.qmp_arrival -ne $arrival){Remove-ReimsIphoneUsbQmp $Snapshot $Root $lease}
                     if(!$selected.receipt -or $selected.receipt.phase -ceq 'restored') {
                         $objects=Invoke-ReimsQmp $Snapshot.runtime 'qom-list' @{path='/machine/peripheral'}
@@ -194,7 +201,7 @@ function Invoke-ReimsIphoneUsbSession($Snapshot,[string]$Root,[switch]$RestoreOn
                     }
                     $ready=Test-ReimsIphoneUsbLiveModel $id $selected.receipt.target
                     $arrival=Get-ReimsIphoneUsbArrival $id
-                    if($selected.receipt.needs_reboot -and $arrival -le $lease.instances[$key].binding_ticks){$ready=$false}
+                    if($arrival -le 0 -or ($selected.receipt.needs_reboot -and $arrival -le $lease.instances[$key].binding_ticks)){$ready=$false}
                     if(!$ready){Publish-ReimsIphoneUsbStatus $Snapshot $Root 'replug-waiting' $id;Start-Sleep -Seconds 2;continue}
                     if(!$lease.qmp_instance) {
                         $objects=Invoke-ReimsQmp $Snapshot.runtime 'qom-list' @{path='/machine/peripheral'}
