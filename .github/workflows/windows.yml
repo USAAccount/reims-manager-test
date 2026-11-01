@@ -68,6 +68,12 @@ jobs:
           if ($LASTEXITCODE) { throw 'USB connection and recovery fixtures failed.' }
           pwsh -NoProfile -File ./backend/tests/usb-driver-result.ps1
           if ($LASTEXITCODE) { throw 'USB elevated driver result fixtures failed.' }
+          pwsh -NoProfile -File ./backend/tests/usb-driver-binding.ps1
+          if ($LASTEXITCODE) { throw 'Exact USB driver binding fixtures failed.' }
+          python ./backend/tests/test_iphone_usb_identity.py
+          if ($LASTEXITCODE) { throw 'iPhone identity fixtures failed.' }
+          pwsh -NoProfile -File ./backend/tests/iphone-usb.ps1
+          if ($LASTEXITCODE) { throw 'iPhone USB session fixtures failed.' }
           pwsh -NoProfile -File ./backend/tests/ssh-paths.ps1
           if ($LASTEXITCODE) { throw 'SSH path fixtures failed.' }
           pwsh -NoProfile -File ./backend/tests/cursor-aid.ps1
@@ -84,6 +90,8 @@ jobs:
           if ($LASTEXITCODE) { throw 'Cursor aid runtime bundle fixtures failed.' }
           python ./tools/test_package_engine.py
           if ($LASTEXITCODE) { throw 'DLL closure fixtures failed.' }
+          pwsh -NoProfile -File ./tools/test_bundle_iphone_usb_driver.ps1 -ArchiveDirectory .work/downloads -SevenZip "$env:ProgramFiles/7-Zip/7z.exe"
+          if ($LASTEXITCODE) { throw 'Pinned iPhone USB bundle fixtures failed.' }
           python ./backend/tests/opencore-patches.py
           if ($LASTEXITCODE) { throw 'OpenCore patch fixtures failed.' }
           python ./backend/tests/guest-bridge.py

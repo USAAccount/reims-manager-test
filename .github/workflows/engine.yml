@@ -20,7 +20,7 @@ jobs:
           msystem: UCRT64
           update: true
           install: >-
-            make diffutils bison flex
+            make diffutils bison flex autoconf automake libtool
             mingw-w64-ucrt-x86_64-clang mingw-w64-ucrt-x86_64-llvm
             mingw-w64-ucrt-x86_64-llvm-tools mingw-w64-ucrt-x86_64-lld
             mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-meson

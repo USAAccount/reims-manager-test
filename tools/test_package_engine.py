@@ -3,6 +3,7 @@ import argparse
 import bz2
 import hashlib
 import json
+from itertools import product
 from pathlib import Path
 import struct
 import tempfile
@@ -38,9 +39,9 @@ def pe(import_name=None, delayed=False):
 
 class PackagingTests(unittest.TestCase):
     def test_package_default_and_split_release_layouts(self):
-        for split in (False, True):
-            with self.subTest(split=split), tempfile.TemporaryDirectory() as tmp:
-                root = Path(tmp)
+        for split, usb in product((False, True), repeat=2):
+            with self.subTest(split=split, libusb=usb), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp).resolve()
                 source, msys = root/'source', root/'msys'
                 qemu_source = root/'qemu-source' if split else source/'vendor/qemu'
                 build = root/'qemu-build' if split else source/'build/qemu'
@@ -54,7 +55,7 @@ class PackagingTests(unittest.TestCase):
                     path.write_bytes(data)
 
                 for name in ('qemu-system-x86_64.exe', 'qemu-img.exe', 'qemu-io.exe'):
-                    write(build/name, pe('reims_vgpu_c.dll'))
+                    write(build/name, pe('libusb-1.0.dll' if usb else 'reims_vgpu_c.dll'))
                 if split:
                     # Never pick up an old/dev DLL next to a cached QEMU EXE.
                     write(build/'reims_vgpu_c.dll', pe('stale-and-missing.dll'))
@@ -89,12 +90,28 @@ class PackagingTests(unittest.TestCase):
                                           sevenzip=seven, output=root/'out',
                                           qemu_build=build if split else None,
                                           qemu_source=qemu_source if split else None, reims_dist=dist)
-                with patch.object(package, 'validate_sources') as validate, patch.dict(package.os.environ, SystemRoot=str(windows)):
+                driver_pin = None
+                if usb:
+                    args.libusb_source, args.libusb_build, args.iphone_driver_package = root/'libusb', root/'usb-install', root/'driver'
+                    lock['sources']['libusb'] = {'repository': 'https://github.com/tqmane/reims-libusb', 'commit': 'f'*40}
+                    driver_pin = self.usb_fixture(args, lock)
+                    write(msys/'ucrt64/bin/libusb-1.0.dll', pe('wrong-stock.dll'))
+                    write(build/'libusb-1.0.dll', pe('wrong-cached.dll'))
+                    write(msys/'ucrt64/bin/usb-dependency.dll', pe())
+                    write(msys/'ucrt64/bin/api-dependency.dll', pe())
+                with patch.object(package, 'validate_sources') as validate, patch.object(package, 'validate_source'), patch.object(package, 'iphone_driver_lock', return_value=driver_pin), patch.dict(package.os.environ, SystemRoot=str(windows)):
                     package.package_engine(args, lock)
                     validate.assert_called_once_with(source, qemu_source, lock)
                 self.assertEqual((args.output/'bin/reims_vgpu_c.dll').read_bytes(), release_library)
                 self.assertTrue((args.output/'bin/runtime-dependency.dll').is_file())
                 self.assertTrue((args.output/'bin/vulkan-1.dll').is_file())
+                if usb:
+                    self.assertEqual((args.output/'bin/libusb-1.0.dll').read_bytes(), (args.libusb_build/'bin/libusb-1.0.dll').read_bytes())
+                    self.assertEqual((args.output/'bin/libusbK.dll').read_bytes(), (args.iphone_driver_package/'libusbK.dll').read_bytes())
+                    self.assertTrue((args.output/'bin/api-dependency.dll').is_file())
+                    self.assertTrue((args.output/'bin/usb-dependency.dll').is_file())
+                    self.assertEqual((args.output/'licenses/LICENSE-libusbK-BSD.txt').read_bytes(), b'authored BSD license')
+                    self.assertTrue((args.output/'licenses/libusb-COPYING').is_file())
                 self.assertEqual((args.output/'share/reims/ReimsVgpu.rom').read_bytes(), rom.read_bytes())
                 manifest = json.loads((args.output/'reims-engine.json').read_text())
                 self.assertEqual(manifest['sources'], lock['sources'])
@@ -104,13 +121,88 @@ class PackagingTests(unittest.TestCase):
                 if split:
                     (dist/'include/reims_vgpu.h').write_bytes(b'wrong ABI')
                     args.output = root/'rejected'
-                    with patch.object(package, 'validate_sources'), self.assertRaisesRegex(ValueError, 'header does not match'):
+                    with patch.object(package, 'validate_sources'), patch.object(package, 'validate_source'), patch.object(package, 'iphone_driver_lock', return_value=driver_pin), self.assertRaisesRegex(ValueError, 'header does not match'):
                         package.package_engine(args, lock)
                     self.assertFalse(args.output.exists())
 
+    @staticmethod
+    def usb_fixture(args, lock):
+        files = {
+            args.libusb_source/'COPYING': b'authored LGPL license',
+            args.libusb_build/'bin/libusb-1.0.dll': pe('usb-dependency.dll'),
+            args.iphone_driver_package/'libusbK.dll': pe('api-dependency.dll'),
+            args.iphone_driver_package/'licenses/LICENSE-libusbK-BSD.txt': b'authored BSD license',
+        }
+        for path, data in files.items():
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(data)
+        def entry(path):
+            return {'file': path.name, 'bytes': path.stat().st_size,
+                    'sha256': hashlib.sha256(path.read_bytes()).hexdigest()}
+        receipt = {'schema': 1, 'source': lock['sources']['libusb'],
+                   'sha256': entry(args.libusb_build/'bin/libusb-1.0.dll')['sha256']}
+        (args.libusb_build/'reims-libusb-build.json').write_text(json.dumps(receipt))
+        return {'schema': 1, 'api': entry(args.iphone_driver_package/'libusbK.dll'),
+                'licenses': [entry(args.iphone_driver_package/'licenses/LICENSE-libusbK-BSD.txt')]}
+
+    def test_pinned_libusb_requires_inputs_and_clean_source_before_output(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            args = argparse.Namespace(source=root, qemu_source=None, qemu_build=None,
+                                      output=root/'out', libusb_source=root/'usb',
+                                      libusb_build=root/'build', iphone_driver_package=root/'driver')
+            lock = {'sources': {'libusb': {'commit': 'f'*40}}}
+            for replies in (('wrong', ''), ('f'*40, ' M libusb/core.c')):
+                with patch.object(package, 'validate_sources'), patch.object(package.subprocess, 'run', side_effect=[SimpleNamespace(stdout=x) for x in replies]), self.assertRaisesRegex(ValueError, 'dirty: libusb'):
+                    package.package_engine(args, lock)
+                self.assertFalse(args.output.exists())
+            for field in ('libusb_source', 'libusb_build', 'iphone_driver_package'):
+                original = getattr(args, field)
+                setattr(args, field, None)
+                with patch.object(package, 'validate_sources'), self.assertRaisesRegex(ValueError, 'requires source'):
+                    package.package_engine(args, lock)
+                self.assertFalse(args.output.exists())
+                setattr(args, field, original)
+            with self.assertRaisesRegex(ValueError, 'require a pinned'):
+                package.libusb_inputs(args, {'sources': {}})
+
+    def test_libusb_build_and_official_api_provenance(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            args = argparse.Namespace(libusb_source=root/'source', libusb_build=root/'build', iphone_driver_package=root/'driver')
+            lock = {'sources': {'libusb': {'repository': 'https://github.com/tqmane/reims-libusb', 'commit': 'f'*40}}}
+            pin = self.usb_fixture(args, lock)
+            receipt_path = args.libusb_build/'reims-libusb-build.json'
+            original = receipt_path.read_bytes()
+            with patch.object(package, 'validate_source'), patch.object(package, 'iphone_driver_lock', return_value=pin):
+                package.libusb_inputs(args, lock)
+                for invalid in ([], {'schema': True}, {'schema': 1, 'source': {'commit': '0'*40}, 'sha256': 'a'*64}):
+                    receipt_path.write_text(json.dumps(invalid))
+                    with self.assertRaisesRegex(ValueError, 'provenance'):
+                        package.libusb_inputs(args, lock)
+                receipt_path.write_bytes(original)
+                dll = args.libusb_build/'bin/libusb-1.0.dll'
+                dll.write_bytes(pe('vcruntime140.dll'))
+                with self.assertRaisesRegex(ValueError, 'DLL changed'):
+                    package.libusb_inputs(args, lock)
+                receipt = json.loads(original)
+                receipt['sha256'] = hashlib.sha256(dll.read_bytes()).hexdigest()
+                receipt_path.write_text(json.dumps(receipt))
+                with self.assertRaisesRegex(ValueError, 'native UCRT'):
+                    package.libusb_inputs(args, lock)
+                self.usb_fixture(args, lock)
+                api = args.iphone_driver_package/'libusbK.dll'
+                api.write_bytes(pe('tampered.dll'))  # Same PE size, different official bytes.
+                with self.assertRaisesRegex(ValueError, 'Pinned USB payload changed: libusbK'):
+                    package.libusb_inputs(args, lock)
+                self.usb_fixture(args, lock)
+                (args.iphone_driver_package/'licenses/LICENSE-libusbK-BSD.txt').write_bytes(b'wrong license')
+                with self.assertRaisesRegex(ValueError, 'Pinned USB payload changed: LICENSE'):
+                    package.libusb_inputs(args, lock)
+
     def test_source_revision_cleanliness_and_runtime_pin(self):
         with tempfile.TemporaryDirectory() as tmp:
-            source = Path(tmp)
+            source = Path(tmp).resolve()
             runtime = 'e'*40
             (source/'Cargo.toml').write_text('rev = "'+runtime+'"', encoding='utf-8')
             lock = {'sources': {'reims': {'commit': 'a'*40}, 'qemu': {'commit': 'b'*40},
@@ -119,7 +211,9 @@ class PackagingTests(unittest.TestCase):
             with patch.object(package.subprocess, 'run', side_effect=clean) as run:
                 package.validate_sources(source, source/'qemu', lock)
                 self.assertEqual(run.call_args_list[0].args[0], ['git', '-C', str(source), 'rev-parse', 'HEAD'])
+                self.assertEqual(run.call_args_list[1].args[0][-3:], ['--', '.', ':(exclude)vendor/qemu'])
                 self.assertEqual(run.call_args_list[2].args[0], ['git', '-C', str(source/'qemu'), 'rev-parse', 'HEAD'])
+                self.assertNotIn(':(exclude)vendor/qemu', run.call_args_list[3].args[0])
             for replies in (('wrong', ''), ('a'*40, ' M Cargo.toml'), ('a'*40, '', 'wrong', '')):
                 with patch.object(package.subprocess, 'run', side_effect=[SimpleNamespace(stdout=x) for x in replies]), self.assertRaisesRegex(ValueError, 'Source revision changed or is dirty'):
                     package.validate_sources(source, source/'qemu', lock)
@@ -129,7 +223,7 @@ class PackagingTests(unittest.TestCase):
 
     def test_recursive_dll_closure_and_missing_dependency(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
+            root = Path(tmp).resolve()
             for folder in ('input', 'output', 'system'):
                 (root/folder).mkdir()
             source = root/'input/qemu.exe'
@@ -145,7 +239,7 @@ class PackagingTests(unittest.TestCase):
 
     def test_reject_non_pe_and_wrong_architecture(self):
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp)/'bad.exe'
+            path = Path(tmp).resolve()/'bad.exe'
             path.write_bytes(b'not PE')
             with self.assertRaises(ValueError):
                 package.pe_imports(path)
