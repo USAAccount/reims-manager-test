@@ -62,10 +62,10 @@ download generic QEMU as a substitute: it lacks the Reims device.
 ## Components and source pins
 
 `backend/engine-lock.json` is the reviewed source of version pins. It selects
-Reims `07460212`, QEMU `93048dd3`, libusb `7da948a0` and metal2vulkan `15a85b4a`, rather than
+Reims `07460212`, QEMU `fbba9f15`, libusb `7da948a0` and metal2vulkan `15a85b4a`, rather than
 following moving `windows-native-tahoe` branches. The latter runtime is the
 pin in Reims's Cargo manifest; later runtime development commits are not
-silently substituted. The build pin is `engine-07460212-93048dd3-12`; a pin
+silently substituted. The build pin is `engine-07460212-fbba9f15-13`; a pin
 does not by itself mean its release has been published or qualified.
 An earlier engine completed a macOS 26.7.1 cold boot on Windows with WHPX;
 GPU rendering, Android USB and bidirectional clipboard were confirmed there.
@@ -73,6 +73,9 @@ This private candidate fixes GPU pipeline replanning after moving color writes.
 The GPU check passed all 2,918 tests, and a macOS cold boot reached its GUI.
 The USB candidate also creates a temporary API handle for physical resets
 before interface claims; guest iPhone recognition is still being qualified.
+The QEMU candidate also reports the tail IOC event after a short transfer
+event on an earlier TRB. Its authored CPU tests and paused controller
+realization passed; the resulting iPhone communication still needs a guest run.
 Its physical iPhone configuration tests do not qualify guest DFU/restore or frame pacing.
 The original required engine and recorded guest-bridge qualifications remain
 unchanged. This does not qualify additional guest versions or system-dialog
