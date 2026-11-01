@@ -455,7 +455,7 @@ foreach ($port in $ports) {
 }
 New-Item -ItemType Directory -Force -Path $run | Out-Null
 Write-ReimsJson (Join-Path $run 'command.json') $launch
-$env:REIMS_VGPU_LOG = 'info'
+if (!$env:REIMS_VGPU_LOG) { $env:REIMS_VGPU_LOG = 'info' }
 $env:REIMS_VGPU_STATS = '1'
 if ($selectedUsbBackend -eq 'usbdk') { $env:REIMS_USB_BACKEND = 'usbdk' }
 else { Remove-Item Env:REIMS_USB_BACKEND -ErrorAction SilentlyContinue }

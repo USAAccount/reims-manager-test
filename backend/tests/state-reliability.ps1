@@ -45,6 +45,18 @@ $config = [pscustomobject]@{
     extension_field = [pscustomobject]@{ retained = '未対応の設定も保持' }
 }
 try {
+    $logSetup = @($start.EndBlock.Statements | Where-Object { $_.Extent.Text -match '\$env:REIMS_VGPU_LOG\b' })
+    Assert-True ($logSetup.Count -eq 1) 'Missing or ambiguous GPU logging setup'
+    $previousLog = $env:REIMS_VGPU_LOG
+    try {
+        foreach ($filter in @($null, '', 'warn,reims_vgpu_vulkan::gpu::timing=debug', 'off')) {
+            $env:REIMS_VGPU_LOG = $filter
+            & ([scriptblock]::Create($logSetup[0].Extent.Text))
+            $expected = if ($filter) { $filter } else { 'info' }
+            Assert-True ($env:REIMS_VGPU_LOG -ceq $expected) 'Startup overwrote the caller GPU log filter'
+        }
+    } finally { $env:REIMS_VGPU_LOG = $previousLog }
+
     $failedRun = Join-Path $work 'memory-failure'
     [void][IO.Directory]::CreateDirectory($failedRun)
     $failedLog = Join-Path $failedRun 'stderr.log'
@@ -215,8 +227,9 @@ try {
                 $ErrorActionPreference='Stop'
                 . ([scriptblock]::Create($Source))
                 function Get-ReimsVmProcess($Runtime) {
+                    $alive = [IO.File]::ReadAllText($Identity) -ceq 'alive'
                     [IO.File]::WriteAllText($Checked,'checked')
-                    return [IO.File]::ReadAllText($Identity) -ceq 'alive'
+                    return $alive
                 }
                 try {
                     $result=Invoke-ReimsQmp ([pscustomobject]@{qmp_port=$Port}) query-status

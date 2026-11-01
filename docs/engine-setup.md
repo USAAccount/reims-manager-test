@@ -62,23 +62,28 @@ download generic QEMU as a substitute: it lacks the Reims device.
 ## Components and source pins
 
 `backend/engine-lock.json` is the reviewed source of version pins. It selects
-Reims `07460212`, QEMU `fbba9f15`, libusb `7da948a0` and metal2vulkan `15a85b4a`, rather than
+Reims `28979c8c`, QEMU `fbba9f15`, libusb `7da948a0` and metal2vulkan `7f09d6be`, rather than
 following moving `windows-native-tahoe` branches. The latter runtime is the
 pin in Reims's Cargo manifest; later runtime development commits are not
-silently substituted. The build pin is `engine-07460212-fbba9f15-13`; a pin
+silently substituted. The build pin is `engine-28979c8c-fbba9f15-15`; a pin
 does not by itself mean its release has been published or qualified.
-An earlier engine completed a macOS 26.7.1 cold boot on Windows with WHPX;
-GPU rendering, Android USB and bidirectional clipboard were confirmed there.
-This private candidate fixes GPU pipeline replanning after moving color writes.
-The GPU check passed all 2,918 tests, and a macOS cold boot reached its GUI.
-The USB implementation also creates a temporary API handle for physical resets
-before interface claims. QEMU reports the tail IOC event after a short transfer
-event on an earlier TRB, retaining the first short event's residual length.
-Its authored CPU tests and paused controller realization passed. A Windows
-cold boot of macOS 26.7.1 with this engine then recognized the selected iPhone
-through the guest USB mux service, matched its ECID through a standard lockdown
-query, and displayed it in Finder. This qualifies that normal-mode connection;
-physical recovery, DFU, firmware restoration and frame pacing remain unqualified.
+Engine `engine-07460212-fbba9f15-13` completed a Windows/WHPX cold boot of
+macOS 26.7.1, recognized an iPhone through USB mux and Finder, and passed a
+clipboard transport check. The new engine keeps its QEMU/libusb USB
+implementation and changes GPU allocation reuse and allocator-lock scope.
+Its Windows native allocation/rendering checks, Reims's 2918 tests and
+doc-tests, and the matching GNU Release build completed. One load-sensitive
+resolve test passed alone after interrupting the check; the remaining tests
+then passed. The header and option ROM stayed unchanged. All 150 package
+files were verified before local installation. A 16 GiB WHPX cold boot of
+macOS 26.7.1 reached the desktop and the original 3392x2400 O+ Connect
+extension without a GPU fatal during the comparison. An authored movement
+probe delivered 197 timer callbacks in 21.176 seconds, not a displayed-FPS
+measurement. High-density motion remains slow: this is not a smoothness or
+end-to-end speedup qualification. The low-density comparison timed out;
+the original modes and absence of an outstanding managed change were
+subsequently confirmed. The new release ZIP has not been published.
+Physical recovery, DFU and firmware restoration remain unqualified.
 The original required engine and recorded guest-bridge qualifications remain
 unchanged. This does not qualify additional guest versions or system-dialog
 cursor behavior.
@@ -233,7 +238,6 @@ not copied from a developer machine. USB drivers and microphone permission
 remain explicit host setup steps. No Apple binaries, macOS installer, guest
 disk, serialized GPU data, credentials or personal SMBIOS values are shipped.
 
-This engine-9 pin adds private resource-creation diagnostics and makes no new
-performance claim. The matching GNU Release build, integration checks and macOS
-boot need their own receipts. Its compatibility entry retains the immutable addon
-artifact and does not add an OS qualification.
+The current engine retains the immutable addon artifact and adds no new addon
+OS qualification. Diagnostic log filters may be explicitly supplied for a
+comparison; ordinary launches retain the default log level.
