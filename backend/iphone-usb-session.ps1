@@ -173,11 +173,17 @@ function Invoke-ReimsIphoneUsbSession($Snapshot,[string]$Root,[switch]$RestoreOn
                         $receipt=if(Test-Path -LiteralPath $receiptPath){Read-ReimsUsbDriverBindingReceipt $receiptPath}
                         if($receipt -and $lease.instances.ContainsKey($key) -and $receipt.phase -cne 'restored') {
                             $operations=Get-ReimsUsbDriverBindingOperations;$actual=& $operations.Read $id
+                            if(!$actual.Present){continue}
                             if((Test-ReimsUsbDriverBindingModel $actual $receipt.target) -or (Test-ReimsUsbDriverBindingModel $actual $receipt.original) -or
                                 (Test-ReimsUsbDriverBindingRecovery $actual $receipt)){$matches+=@{instance=$id;receipt=$receipt;path=$receiptPath};continue}
+                            try{Write-ReimsIphoneUsbSessionJson (Join-Path $Root 'private/driver-state-failure.json') @{instance=$id;actual=$actual;original=$receipt.original;target=$receipt.target;phase=$receipt.phase;utc=[DateTime]::UtcNow.ToString('o')}}catch{}
                             throw 'An owned iPhone mode now has a foreign driver; restoration authority was retained.'
                         }
-                        try{$identity=Get-ReimsIphoneUsbIdentity $id $context}catch{if($id -ieq $Snapshot.profile.initial_instance){throw};$identityFailure=$_.Exception.Message;continue}
+                        try{$identity=Get-ReimsIphoneUsbIdentity $id $context}catch{
+                            $failure=$_
+                            if(!(Get-ReimsIphoneUsbCandidates | Where-Object InstanceId -IEQ $id)){continue}
+                            if($id -ieq $Snapshot.profile.initial_instance){throw $failure};$identityFailure=$failure.Exception.Message;continue
+                        }
                         if($identity.ecid -ceq $Snapshot.profile.ecid){$matches+=@{instance=$id;receipt=$receipt;path=$receiptPath}}
                     }
                     if($matches.Count -gt 1){throw '同じ ECID の iPhone が複数あります。接続しません。'}

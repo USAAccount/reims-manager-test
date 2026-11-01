@@ -28,7 +28,7 @@ function Get-ReimsProtectedUsbIds {,[Collections.Generic.HashSet[string]]::new([
 function Get-ReimsVmProcess($Runtime){if($script:alive){[pscustomobject]@{Id=$Runtime.pid}}}
 function Assert-ReimsUsbSafe($Selections){if($script:fixture){$script:fixture.safeChecks++;if($script:fixture.blocked){throw 'Fixture protected USB'}}}
 function Get-ReimsIphoneUsbContext($Runtime){if($Runtime.usb_backend -cne 'winusb' -or !$script:capability){throw 'Fixture unsupported engine'};@{package=@{infPath=(Join-Path $root 'libusb0.inf')};python='unused';native_library='unused'}}
-function Get-ReimsIphoneUsbIdentity($Instance,$Context){if($script:fixture){$script:fixture.events.Add('identity');if($script:fixture.scenario -ceq 'cancel-identity'){Write-ReimsJson (Get-ReimsIphoneUsbAdvisoryStopPath $snapshot.vm_root $snapshot.profile.session_id) @{stop=$true}};return @{ecid=$script:fixture.ecid}};@{ecid=$profile.ecid;udid='00008120-000000000000BEEF'}}
+function Get-ReimsIphoneUsbIdentity($Instance,$Context){if($script:fixture){$script:fixture.events.Add('identity');if($script:fixture.scenario -ceq 'identity-gap' -and $script:fixture.tick -eq 0){$script:fixture.present[$Instance]=$false;throw 'Fixture device disappeared'};if($script:fixture.scenario -ceq 'cancel-identity'){Write-ReimsJson (Get-ReimsIphoneUsbAdvisoryStopPath $snapshot.vm_root $snapshot.profile.session_id) @{stop=$true}};return @{ecid=$script:fixture.ecid}};@{ecid=$profile.ecid;udid='00008120-000000000000BEEF'}}
 function Start-ReimsIphoneUsbElevation($Arguments){
     if($Arguments[0] -ceq '-StopSession' -and !(Test-Path -LiteralPath (Get-ReimsIphoneUsbAdvisoryStopPath $VmRoot $Arguments[2]))){throw 'Fixture stop elevated before advisory cancellation'}
     $script:elevations+=,@($Arguments);[pscustomobject]@{Id=321}
@@ -133,7 +133,7 @@ try {
     }
     function Get-ReimsUsbDriverBindingOperations {
         @{
-            Read={param($id)$m=$script:fixture.models[$id].Clone();$m.Present=$script:fixture.present[$id];$m}
+            Read={param($id)$m=$script:fixture.models[$id].Clone();$m.Present=$script:fixture.present[$id];if($script:fixture.scenario -ceq 'read-gap' -and $script:fixture.tick -eq 1){$m.Present=$false};$m}
             Stage={param($inf)$script:fixture.events.Add('stage');$inf}
             Install={param($id,$wanted,$expected)
                 $capture=$wanted.Service -ceq 'libusb0';$script:fixture.events.Add($(if($capture){'bind'}else{'restore'}))
@@ -178,6 +178,7 @@ try {
         if($f.scenario -eq 'foreign-qmp' -and $f.tick -eq 1){$f.objects[$profile.id]['host-instance-id']='USB\VID_05AC&PID_12A8\FOREIGN';Write-ReimsIphoneUsbSessionJson (Join-Path $f.root 'stop') @{stop=$true}}
         if($f.scenario -eq 'mode' -and $f.tick -eq 4){$f.present[$normal]=$true}
         if($f.scenario -eq 'absent' -and $f.tick -eq 1){$f.present[$normal]=$true}
+        if($f.scenario -eq 'identity-gap' -and $f.tick -eq 1){$f.present[$normal]=$true}
     }
     function New-Fixture($Name) {
         $folder=Join-Path $root $Name;[void][IO.Directory]::CreateDirectory((Join-Path $folder 'private/receipts'))
@@ -201,6 +202,12 @@ try {
         Invoke-ReimsIphoneUsbSession $snapshot $folder
         Assert (!$fixture.lastError -and $fixture.added.Count -eq 1 -and @($fixture.events|Where-Object {$_ -ceq 'bind'}).Count -eq 1 -and $fixture.states.Contains('connected')) 'A metadata gap retries and reconnects without ending the session or rebinding'
         Assert ($fixture.states[0] -cin @('waiting','replug-waiting') -and $fixture.restoreTick -eq 3) 'No QMP attachment or restoration occurs while metadata is unconfirmed'
+    }
+    foreach($case in @('read-gap','identity-gap')){
+        $folder=New-Fixture $case;$fixture.exitTick=4
+        Invoke-ReimsIphoneUsbSession $snapshot $folder
+        Assert (!$fixture.lastError -and $fixture.states.Contains('waiting') -and $fixture.states.Contains('connected') -and $fixture.restoreTick -eq 4) 'Disappearance after enumeration or during identity waits instead of becoming a foreign driver failure'
+        Assert (@($fixture.events|Where-Object {$_ -ceq 'bind'}).Count -eq 1) 'A disappearing candidate cannot bind again or lose its existing receipt'
     }
     $folder=New-Fixture 'acl';$sid=[Security.Principal.WindowsIdentity]::GetCurrent().User.Value
     $script:fixtureAcl=[Security.AccessControl.DirectorySecurity]::new();$fixtureAcl.SetAccessRuleProtection($true,$false)
