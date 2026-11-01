@@ -70,7 +70,14 @@ function Get-ReimsProtectedUsbIds {
         foreach ($instance in $pending) {
             if ($instance -match 'VID_([0-9A-F]{4})&PID_([0-9A-F]{4})') { [void]$blocked.Add("$($Matches[1]):$($Matches[2])") }
         }
-        $properties = @(Get-ReimsPnpProperties $pending DEVPKEY_Device_Parent | Where-Object { $_.PSObject.Properties['Data'] })
+        $parentValue={ $_.PSObject.Properties['Data'] -and $_.Data -is [string] -and ![string]::IsNullOrWhiteSpace($_.Data) }
+        $properties = @(Get-ReimsPnpProperties $pending DEVPKEY_Device_Parent | Where-Object $parentValue)
+        # A hotplug-time batch can omit a live node; verify it individually once.
+        foreach($instance in $pending){
+            if(!($properties | Where-Object InstanceId -IEQ $instance)){
+                $properties+=@(Get-ReimsPnpProperties @($instance) DEVPKEY_Device_Parent | Where-Object $parentValue)
+            }
+        }
         foreach ($property in $properties) { $parents[$property.InstanceId]=$property.Data }
         $protected = @($properties | ForEach-Object Data)
     }
