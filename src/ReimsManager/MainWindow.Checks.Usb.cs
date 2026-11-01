@@ -46,7 +46,7 @@ public partial class MainWindow
             new("hostusb-1-7-4321abcd", "4321:abcd USB adapter ［接続中・未登録］", true, false, true, true)
         ];
         string Inventory(IEnumerable<UsbEntry> devices) => JsonSerializer.Serialize(devices.Select(x => new {
-            id = x.Id, label = x.Label, present = x.Present, selected = x.Selected, active = x.Active, attached = x.Attached
+            id = x.Id, label = x.Label, present = x.Present, selected = x.Selected, active = x.Active, attached = x.Attached, error = x.ErrorText
         }));
         string Status() => JsonSerializer.Serialize(new {
             state = fixtureState, prepared = true, snapshots = Array.Empty<string>(), taps = Array.Empty<string>(),
@@ -93,6 +93,21 @@ public partial class MainWindow
             currentState = fixtureState; Tabs.SelectedIndex = 1; Devices.SelectedIndex = 5; ResetUsbInventory(); UpdatePowerControls();
             if (!await RefreshUsbCore() || UsbDevices.Items.Count != 5 || UsbAttachButton.IsEnabled || UsbDetachButton.IsEnabled)
                 throw new Exception("USB inventory requires a deliberate selection before a mutation.");
+
+            var genericRows = rows;
+            rows = [new UsbEntry("hostiphone-" + new string('a', 64), "iPhone", true, false, false, false, "元ドライバーの復元を再開してください。")];
+            if (!await RefreshUsbCore()) throw new Exception("iPhone inventory parsing failed.");
+            UsbDevices.SelectedIndex = 0; UpdateUsbControls();
+            if (!UsbAttachButton.IsEnabled || !UsbSelectionHint.Text.Contains("一時的に切り替え", StringComparison.Ordinal) ||
+                !UsbSelectionHint.Text.Contains("元ドライバーの復元", StringComparison.Ordinal))
+                throw new Exception("iPhone connection must explain the temporary driver handoff.");
+            rows = [rows[0] with { Active = true, Selected = true }];
+            if (!await RefreshUsbCore()) throw new Exception("Pending iPhone inventory parsing failed.");
+            UsbDevices.SelectedIndex = 0; UpdateUsbControls();
+            if (UsbAttachButton.IsEnabled || !UsbDetachButton.IsEnabled || !UsbSelectionHint.Text.Contains("一度切断", StringComparison.Ordinal))
+                throw new Exception("An active iPhone handoff must finish or disconnect before another attachment.");
+            rows = genericRows;
+            if (!await RefreshUsbCore()) throw new Exception("Generic USB inventory recovery failed.");
 
             Select("hostusb-1-2-04b00422");
             if (!UsbAttachButton.IsEnabled || UsbDetachButton.IsEnabled || await ChangeUsbConnection(false) || detachCalls != 0)

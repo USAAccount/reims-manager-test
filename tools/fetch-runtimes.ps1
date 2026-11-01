@@ -20,3 +20,4 @@ foreach($runtime in $lock.runtimes){
     if((Get-FileHash -LiteralPath $archive).Hash -ne $runtime.sha256){throw "Cached archive hash mismatch: $($runtime.name)"}
     "Verified archive: $($runtime.file)"
 }
+& "$PSScriptRoot/fetch-iphone-usb-driver.ps1" -ArchiveDirectory $cache

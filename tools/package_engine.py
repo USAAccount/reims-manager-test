@@ -4,6 +4,7 @@ import bz2
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import struct
@@ -83,18 +84,83 @@ def collect_dlls(seeds, destination, search, system):
     return sorted(seen)
 
 
+def validate_source(directory, name, pin):
+    head = subprocess.run(['git', '-C', str(directory), 'rev-parse', 'HEAD'],
+                          check=True, capture_output=True, text=True).stdout.strip()
+    status = ['git', '-C', str(directory), 'status', '--porcelain', '--untracked-files=no']
+    if name == 'reims':
+        # The engine may intentionally select a newer, independently checked
+        # QEMU than the gitlink recorded by the unchanged Reims source pin.
+        status += ['--', '.', ':(exclude)vendor/qemu']
+    changes = subprocess.run(status, check=True,
+                             capture_output=True, text=True).stdout.strip()
+    if head != pin['commit'] or changes:
+        raise ValueError(f'Source revision changed or is dirty: {name}')
+
+
 def validate_sources(source, qemu_source, lock):
     for directory, name in ((source, 'reims'), (qemu_source, 'qemu')):
-        head = subprocess.run(['git', '-C', str(directory), 'rev-parse', 'HEAD'],
-                              check=True, capture_output=True, text=True).stdout.strip()
-        changes = subprocess.run(['git', '-C', str(directory), 'status', '--porcelain',
-                                  '--untracked-files=no'], check=True,
-                                 capture_output=True, text=True).stdout.strip()
-        if head != lock['sources'][name]['commit'] or changes:
-            raise ValueError(f'Source revision changed or is dirty: {name}')
+        validate_source(directory, name, lock['sources'][name])
     cargo = (source/'Cargo.toml').read_text(encoding='utf-8')
     if lock['sources']['metal2vulkan']['commit'] not in cargo:
         raise ValueError('Reims does not pin the expected graphics runtime')
+
+
+def pinned_payload(path, pin):
+    if (not path.is_file() or path.resolve() != path.absolute() or
+            path.stat().st_size != pin['bytes'] or
+            hashlib.sha256(path.read_bytes()).hexdigest() != pin['sha256']):
+        raise ValueError(f'Pinned USB payload changed: {path.name}')
+    return path
+
+
+def iphone_driver_lock():
+    pin = json.loads((Path(__file__).parent.parent/
+                      'backend/iphone-usb-driver-lock.json').read_text())
+    if pin['schema'] != 1:
+        raise ValueError('Unknown iPhone driver lock schema')
+    return pin
+
+
+def libusb_inputs(args, lock):
+    names = ('libusb_source', 'libusb_build', 'iphone_driver_package')
+    supplied = [getattr(args, name, None) for name in names]
+    pin = lock['sources'].get('libusb')
+    if pin is None:
+        if any(supplied):
+            raise ValueError('libusb inputs require a pinned libusb source')
+        return None
+    if not all(supplied):
+        raise ValueError('Pinned libusb requires source, installed build and iPhone driver package')
+    source, build, driver = supplied
+    validate_source(source, 'libusb', pin)
+    receipt_path = build/'reims-libusb-build.json'
+    if (not receipt_path.is_file() or receipt_path.resolve() != receipt_path.absolute()
+            or receipt_path.stat().st_size > 65536):
+        raise ValueError('Missing or invalid libusb build receipt')
+    receipt = json.loads(receipt_path.read_text(encoding='utf-8-sig'))
+    if (not isinstance(receipt, dict) or
+            set(receipt) != {'schema', 'source', 'sha256'} or
+            type(receipt.get('schema')) is not int or receipt['schema'] != 1 or receipt.get('source') != pin or
+            not isinstance(receipt.get('sha256'), str) or
+            not re.fullmatch('[a-f0-9]{64}', receipt['sha256'])):
+        raise ValueError('libusb build provenance does not match the source pin')
+    dll = build/'bin/libusb-1.0.dll'
+    if (not dll.is_file() or dll.resolve() != dll.absolute() or
+            hashlib.sha256(dll.read_bytes()).hexdigest() != receipt['sha256']):
+        raise ValueError('libusb build DLL changed')
+    if any(name.startswith(('vcruntime', 'msvcp', 'msys-')) for name in pe_imports(dll)):
+        raise ValueError('Pinned libusb must be a native UCRT build')
+    copying = source/'COPYING'
+    if not copying.is_file():
+        raise ValueError('Pinned libusb license is missing')
+    driver_pin = iphone_driver_lock()
+    api = pinned_payload(driver/driver_pin['api']['file'], driver_pin['api'])
+    pe_imports(api)
+    bsd_pin = next(p for p in driver_pin['licenses']
+                   if p['file'] == 'LICENSE-libusbK-BSD.txt')
+    bsd = pinned_payload(driver/'licenses'/bsd_pin['file'], bsd_pin)
+    return dll, api, bsd, copying
 
 
 def main():
@@ -107,6 +173,9 @@ def main():
                         help='Pinned QEMU checkout (default: SOURCE/vendor/qemu)')
     parser.add_argument('--reims-dist', type=Path,
                         help='Source-matched Release dist containing lib/, include/ and share/')
+    parser.add_argument('--libusb-source', type=Path, help='Clean pinned libusb checkout')
+    parser.add_argument('--libusb-build', type=Path, help='Installed UCRT libusb prefix with build receipt')
+    parser.add_argument('--iphone-driver-package', type=Path, help='Verified expanded official driver/API bundle')
     args = parser.parse_args()
     lock = json.loads((Path(__file__).parent.parent/'backend/engine-lock.json').read_text())
     package_engine(args, lock)
@@ -116,6 +185,7 @@ def package_engine(args, lock):
     qemu = args.qemu_build or args.source/'build/qemu'
     qemu_source = args.qemu_source or args.source/'vendor/qemu'
     validate_sources(args.source, qemu_source, lock)
+    usb = libusb_inputs(args, lock)
     library = args.reims_dist/'lib' if args.reims_dist else qemu
     rom = args.reims_dist/'share/reims-vgpu/ReimsVgpu.rom' if args.reims_dist else qemu/'ReimsVgpu.rom'
     if args.reims_dist:
@@ -131,7 +201,12 @@ def package_engine(args, lock):
     seeds += [library/'reims_vgpu_c.dll']
     # Vulkan is loaded dynamically, so the PE import table cannot discover it.
     seeds += [runtime/'vulkan-1.dll', args.sevenzip/'7z.exe', args.sevenzip/'7z.dll']
-    collect_dlls(seeds, out/'bin', [library, qemu, args.sevenzip, runtime], Path(os.environ['SystemRoot'])/'System32')
+    search = [library, qemu, args.sevenzip, runtime]
+    if usb:
+        dll, api, bsd, copying = usb
+        seeds += [dll, api]  # libusbK is dynamically loaded, absent from PE imports.
+        search = [dll.parent, api.parent] + search
+    collect_dlls(seeds, out/'bin', search, Path(os.environ['SystemRoot'])/'System32')
     bios = qemu_source/'pc-bios'
     for name in ('bios.bin', 'bios-256k.bin', 'vgabios-stdvga.bin', 'kvmvapic.bin', 'efi-e1000.rom', 'efi-e1000e.rom', 'efi-virtio.rom', 'efi-vmxnet3.rom'):
         shutil.copy2(bios/name, out/'share/qemu'/name)
@@ -148,10 +223,15 @@ def package_engine(args, lock):
         shutil.copy2(args.source/'LICENSES'/name, out/'licenses'/name)
     shutil.copy2(qemu_source/'COPYING', out/'licenses/QEMU-COPYING')
     shutil.copytree(args.msys/'ucrt64/share/licenses', out/'licenses/native-dependencies')
+    if usb:
+        shutil.copy2(bsd, out/'licenses'/bsd.name)
+        shutil.copy2(copying, out/'licenses/libusb-COPYING')
     for name in ('License.txt', 'readme.txt'):
         shutil.copy2(args.sevenzip/name, out/'licenses'/('7zip-'+name))
     shutil.copy2(args.source/'.work/diagnostics/msys2-packages-current.txt', out/'licenses/msys2-packages.txt')
     shutil.copy2(Path(__file__).parent.parent/'docs/engine-setup.md', out/'README.md')
+    if usb:
+        shutil.copy2(Path(__file__).parent.parent/'docs/iphone-usb.md', out/'iphone-usb.md')
     paths = dict(qemu='bin/qemu-system-x86_64.exe', qemu_img='bin/qemu-img.exe', qemu_io='bin/qemu-io.exe',
                  seven_zip='bin/7z.exe', firmware='share/qemu', firmware_code='share/qemu/edk2-x86_64-code.fd',
                  firmware_vars='share/qemu/edk2-i386-vars.fd', rom='share/reims/ReimsVgpu.rom',

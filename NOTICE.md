@@ -17,6 +17,14 @@ copied into each package. Source control contains no runtime binaries.
 Reims/QEMU engines are separate and retain their own license and source
 requirements.
 
+iPhone USB handoff bundles the unchanged signed
+[libusb-win32](https://github.com/mcuee/libusb-win32) 1.4.0.2 driver package,
+its GPL/LGPL license texts, and the released
+[libusbK](https://github.com/mcuee/libusbk) 3.1.0.0 user-mode DLL under its
+BSD license. Exact archive, payload and license pins are recorded in
+`backend/iphone-usb-driver-lock.json`. Driver binaries are not committed.
+The engine carries the corresponding libusb source revision and license.
+
 Optional Wi-Fi compatibility includes an authored helper statically
 linked to the MIT-licensed [ndisapi SDK](https://github.com/wiresock/ndisapi)
 and [Microsoft GSL](https://github.com/microsoft/GSL). Exact source pins and

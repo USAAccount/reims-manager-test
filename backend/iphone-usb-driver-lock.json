@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "id": "libusb0-1.4.0.2-libusbk-3.1.0.0",
+  "archives": {
+    "driver": {
+      "file": "libusb-win32-bin-1.4.0.2.zip",
+      "bytes": 2636261,
+      "sha256": "00004c92cdb99be36e17fb2377165eb97e63b48ba895bfc04a642ea9c3e26d94",
+      "url": "https://github.com/mcuee/libusb-win32/releases/download/release_1.4.0.2/libusb-win32-bin-1.4.0.2.zip",
+      "prefix": "libusb-win32-bin-1.4.0.2"
+    },
+    "api": {
+      "file": "libusbK-3.1.0.0-bin.7z",
+      "bytes": 6533139,
+      "sha256": "38605d8d5a86f408a4b7bec60f6d4a096050eee72f89a63a8d5be125252d3fe7",
+      "url": "https://github.com/mcuee/libusbk/releases/download/V3.1.0.0/libusbK-3.1.0.0-bin.7z"
+    }
+  },
+  "api": {
+    "file": "libusbK.dll",
+    "member": "libusbK-3.1.0.0-bin/bin/dll/amd64/libusbK.dll",
+    "bytes": 100352,
+    "sha256": "0690cd87d0069edac3a867e0b51f379afa77159eda3b45cd02740fc6afb546d8"
+  },
+  "licenses": [
+    {
+      "file": "COPYING_GPL.txt",
+      "bytes": 35147,
+      "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+    },
+    {
+      "file": "COPYING_LGPL.txt",
+      "bytes": 7651,
+      "sha256": "da7eabb7bafdf7d3ae5e9f223aa5bdc1eece45ac569dc21b3b037520b4464768"
+    },
+    {
+      "file": "LICENSE-libusbK-BSD.txt",
+      "bytes": 1893,
+      "sha256": "0649d566561ce1a8b0f7521c4c62e046f7ef81cefe0a993c9463a3e3f4a8a328",
+      "url": "https://raw.githubusercontent.com/mcuee/libusbk/bbd3aaa7650fd479ac888f33d76a46fd6aac7652/libusbK/license/LICENSE-bsd.txt"
+    }
+  ]
+}

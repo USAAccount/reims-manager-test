@@ -23,6 +23,16 @@ function Get-ReimsSshKnownHostsOption([string]$Path) {
     return 'UserKnownHostsFile="' + $Path.Replace('\','/') + '"'
 }
 
+function Get-ReimsVmStartFailure([string]$Run, [int]$MemoryMiB) {
+    $log = Join-Path $Run 'stderr.log'
+    if (Test-Path -LiteralPath $log -PathType Leaf) {
+        if (Get-Content -LiteralPath $log -TotalCount 20 | Where-Object { $_ -match 'Cannot set up .+ of guest memory' }) {
+            return "VM 用の $MemoryMiB MiB のメモリを Windows が確保できませんでした。他のアプリを閉じて再試行してください。VM のメモリ設定は変更していません。ログ: $log"
+        }
+    }
+    return "QEMU exited. Read $log"
+}
+
 function Get-ReimsEnginePath([string]$Key, [string]$SourceFallback) {
     if ($script:ReimsEngine) { return Join-ReimsPackagePath $ProjectRoot $script:ReimsEngine.paths[$Key] }
     return Join-Path $ProjectRoot $SourceFallback
@@ -137,10 +147,47 @@ function Get-ReimsVmProcess($Runtime) {
     # runtime.json survives Manager/Windows restarts. A reused PID proves the
     # recorded VM has exited; it must not make every status/settings call fail.
     # Unreadable identity remains an error, never permission to start another VM.
+    $name=$process.ProcessName
+    if(![string]::IsNullOrWhiteSpace($name) -and ![string]::Equals($name,[IO.Path]::GetFileNameWithoutExtension($Runtime.executable),[StringComparison]::OrdinalIgnoreCase)){return $null}
     $started = $process.StartTime
     if ($null -eq $started) { throw "Cannot verify the start time of VM process $($Runtime.pid)." }
     if ($started.ToUniversalTime().Ticks -ne [long]$Runtime.start_ticks) { return $null }
     $executable = $process.Path
+    if ([string]::IsNullOrWhiteSpace($executable)) {
+        # MainModule needs VM_READ; elevated helpers still permit limited identity queries.
+        if (!('ReimsProcessImage' -as [type])) {
+            Add-Type -TypeDefinition @'
+using System;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
+using System.Text;
+using Microsoft.Win32.SafeHandles;
+[assembly: DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+public static class ReimsProcessImage {
+    [StructLayout(LayoutKind.Sequential)] struct FileTime { public uint Low, High; }
+    [DllImport("kernel32.dll", SetLastError=true)] static extern SafeProcessHandle OpenProcess(uint access, bool inherit, uint id);
+    [DllImport("kernel32.dll", SetLastError=true)] static extern bool GetProcessTimes(SafeProcessHandle process, out FileTime created, out FileTime exited, out FileTime kernel, out FileTime user);
+    [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)] static extern bool QueryFullProcessImageNameW(SafeProcessHandle process, uint flags, StringBuilder path, ref uint length);
+    public static string Read(int id, long expectedTicks) {
+        using (var process=OpenProcess(0x1000,false,checked((uint)id))) {
+            if (process.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
+            FileTime created, exited, kernel, user;
+            if (!GetProcessTimes(process,out created,out exited,out kernel,out user)) throw new Win32Exception(Marshal.GetLastWin32Error());
+            long fileTime=(long)(((ulong)created.High<<32)|created.Low);
+            if (DateTime.FromFileTimeUtc(fileTime).Ticks!=expectedTicks) return null;
+            var path=new StringBuilder(32768); uint length=(uint)path.Capacity;
+            if (!QueryFullProcessImageNameW(process,0,path,ref length)) throw new Win32Exception(Marshal.GetLastWin32Error());
+            if (length==0) throw new InvalidOperationException("Process image name was empty.");
+            return path.ToString();
+        }
+    }
+}
+'@
+        }
+        try { $executable=[ReimsProcessImage]::Read([int]$Runtime.pid,[long]$Runtime.start_ticks) }
+        catch { throw "Cannot verify the executable of VM process $($Runtime.pid): $($_.Exception.Message)" }
+        if ($null -eq $executable) { return $null }
+    }
     if ([string]::IsNullOrWhiteSpace($executable)) { throw "Cannot verify the executable of VM process $($Runtime.pid)." }
     if (![string]::Equals($executable, $Runtime.executable, [StringComparison]::OrdinalIgnoreCase)) { return $null }
     return $process
@@ -363,6 +410,8 @@ if (!$DryRun -and $runtime -and (Get-ReimsVmProcess $runtime)) {
     } while ($true)
     if ($wifiMacNat) { Start-ReimsWifiForwarder $config $runtime }
     if (!$Paused) { Invoke-ReimsQmp $runtime 'cont' | Out-Null }
+    try { Start-ReimsIphoneUsbAutoConnect $config $runtime }
+    catch { Write-Warning ('VM は起動済みですが、iPhone の自動接続を開始できません: '+$_.Exception.Message) }
     "Powered on the existing QEMU process, PID $($runtime.pid). Logs: $($runtime.run_directory)"
     return
 }
@@ -422,7 +471,7 @@ Write-ReimsJson (Join-Path $VmRoot 'state/runtime.json') $runtime
 try {
     $deadline = [DateTime]::UtcNow.AddSeconds(20)
     do {
-        if (!(Get-ReimsVmProcess $runtime)) { throw "QEMU exited. Read $run/stderr.log" }
+        if (!(Get-ReimsVmProcess $runtime)) { throw (Get-ReimsVmStartFailure $run $config.memory_mib) }
         try { $status = Invoke-ReimsQmp $runtime 'query-status'; break } catch {
             if ([DateTime]::UtcNow -gt $deadline) { throw }
             Start-Sleep -Milliseconds 250
@@ -439,4 +488,6 @@ try {
     if ($owned) { Stop-Process -InputObject $owned -Force }
     throw
 }
+try { Start-ReimsIphoneUsbAutoConnect $config $runtime }
+catch { Write-Warning ('VM は起動済みですが、iPhone の自動接続を開始できません: '+$_.Exception.Message) }
 "Started PID $($process.Id), QMP 127.0.0.1:$($config.qmp_port), SSH 127.0.0.1:$($config.ssh_port). Logs: $run"

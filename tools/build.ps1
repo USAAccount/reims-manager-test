@@ -1,6 +1,7 @@
 #Requires -Version 7.2
 [CmdletBinding()]
-param([string]$Dotnet='dotnet')
+param([string]$Dotnet='dotnet',
+    [string]$SevenZip=(Join-Path $env:ProgramFiles '7-Zip/7z.exe'))
 $ErrorActionPreference='Stop'
 $repoRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $sourceCommit=(& git -C $repoRoot rev-parse --verify HEAD) -join ''
@@ -23,6 +24,10 @@ $env:MSBUILDDISABLENODEREUSE='1'
     '-p:UseSharedCompilation=false' "-p:PathMap=$repoRoot=/_/reims-manager"
 if($LASTEXITCODE -ne 0){throw 'Manager build failed.'}
 & (Join-Path $PSScriptRoot 'bundle-runtimes.ps1') -OutputDirectory $output -ArchiveDirectory (Join-Path $work 'downloads')
+# The explicit runner/caller-provided extractor is never resolved from PATH.
+if(![IO.Path]::IsPathFullyQualified($SevenZip)) { throw 'Provide an absolute trusted 7-Zip executable.' }
+& "$PSScriptRoot/bundle-iphone-usb-driver.ps1" -ArchiveDirectory (Join-Path $work 'downloads') `
+    -OutputDirectory (Join-Path $output 'runtimes/iphone-usb-driver') -SevenZip $SevenZip | Out-Null
 & (Join-Path $PSScriptRoot 'build-wifi-macnat.ps1')
 $native=Join-Path $output 'runtimes/wifi-macnat'
 [void][IO.Directory]::CreateDirectory($native)
