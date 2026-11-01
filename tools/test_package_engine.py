@@ -41,7 +41,7 @@ class PackagingTests(unittest.TestCase):
     def test_package_default_and_split_release_layouts(self):
         for split, usb in product((False, True), repeat=2):
             with self.subTest(split=split, libusb=usb), tempfile.TemporaryDirectory() as tmp:
-                root = Path(tmp)
+                root = Path(tmp).resolve()
                 source, msys = root/'source', root/'msys'
                 qemu_source = root/'qemu-source' if split else source/'vendor/qemu'
                 build = root/'qemu-build' if split else source/'build/qemu'
@@ -147,7 +147,7 @@ class PackagingTests(unittest.TestCase):
 
     def test_pinned_libusb_requires_inputs_and_clean_source_before_output(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
+            root = Path(tmp).resolve()
             args = argparse.Namespace(source=root, qemu_source=None, qemu_build=None,
                                       output=root/'out', libusb_source=root/'usb',
                                       libusb_build=root/'build', iphone_driver_package=root/'driver')
@@ -168,7 +168,7 @@ class PackagingTests(unittest.TestCase):
 
     def test_libusb_build_and_official_api_provenance(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
+            root = Path(tmp).resolve()
             args = argparse.Namespace(libusb_source=root/'source', libusb_build=root/'build', iphone_driver_package=root/'driver')
             lock = {'sources': {'libusb': {'repository': 'https://github.com/tqmane/reims-libusb', 'commit': 'f'*40}}}
             pin = self.usb_fixture(args, lock)
@@ -202,7 +202,7 @@ class PackagingTests(unittest.TestCase):
 
     def test_source_revision_cleanliness_and_runtime_pin(self):
         with tempfile.TemporaryDirectory() as tmp:
-            source = Path(tmp)
+            source = Path(tmp).resolve()
             runtime = 'e'*40
             (source/'Cargo.toml').write_text('rev = "'+runtime+'"', encoding='utf-8')
             lock = {'sources': {'reims': {'commit': 'a'*40}, 'qemu': {'commit': 'b'*40},
@@ -223,7 +223,7 @@ class PackagingTests(unittest.TestCase):
 
     def test_recursive_dll_closure_and_missing_dependency(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
+            root = Path(tmp).resolve()
             for folder in ('input', 'output', 'system'):
                 (root/folder).mkdir()
             source = root/'input/qemu.exe'
@@ -239,7 +239,7 @@ class PackagingTests(unittest.TestCase):
 
     def test_reject_non_pe_and_wrong_architecture(self):
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp)/'bad.exe'
+            path = Path(tmp).resolve()/'bad.exe'
             path.write_bytes(b'not PE')
             with self.assertRaises(ValueError):
                 package.pe_imports(path)
