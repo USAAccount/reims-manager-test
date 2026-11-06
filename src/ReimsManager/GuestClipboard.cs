@@ -28,7 +28,7 @@ internal static class GuestClipboard
         return matching.Length switch {
             0 => host,
             1 => matching[0].ToString(),
-            _ => throw new InvalidOperationException("専用 TAP 上の macOS 接続先が複数あります。接続設定を確認してください。")
+            _ => throw new InvalidOperationException(UiText.T("専用 TAP 上の macOS 接続先が複数あります。接続設定を確認してください。"))
         };
     }
 
@@ -39,9 +39,9 @@ internal static class GuestClipboard
             !network.TryGetProperty("tap_id", out var tap) || tap.ValueKind != JsonValueKind.String ||
             !Guid.TryParse(tap.GetString(), out var tapId) || tapId == Guid.Empty || IPAddress.TryParse(host, out _)) return host;
         var adapter = NetworkInterface.GetAllNetworkInterfaces().SingleOrDefault(candidate => Guid.TryParse(candidate.Id, out var id) && id == tapId)
-            ?? throw new InvalidOperationException("設定された TAP インターフェースを確認できません。");
+            ?? throw new InvalidOperationException(UiText.T("設定された TAP インターフェースを確認できません。"));
         int index = adapter.GetIPProperties().GetIPv6Properties()?.Index ?? 0;
-        if (index <= 0) throw new InvalidOperationException("設定された TAP の IPv6 インターフェース番号を確認できません。");
+        if (index <= 0) throw new InvalidOperationException(UiText.T("設定された TAP の IPv6 インターフェース番号を確認できません。"));
         return SelectScopedHost(host, await ResolveAddresses(ResolverStartInfo(), host, cancellation), index);
     }
 
@@ -73,7 +73,7 @@ internal static class GuestClipboard
         if (!Regex.IsMatch(host, "^[A-Za-z0-9][A-Za-z0-9.:-]*$")) throw new ArgumentException("Invalid guest hostname.");
         cancellation.ThrowIfCancellationRequested();
         // A native name-provider loop must not outlive its owned resolver process.
-        using var process = Process.Start(info) ?? throw new IOException("名前解決プロセスを起動できません。");
+        using var process = Process.Start(info) ?? throw new IOException(UiText.T("名前解決プロセスを起動できません。"));
         using var capture = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
         using var kill = cancellation.Register(() => {
             try { if (!process.HasExited) process.Kill(); }
@@ -86,12 +86,12 @@ internal static class GuestClipboard
             process.StandardInput.Close();
             await Task.WhenAll(output, error, process.WaitForExitAsync(cancellation)).ConfigureAwait(false);
             cancellation.ThrowIfCancellationRequested();
-            if (process.ExitCode != 0) throw new IOException("macOS の接続先を名前解決できませんでした。" + error.Result);
+            if (process.ExitCode != 0) throw new IOException(UiText.T("macOS の接続先を名前解決できませんでした。") + error.Result);
             using var document = JsonDocument.Parse(output.Result);
-            if (document.RootElement.ValueKind != JsonValueKind.Array) throw new InvalidDataException("名前解決の応答が不正です。");
+            if (document.RootElement.ValueKind != JsonValueKind.Array) throw new InvalidDataException(UiText.T("名前解決の応答が不正です。"));
             return document.RootElement.EnumerateArray().Select(value =>
                 value.ValueKind == JsonValueKind.String && IPAddress.TryParse(value.GetString(), out var address)
-                    ? address : throw new InvalidDataException("名前解決のアドレスが不正です。")).ToArray();
+                    ? address : throw new InvalidDataException(UiText.T("名前解決のアドレスが不正です。"))).ToArray();
         } finally {
             capture.Cancel();
             Stop();
@@ -115,7 +115,7 @@ internal static class GuestClipboard
             try {
                 int count;
                 while ((count = await reader.ReadAsync(buffer.AsMemory(), capture.Token).ConfigureAwait(false)) != 0) {
-                    if (result.Length + count > 65536) throw new InvalidDataException("名前解決の応答が上限を超えました。");
+                    if (result.Length + count > 65536) throw new InvalidDataException(UiText.T("名前解決の応答が上限を超えました。"));
                     result.Append(buffer, 0, count);
                 }
                 return result.ToString();
@@ -126,7 +126,7 @@ internal static class GuestClipboard
     internal static async Task<string> Transfer(string vmDirectory, string? text, CancellationToken cancellation = default)
     {
         if (text is not null && Encoding.UTF8.GetByteCount(text) > MaxBytes)
-            throw new InvalidOperationException("共有できるテキストは 1 MiB までです。");
+            throw new InvalidOperationException(UiText.T("共有できるテキストは 1 MiB までです。"));
         string state = Path.Combine(vmDirectory, "state");
         using var config = JsonDocument.Parse(File.ReadAllText(Path.Combine(state, "config.json")));
         using var paired = JsonDocument.Parse(File.ReadAllText(Path.Combine(state, "guest.json")));
@@ -135,7 +135,7 @@ internal static class GuestClipboard
         using var vm = Process.GetProcessById(r.GetProperty("pid").GetInt32());
         if (vm.StartTime.ToUniversalTime().Ticks != r.GetProperty("start_ticks").GetInt64() ||
             !string.Equals(vm.MainModule?.FileName, r.GetProperty("executable").GetString(), StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException("選択した VM のプロセスを確認できません。");
+            throw new InvalidOperationException(UiText.T("選択した VM のプロセスを確認できません。"));
         var c = config.RootElement;
         string host = "127.0.0.1", port = c.GetProperty("ssh_port").ToString();
         if (c.TryGetProperty("network", out var network) && network.GetProperty("mode").GetString() == "bridge") {
@@ -144,7 +144,7 @@ internal static class GuestClipboard
         }
         string user = paired.RootElement.GetProperty("user").GetString() ?? "";
         if (!Regex.IsMatch(user, "^[a-z_][a-z0-9_-]*$") || !Regex.IsMatch(host, "^[A-Za-z0-9][A-Za-z0-9.:-]*$"))
-            throw new InvalidOperationException("macOS 接続の設定を確認してください。");
+            throw new InvalidOperationException(UiText.T("macOS 接続の設定を確認してください。"));
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
         timeout.CancelAfter(TimeSpan.FromSeconds(10));
         host = await ResolveScopedHost(network, host, timeout.Token);
@@ -173,7 +173,7 @@ internal static class GuestClipboard
             string result = await output;
             await process.WaitForExitAsync(timeout.Token);
             await error;
-            if (process.ExitCode != 0) throw new InvalidOperationException("クリップボード接続に失敗しました。VM の起動と SSH ペアリングを確認してください。");
+            if (process.ExitCode != 0) throw new InvalidOperationException(UiText.T("クリップボード接続に失敗しました。VM の起動と SSH ペアリングを確認してください。"));
             return result;
         } finally { if (!process.HasExited) { process.Kill(); await process.WaitForExitAsync(); } }
     }
@@ -185,7 +185,7 @@ internal static class GuestClipboard
         int bytes = 0, count;
         while ((count = await reader.ReadAsync(buffer.AsMemory(), token)) != 0) {
             bytes += Encoding.UTF8.GetByteCount(buffer, 0, count);
-            if (bytes > MaxBytes) throw new InvalidOperationException("共有できるテキストは 1 MiB までです。");
+            if (bytes > MaxBytes) throw new InvalidOperationException(UiText.T("共有できるテキストは 1 MiB までです。"));
             result.Append(buffer, 0, count);
         }
         return result.ToString();

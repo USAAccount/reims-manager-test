@@ -6,7 +6,7 @@ namespace ReimsManager;
 internal sealed record VmEntry(string Name, string File, string Directory, string? Problem = null)
 {
     public bool IsAvailable => Problem is null;
-    public string Subtitle => IsAvailable ? Directory : "見つからない / 読み込めない · " + Directory;
+    public string Subtitle => IsAvailable ? Directory : UiText.T("見つからない / 読み込めない · ") + Directory;
     public override string ToString() => Name;
 }
 
@@ -21,11 +21,11 @@ internal static class VmLibrary
 
     internal static VmEntry PlanCreate(string parent, string name)
     {
-        if (!Path.IsPathFullyQualified(parent)) throw new ArgumentException("保存先は参照ボタンから選択するか、完全なパスを入力してください。");
+        if (!Path.IsPathFullyQualified(parent)) throw new ArgumentException(UiText.T("保存先は参照ボタンから選択するか、完全なパスを入力してください。"));
         if (string.IsNullOrWhiteSpace(name) || name.Length > 80 || name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 ||
             name != name.TrimEnd('.', ' ') || name is "." or ".." ||
             System.Text.RegularExpressions.Regex.IsMatch(name.Split('.')[0], "^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$", System.Text.RegularExpressions.RegexOptions.IgnoreCase))
-            throw new ArgumentException("VM の名前を確認してください。区切り文字や Windows の予約名は使用できません。");
+            throw new ArgumentException(UiText.T("VM の名前を確認してください。区切り文字や Windows の予約名は使用できません。"));
         string directory = Path.Combine(Path.GetFullPath(parent), name);
         return Validate(Path.Combine(directory, name + ".reimsvm"), name, directory);
     }
@@ -48,9 +48,9 @@ internal static class VmLibrary
         directory = Path.GetFullPath(directory, package);
         if (!string.Equals(directory, package, StringComparison.OrdinalIgnoreCase) &&
             !directory.StartsWith(package.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
-            throw new InvalidDataException("VM のデータは VM ファイルと同じフォルダー内に置いてください。");
+            throw new InvalidDataException(UiText.T("VM のデータは VM ファイルと同じフォルダー内に置いてください。"));
         if (string.IsNullOrWhiteSpace(name) || directory.TrimEnd(Path.DirectorySeparatorChar) == Path.GetPathRoot(directory)?.TrimEnd(Path.DirectorySeparatorChar))
-            throw new InvalidDataException("VM の名前または保存先が不正です。");
+            throw new InvalidDataException(UiText.T("VM の名前または保存先が不正です。"));
         return new(name, file, directory);
     }
 
@@ -59,16 +59,16 @@ internal static class VmLibrary
         file = Path.GetFullPath(file);
         using var json = JsonDocument.Parse(System.IO.File.ReadAllText(file));
         var value = json.RootElement;
-        if (value.GetProperty("schema").GetInt32() != 1) throw new InvalidDataException("この VM ファイルの形式には対応していません。");
-        return Validate(file, value.GetProperty("name").GetString() ?? "", value.GetProperty("directory").GetString() ?? throw new InvalidDataException("VM のデータ保存先がありません。"));
+        if (value.GetProperty("schema").GetInt32() != 1) throw new InvalidDataException(UiText.T("この VM ファイルの形式には対応していません。"));
+        return Validate(file, value.GetProperty("name").GetString() ?? "", value.GetProperty("directory").GetString() ?? throw new InvalidDataException(UiText.T("VM のデータ保存先がありません。")));
     }
 
     internal static VmEntry Create(string file, string directory)
     {
         var entry = Validate(file, Path.GetFileNameWithoutExtension(file), directory);
-        if (System.IO.File.Exists(entry.File)) throw new IOException("VM ファイルは既に存在します。");
+        if (System.IO.File.Exists(entry.File)) throw new IOException(UiText.T("VM ファイルは既に存在します。"));
         if (System.IO.File.Exists(entry.Directory) || System.IO.Directory.Exists(entry.Directory) && System.IO.Directory.EnumerateFileSystemEntries(entry.Directory).Any())
-            throw new IOException("この保存先には既にデータがあります。別の VM 名を選択してください。");
+            throw new IOException(UiText.T("この保存先には既にデータがあります。別の VM 名を選択してください。"));
         string parent = Path.GetDirectoryName(entry.File)!;
         string relative = Path.GetRelativePath(parent, entry.Directory);
         byte[] content = JsonSerializer.SerializeToUtf8Bytes(new { schema = 1, name = entry.Name, directory = relative });

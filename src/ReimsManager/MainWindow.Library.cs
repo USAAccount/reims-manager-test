@@ -19,7 +19,7 @@ public partial class MainWindow
         foreach (string path in settings.VirtualMachines.Distinct(StringComparer.OrdinalIgnoreCase)) {
             var entry = VmLibrary.Registered(path);
             machines.Add(entry);
-            if (!entry.IsAvailable) AppendLog($"VM を読み込めません: {path}\n{entry.Problem}\n");
+            if (!entry.IsAvailable) AppendLog(UiText.Format($"VM を読み込めません: {path}\n{entry.Problem}\n"));
         }
         UpdateLibraryView();
         if (machines.Count > 0) Library.SelectedItem = machines.FirstOrDefault(x => string.Equals(x.File, settings.SelectedVm, StringComparison.OrdinalIgnoreCase)) ?? machines[0];
@@ -73,7 +73,7 @@ public partial class MainWindow
     private void OpenVm(object sender, RoutedEventArgs e)
     {
         if (IsUiBusy) return;
-        var dialog = new OpenFileDialog { Filter = "Reims 仮想マシン|*.reimsvm", Title = "保存済みの VM を開く" };
+        var dialog = new OpenFileDialog { Filter = UiText.T("Reims 仮想マシン|*.reimsvm"), Title = UiText.T("保存済みの VM を開く") };
         if (dialog.ShowDialog(this) == true) OpenVmFile(dialog.FileName);
     }
 
@@ -86,7 +86,7 @@ public partial class MainWindow
         settings.SynchronizeFrom(saved, adoptEngine);
         if (engineChanged) {
             if (adoptEngine) { Root.Text = settings.EngineRoot; ResetVmContext(); }
-            else ShowError("別のウィンドウでエンジンの設定が変わりました。現在の接続を維持しています。VM の完全終了後にライブラリを更新すると反映します。");
+            else ShowError(UiText.T("別のウィンドウでエンジンの設定が変わりました。現在の接続を維持しています。VM の完全終了後にライブラリを更新すると反映します。"));
         }
         LoadLibrary();
         RestoreClipboardPreference();
@@ -106,7 +106,7 @@ public partial class MainWindow
     private async void ImportPreferences(object sender, RoutedEventArgs e)
     {
         if (IsUiBusy || !DiscardPendingChanges()) return;
-        var dialog = new OpenFileDialog { Filter = "Reims Manager の設定|*.json", FileName = "settings.json", Title = "以前のアプリ設定を取り込む" };
+        var dialog = new OpenFileDialog { Filter = UiText.T("Reims Manager の設定|*.json"), FileName = "settings.json", Title = UiText.T("以前のアプリ設定を取り込む") };
         if (dialog.ShowDialog(this) != true) return;
         try {
             if (!RestoreSettingsDrafts()) return;
@@ -122,9 +122,9 @@ public partial class MainWindow
 
     private VmEntry? CreateVm()
     {
-        if (!HasEngine) { ShowError("先に Reims エンジンを設定してください。VM ファイルはまだ作成していません。"); return null; }
-        var dialog = new SaveFileDialog { Filter = "Reims 仮想マシン|*.reimsvm", DefaultExt = ".reimsvm", AddExtension = true,
-            FileName = "macOS.reimsvm", Title = "新しい VM の名前と保存先", OverwritePrompt = true,
+        if (!HasEngine) { ShowError(UiText.T("先に Reims エンジンを設定してください。VM ファイルはまだ作成していません。")); return null; }
+        var dialog = new SaveFileDialog { Filter = UiText.T("Reims 仮想マシン|*.reimsvm"), DefaultExt = ".reimsvm", AddExtension = true,
+            FileName = "macOS.reimsvm", Title = UiText.T("新しい VM の名前と保存先"), OverwritePrompt = true,
             InitialDirectory = Directory.Exists(VmLibrary.DefaultRoot) ? VmLibrary.DefaultRoot : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) };
         if (dialog.ShowDialog(this) != true || !DiscardPendingChanges()) return null;
         string directory = Path.Combine(Path.GetDirectoryName(dialog.FileName)!, Path.GetFileNameWithoutExtension(dialog.FileName) + ".data");
@@ -160,7 +160,7 @@ public partial class MainWindow
                 "-Cpus", request.Cpus.ToString(), "-MemoryMiB", request.MemoryMiB.ToString()])) return;
             ConnectIso.IsChecked = true;
             if (request.AutoStart) await StartPreparedVm(entry, request.Cpus, request.MemoryMiB);
-            else { StatusDetail.Text = "VM の準備ができました。上の「起動」から macOS のインストールを始められます。"; UpdatePowerControls(); }
+            else { StatusDetail.Text = UiText.T("VM の準備ができました。上の「起動」から macOS のインストールを始められます。"); UpdatePowerControls(); }
         } catch (Exception error) { ShowError(error.Message); }
     }
 
@@ -171,11 +171,11 @@ public partial class MainWindow
         SetupRequirements? requirements = null;
         try {
             requirements = SetupRequirements.Parse(await Execute("GetPrerequisites", ["-Cpus", cpus.ToString(), "-MemoryMiB", memory.ToString()], cancellation: statusCancellation.Token));
-        } catch (Exception error) { ShowError("自動起動を保留しました。必要条件を確認してから起動してください。\n" + error.Message); }
+        } catch (Exception error) { ShowError(UiText.T("自動起動を保留しました。必要条件を確認してから起動してください。\n") + error.Message); }
         finally { busy = false; UpdatePowerControls(); }
         if (version != contextVersion || entry != selectedEntry || closing) return;
         if (requirements?.StartReady == true) await Operate("Start");
-        else { StatusDetail.Text = "VM の準備は完了しました。自動起動は保留しています。空き RAM と Windows の再起動要否を確認してください。"; UpdatePowerControls(); }
+        else { StatusDetail.Text = UiText.T("VM の準備は完了しました。自動起動は保留しています。空き RAM と Windows の再起動要否を確認してください。"); UpdatePowerControls(); }
     }
 
     private async void ImportVm(object sender, RoutedEventArgs e)
@@ -187,7 +187,7 @@ public partial class MainWindow
             catch (Exception error) { ShowError(error.Message); return; }
             finally { busy=false; UpdatePowerControls(); }
         }
-        var disk = new OpenFileDialog { Filter = "仮想ディスク|*.vmdk;*.qcow2;*.img;*.raw", Title = "完全に停止した VM のディスクを選択（元データは保持）" };
+        var disk = new OpenFileDialog { Filter = UiText.T("仮想ディスク|*.vmdk;*.qcow2;*.img;*.raw"), Title = UiText.T("完全に停止した VM のディスクを選択（元データは保持）") };
         if (disk.ShowDialog(this) != true || CreateVm() is not { } entry) return;
         await RefreshState();
         if (entry != selectedEntry) return;
@@ -200,7 +200,7 @@ public partial class MainWindow
         string? folder = Directory.Exists(VmDirectory) ? VmDirectory : Path.GetDirectoryName(selectedEntry!.File);
         try {
             if (Directory.Exists(folder)) Process.Start(new ProcessStartInfo(folder) { UseShellExecute = true });
-            else ShowError("VM の保存先が見つかりません。ドライブの接続を確認してください。");
+            else ShowError(UiText.T("VM の保存先が見つかりません。ドライブの接続を確認してください。"));
         } catch (Exception error) { ShowError(error.Message); }
     }
 

@@ -15,7 +15,7 @@ internal sealed record LiveVmStatus(string State, JsonElement? Runtime)
         if (!File.Exists(configuration)) return new("unprepared", null);
         string path = Path.Combine(directory, "state", "runtime.json");
         if (!File.Exists(path)) return new("stopped", null);
-        if (new FileInfo(path).Length > 1024 * 1024) throw new InvalidDataException("VM の実行記録が大きすぎます。");
+        if (new FileInfo(path).Length > 1024 * 1024) throw new InvalidDataException(UiText.T("VM の実行記録が大きすぎます。"));
         using var document = JsonDocument.Parse(await File.ReadAllTextAsync(path, cancellation));
         var runtime = document.RootElement.Clone();
         int pid = runtime.GetProperty("pid").GetInt32();
@@ -29,19 +29,19 @@ internal sealed record LiveVmStatus(string State, JsonElement? Runtime)
                 return new("stopped", null);
         } catch (ArgumentException) { return new("stopped", null); }
         int port = runtime.GetProperty("qmp_port").GetInt32();
-        if (port < 1024 || port > 65535) throw new InvalidDataException("VM の管理ポートが不正です。");
+        if (port < 1024 || port > 65535) throw new InvalidDataException(UiText.T("VM の管理ポートが不正です。"));
         return new(await Query(port, cancellation), runtime);
     }
 
     internal static Task<string> Query(int port, CancellationToken cancellation = default) => Task.Run(() => {
-        if (port is < 1024 or > 65535) throw new InvalidDataException("VM の管理ポートが不正です。");
+        if (port is < 1024 or > 65535) throw new InvalidDataException(UiText.T("VM の管理ポートが不正です。"));
         using var mutex = new Mutex(false, $"Local\\ReimsManager.Qmp.{port}");
         bool locked = false;
         try {
             try { locked = WaitHandle.WaitAny([mutex, cancellation.WaitHandle], TimeSpan.FromSeconds(5)) == 0; }
             catch (AbandonedMutexException) { locked = true; }
             cancellation.ThrowIfCancellationRequested();
-            if (!locked) throw new IOException("VM の管理接続を使用中です。操作の完了後に再試行してください。");
+            if (!locked) throw new IOException(UiText.T("VM の管理接続を使用中です。操作の完了後に再試行してください。"));
             // A named mutex must be released by its acquiring thread.
             return QueryCore(port, cancellation).GetAwaiter().GetResult();
         } finally { if (locked) mutex.ReleaseMutex(); }
@@ -58,7 +58,7 @@ internal sealed record LiveVmStatus(string State, JsonElement? Runtime)
         using var reader = new StreamReader(stream, Encoding.UTF8, false, 1024, true);
         using var writer = new StreamWriter(stream, new UTF8Encoding(false), 1024, true) { AutoFlush = true, NewLine = "\n" };
         using (var greeting = JsonDocument.Parse(await ReadLine(reader, token))) {
-            if (!greeting.RootElement.TryGetProperty("QMP", out _)) throw new InvalidDataException("VM の管理接続を確認できませんでした。");
+            if (!greeting.RootElement.TryGetProperty("QMP", out _)) throw new InvalidDataException(UiText.T("VM の管理接続を確認できませんでした。"));
         }
         string state = "unknown";
         foreach (string command in new[] { "qmp_capabilities", "query-status" }) {
@@ -68,7 +68,7 @@ internal sealed record LiveVmStatus(string State, JsonElement? Runtime)
                 using var response = JsonDocument.Parse(await ReadLine(reader, token));
                 var message = response.RootElement;
                 if (!message.TryGetProperty("id", out var responseId) || responseId.ValueKind != JsonValueKind.String || responseId.GetString() != id) continue;
-                if (message.TryGetProperty("error", out _)) throw new IOException("VM が管理コマンドを拒否しました。");
+                if (message.TryGetProperty("error", out _)) throw new IOException(UiText.T("VM が管理コマンドを拒否しました。"));
                 if (command == "query-status") state = message.GetProperty("return").GetProperty("status").GetString() ?? "unknown";
                 break;
             }
@@ -81,10 +81,10 @@ internal sealed record LiveVmStatus(string State, JsonElement? Runtime)
         var line = new StringBuilder();
         var character = new char[1];
         while (line.Length < 65536) {
-            if (await reader.ReadAsync(character.AsMemory(), token) == 0) throw new EndOfStreamException("VM の管理接続が閉じられました。");
+            if (await reader.ReadAsync(character.AsMemory(), token) == 0) throw new EndOfStreamException(UiText.T("VM の管理接続が閉じられました。"));
             if (character[0] == '\n') return line.ToString();
             if (character[0] != '\r') line.Append(character[0]);
         }
-        throw new InvalidDataException("VM の応答が上限を超えました。");
+        throw new InvalidDataException(UiText.T("VM の応答が上限を超えました。"));
     }
 }

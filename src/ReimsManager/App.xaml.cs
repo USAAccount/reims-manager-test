@@ -16,6 +16,8 @@ public partial class App : Application
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        if (e.Args.Any(arg => arg is "--self-test" || arg.EndsWith("-check", StringComparison.Ordinal) || arg.EndsWith("-probe", StringComparison.Ordinal)))
+            UiText.SetLanguage("ja");
         try {
             if (e.Args.Length == 2 && e.Args[0] == "--network-page-check") {
                 string folder=Path.GetFullPath(e.Args[1]);Directory.CreateDirectory(folder);
@@ -98,15 +100,15 @@ public partial class App : Application
                 for (int i=0;i<e.Args.Length;i++) {
                     string argument=e.Args[i];
                     if (argument is "--root" or "--qemu" or "--open") {
-                        if (++i>=e.Args.Length) throw new ArgumentException("起動オプションの値がありません。");
+                        if (++i>=e.Args.Length) throw new ArgumentException(UiText.T("起動オプションの値がありません。"));
                         if (argument=="--root") root=e.Args[i];
                         else if (argument=="--qemu") qemu=e.Args[i];
                         else vm=e.Args[i];
                     } else if (e.Args.Length==1 && Path.GetExtension(argument).Equals(".reimsvm",StringComparison.OrdinalIgnoreCase)) vm=argument;
-                    else throw new ArgumentException("対応していない起動オプションです。");
+                    else throw new ArgumentException(UiText.T("対応していない起動オプションです。"));
                 }
                 if (root is not null) window.ConfigureEngine(root,qemu);
-                else if (qemu is not null) throw new ArgumentException("--qemu には --root も指定してください。");
+                else if (qemu is not null) throw new ArgumentException(UiText.T("--qemu には --root も指定してください。"));
                 if (vm is not null) window.Loaded += (_,_) => window.OpenVmFile(vm);
             }
             if (e.Args.Length == 2 && e.Args[0] == "--self-test") {

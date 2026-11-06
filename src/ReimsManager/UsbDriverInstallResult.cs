@@ -6,7 +6,7 @@ namespace ReimsManager;
 internal sealed record UsbDriverInstallResult(bool RestartRequired)
 {
     private const int MaximumBytes = 4096;
-    private const string Unconfirmed = "UsbDk の導入結果を確認できません。Windows の再起動が必要か不明です。USB 設定から導入状態を再確認してください。";
+    private static string Unconfirmed => UiText.T("UsbDk の導入結果を確認できません。Windows の再起動が必要か不明です。USB 設定から導入状態を再確認してください。");
 
     internal static UsbDriverInstallResult Read(string path)
     {

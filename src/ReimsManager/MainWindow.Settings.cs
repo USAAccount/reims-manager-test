@@ -63,7 +63,7 @@ public partial class MainWindow
     private bool RestoreSettingsDrafts()
     {
         if (hardwareDirty && committedHardware is null || identityDirty && committedIdentity is null) {
-            ShowError("元の設定をまだ読み込めていません。変更を保持しました。状態を更新して確認してください。");
+            ShowError(UiText.T("元の設定をまだ読み込めていません。変更を保持しました。状態を更新して確認してください。"));
             return false;
         }
         loadingHardware = loadingIdentity = true;
@@ -103,7 +103,7 @@ public partial class MainWindow
             bool saved = await SettingsCommitSequence.Apply(hardwareDirty, identityDirty,
                 SaveHardwareCore, () => SaveIdentityCore(confirm: false));
             if (saved && !hardwareDirty && !identityDirty)
-                ShowSettingsSaved("変更を保存しました。次回起動から使用します。");
+                ShowSettingsSaved(UiText.T("変更を保存しました。次回起動から使用します。"));
             return saved && !hardwareDirty && !identityDirty;
         } finally { applyingSettings = false; UpdatePowerControls(); }
     }

@@ -29,8 +29,12 @@ public partial class MainWindow : Window
         selfTest = test;
         string? warning = null;
         settings = test ? new ManagerSettings() : ManagerSettings.Load(out warning);
+        UiText.SetLanguage(test ? "ja" : settings.Language);
         InitializeComponent();
         InitializeWorkspace();
+        changingLanguage = true;
+        LanguageChoice.SelectedValue = settings.Language;
+        changingLanguage = false;
         clipboardTimer.Tick += async (_,_) => await SyncClipboard();
         Root.Text = settings.EngineRoot;
         PreferencesLocation.Text = ManagerSettings.SettingsFile;
@@ -53,16 +57,16 @@ public partial class MainWindow : Window
             }
             return result;
         }
-        if (!HasEngine) throw new InvalidOperationException("先に Reims エンジンを選択してください。");
+        if (!HasEngine) throw new InvalidOperationException(UiText.T("先に Reims エンジンを選択してください。"));
         if (!HasVm && action is not ("GetPrerequisites" or "GetNetworkUplinks" or "EnableWhpx" or "InstallUsbDk" or "InstallTap" or "CreateBridge"))
-            throw new InvalidOperationException("操作する仮想マシンを選択してください。");
+            throw new InvalidOperationException(UiText.T("操作する仮想マシンを選択してください。"));
         string root = Path.GetFullPath(Root.Text);
         string backend = Path.Combine(AppContext.BaseDirectory,"scripts/manager-backend.ps1");
         if (!File.Exists(backend)) backend = Path.Combine(root,"scripts/windows/manager-backend.ps1");
-        if (!File.Exists(backend)) throw new Exception("管理スクリプトが見つかりません。Reims のプロジェクトを選択してください。");
+        if (!File.Exists(backend)) throw new Exception(UiText.T("管理スクリプトが見つかりません。Reims のプロジェクトを選択してください。"));
         string pwsh = Path.Combine(AppContext.BaseDirectory,"runtimes/pwsh/pwsh.exe");
         if (!File.Exists(pwsh)) pwsh = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),"PowerShell/7/pwsh.exe");
-        if (!File.Exists(pwsh)) throw new Exception("PowerShell 7 をインストールしてください。");
+        if (!File.Exists(pwsh)) throw new Exception(UiText.T("PowerShell 7 をインストールしてください。"));
         var info = new ProcessStartInfo(pwsh) { UseShellExecute=elevate, CreateNoWindow=true, WorkingDirectory=root };
         foreach (string arg in new[] {"-NoProfile","-NonInteractive","-ExecutionPolicy","Bypass","-File",backend,"-Root",root,"-Action",action}.Concat(arguments)) info.ArgumentList.Add(arg);
         if (HasVm && action is not ("GetPrerequisites" or "GetNetworkUplinks" or "EnableWhpx")) { info.ArgumentList.Add("-VmDirectory"); info.ArgumentList.Add(VmDirectory); }
@@ -94,7 +98,7 @@ public partial class MainWindow : Window
             if (usbResultPath is not null) {
                 try { File.Delete(usbResultPath); }
                 catch (Exception error) when (error is IOException or UnauthorizedAccessException) {
-                    AppendLog("UsbDk の一時結果ファイルを削除できませんでした: " + error.Message + "\n");
+                    AppendLog(UiText.T("UsbDk の一時結果ファイルを削除できませんでした: ") + error.Message + "\n");
                 }
             }
         }
@@ -105,7 +109,7 @@ public partial class MainWindow : Window
         if (!RequireAction(action)) return false;
         if (action == "Start" && (hardwareDirty || identityDirty)) {
             Tabs.SelectedIndex = hardwareDirty ? 1 : 3;
-            ShowError("保存していない設定があります。「変更を保存」または「変更を破棄」で確定してから起動してください。");
+            ShowError(UiText.T("保存していない設定があります。「変更を保存」または「変更を破棄」で確定してから起動してください。"));
             UpdatePowerControls();
             return false;
         }
@@ -115,7 +119,7 @@ public partial class MainWindow : Window
         InvalidateReadRequests();
         busy = true; Tabs.IsEnabled = false;
         ErrorNotice.Text = ""; Feedback.Visibility = Visibility.Collapsed;
-        OperationStatus.Text = VmActionPolicy.Label(action) + "しています…";
+        OperationStatus.Text = VmActionPolicy.Label(action) + UiText.T("しています…");
         OperationProgress.Visibility = Visibility.Visible;
         UpdatePowerControls();
         bool success = false;
@@ -166,8 +170,8 @@ public partial class MainWindow : Window
                 refreshFull = false;
                 if (!HasVm || !HasEngine) {
                     currentState = "unprepared";
-                    State.Text = selectedEntry?.IsAvailable == false ? "保存先を確認" : !HasVm ? "未選択" : "エンジン未設定";
-                    StatusDetail.Text = selectedEntry?.IsAvailable == false ? selectedEntry.Problem! : !HasEngine ? "Reims エンジンを設定してセットアップを始めます。" : "VM を作成するか、既存の VM を開いてください。";
+                    State.Text = selectedEntry?.IsAvailable == false ? UiText.T("保存先を確認") : !HasVm ? UiText.T("未選択") : UiText.T("エンジン未設定");
+                    StatusDetail.Text = selectedEntry?.IsAvailable == false ? selectedEntry.Problem! : !HasEngine ? UiText.T("Reims エンジンを設定してセットアップを始めます。") : UiText.T("VM を作成するか、既存の VM を開いてください。");
                     UpdatePowerControls(); continue;
                 }
                 long version = contextVersion;
@@ -197,9 +201,9 @@ public partial class MainWindow : Window
                     currentState = latest.GetProperty("state").GetString() ?? "unknown";
                     State.Text = VmActionPolicy.StateLabel(currentState);
                     StatusDetail.Text = currentState switch {
-                        "shutdown" => "macOS は電源オフです。設定変更には「••• → 完全終了」で QEMU も終了してください。",
-                        "paused" or "suspended" or "prelaunch" => "「再開」してから macOS の電源操作を行えます。",
-                        "unprepared" => "「仮想マシンの設定 → macOS のインストール」から初期セットアップを行ってください。",
+                        "shutdown" => UiText.T("macOS は電源オフです。設定変更には「••• → 完全終了」で QEMU も終了してください。"),
+                        "paused" or "suspended" or "prelaunch" => UiText.T("「再開」してから macOS の電源操作を行えます。"),
+                        "unprepared" => UiText.T("「仮想マシンの設定 → macOS のインストール」から初期セットアップを行ってください。"),
                         _ => ""
                     };
                     if (loadDetails) {
@@ -217,15 +221,15 @@ public partial class MainWindow : Window
                             loadedHardware = true;
                         }
                         VmSummary.Text = latest.GetProperty("prepared").GetBoolean()
-                            ? $"{latest.GetProperty("cpus")} vCPU  ·  {latest.GetProperty("memory_mib").GetDouble() / 1024:0.###} GiB メモリ  ·  {latest.GetProperty("disk_gib")} GiB ディスク  ·  {latest.GetProperty("resolution").GetString()}"
-                            : "仮想ディスクはまだ準備されていません";
+                            ? UiText.Format($"{latest.GetProperty("cpus")} vCPU  ·  {latest.GetProperty("memory_mib").GetDouble() / 1024:0.###} GiB メモリ  ·  {latest.GetProperty("disk_gib")} GiB ディスク  ·  {latest.GetProperty("resolution").GetString()}")
+                            : UiText.T("仮想ディスクはまだ準備されていません");
                     }
                     UpdateConsole(); UpdatePowerControls();
                 } catch (Exception error) {
                     if (version != contextVersion || busy || closing) continue;
                     currentState = "unknown";
                     State.Text = VmActionPolicy.StateLabel(currentState);
-                    StatusDetail.Text = error is OperationCanceledException ? "状態取得がタイムアウトしました。「更新」で再試行できます。" : error.Message;
+                    StatusDetail.Text = error is OperationCanceledException ? UiText.T("状態取得がタイムアウトしました。「更新」で再試行できます。") : error.Message;
                     UpdatePowerControls();
                 }
             }
@@ -239,7 +243,7 @@ public partial class MainWindow : Window
         try {
         Memory.Text=latest.GetProperty("memory_mib").ToString();
         Cpus.Text=latest.GetProperty("cpus").ToString(); DiskSize.Text=latest.GetProperty("disk_gib").ToString();
-        DiskInfo.Text=$"最大容量: {DiskSize.Text} GiB\n{latest.GetProperty("disk").GetString()}";
+        DiskInfo.Text=UiText.Format($"最大容量: {DiskSize.Text} GiB\n{latest.GetProperty("disk").GetString()}");
         Iso.Text=HardwareIsoPath.Text=latest.GetProperty("iso").GetString()??"";
         bool installer = latest.TryGetProperty("connect_installer", out var preference)
             ? preference.GetBoolean() : latest.GetProperty("with_installer").GetBoolean();
@@ -250,7 +254,7 @@ public partial class MainWindow : Window
         if (adapter.Length > 0 && !Tap.Items.Cast<string>().Contains(adapter)) Fill(Tap, Tap.Items.Cast<string>().Append(adapter));
         Tap.SelectedItem=adapter; GuestHost.Text=latest.GetProperty("guest_host").GetString()??"";
         SelectSavedUplink(latest.TryGetProperty("network_uplink_id", out var uplink) ? uplink.GetString() ?? "" : "");
-        if (Bridge.IsChecked == true && SelectedUplink.Length == 0) NetworkNotice.Text="以前の TAP 接続を保持しています。接続先を変更する場合は Wi-Fi・有線 LAN を選び、ブリッジを準備してください。";
+        if (Bridge.IsChecked == true && SelectedUplink.Length == 0) NetworkNotice.Text=UiText.T("以前の TAP 接続を保持しています。接続先を変更する場合は Wi-Fi・有線 LAN を選び、ブリッジを準備してください。");
         Sound.IsChecked=latest.GetProperty("audio").GetString()=="dsound";
         Microphone.IsChecked=latest.TryGetProperty("microphone",out var mic)&&mic.GetBoolean();
         UsbBackend.SelectedIndex=latest.TryGetProperty("usb_backend",out var usb)&&usb.GetString()=="usbdk" ? 1 : 0;
@@ -283,15 +287,15 @@ public partial class MainWindow : Window
     }
     internal void ConfigureEngine(string root, string? qemu = null)
     {
-        if (HasVm && currentState is not ("stopped" or "unprepared" or "unknown")) throw new InvalidOperationException("エンジンを切り替える前に、選択した VM を完全終了してください。");
+        if (HasVm && currentState is not ("stopped" or "unprepared" or "unknown")) throw new InvalidOperationException(UiText.T("エンジンを切り替える前に、選択した VM を完全終了してください。"));
         root=Path.GetFullPath(root);
         qemu=string.IsNullOrWhiteSpace(qemu) ? Path.Combine(root,File.Exists(Path.Combine(root,"reims-engine.json")) ? "bin/qemu-system-x86_64.exe" : "build/qemu/qemu-system-x86_64.exe") : Path.GetFullPath(qemu);
-        if (!File.Exists(qemu)) throw new FileNotFoundException("Reims 対応 QEMU が見つかりません。エンジンのフォルダーを確認してください。");
+        if (!File.Exists(qemu)) throw new FileNotFoundException(UiText.T("Reims 対応 QEMU が見つかりません。エンジンのフォルダーを確認してください。"));
         string oldRoot = settings.EngineRoot, oldQemu = settings.QemuExecutable;
         settings.EngineRoot=root; settings.QemuExecutable=qemu;
         if (!SavePreferences()) {
             settings.EngineRoot=oldRoot; settings.QemuExecutable=oldQemu;
-            throw new IOException("エンジンの保存先を記録できませんでした。アプリ設定の保存先を確認して再試行してください。");
+            throw new IOException(UiText.T("エンジンの保存先を記録できませんでした。アプリ設定の保存先を確認して再試行してください。"));
         }
         Root.Text=root;
         ResetVmContext(); UpdatePowerControls();
@@ -318,7 +322,7 @@ public partial class MainWindow : Window
     private void BrowseRoot(object sender,RoutedEventArgs e)
     {
         if (IsUiBusy || !DiscardPendingChanges()) return;
-        var dialog=new OpenFileDialog { Title="Reims 対応の QEMU を選択", Filter="Reims エンジン|qemu-system-x86_64.exe" };
+        var dialog=new OpenFileDialog { Title=UiText.T("Reims 対応の QEMU を選択"), Filter=UiText.T("Reims エンジン|qemu-system-x86_64.exe") };
         if (dialog.ShowDialog(this)!=true) return;
         try {
             string folder=Path.GetDirectoryName(dialog.FileName)!;
@@ -346,8 +350,8 @@ public partial class MainWindow : Window
         MenuRestart.IsEnabled = RestartButton.IsEnabled; MenuForceExit.IsEnabled = CanOperate("ForceExit");
         foreach (var item in PowerMoreButton.ContextMenu.Items.OfType<MenuItem>()) item.IsEnabled = CanOperate(item.Tag?.ToString() ?? "");
         EngineNotice.Visibility = HasEngine ? Visibility.Collapsed : Visibility.Visible;
-        EngineSummary.Text = HasEngine ? "エンジン設定済み" : "未設定";
-        NewVmWelcomeDescription.Text = HasEngine ? "Windows の準備を確認して ISO を選ぶ" : "エンジンの準備から始める";
+        EngineSummary.Text = HasEngine ? UiText.T("エンジン設定済み") : UiText.T("未設定");
+        NewVmWelcomeDescription.Text = HasEngine ? UiText.T("Windows の準備を確認して ISO を選ぶ") : UiText.T("エンジンの準備から始める");
         RefreshButton.IsEnabled = HasVm && HasEngine && !IsUiBusy && !refreshing;
         RevealButton.IsEnabled = selectedEntry is not null;
         foreach (var button in LogicalChildren<Button>(Tabs)) {
@@ -356,11 +360,11 @@ public partial class MainWindow : Window
         UpdateClipboardAvailability();
         foreach (var button in LogicalChildren<Button>(Tabs).Where(x => x.Tag?.ToString() == "SnapshotRestore")) button.IsEnabled &= Snapshots.SelectedIndex >= 0;
         UpdateUsbControls();
-        ConsoleHeading.Text = currentState switch { "stopped" => "起動する準備ができました", "unprepared" => "macOS をセットアップ", "shutdown" => "macOS は電源オフです", "unknown" => "VM の状態を確認してください", _ => consoleDetached ? "別ウィンドウで表示中" : "VM の画面を待っています" };
-        ConsoleDescription.Text = currentState switch { "stopped" => "上の「起動」から macOS を開始できます。", "unprepared" => "設定画面の「macOS のインストール」からインストーラーを選んでください。", "unknown" => "「更新」で状態を取得してから操作を再試行できます。", _ => "入力の解放は Ctrl + Alt + Win。画面は別ウィンドウにも切り替えられます。" };
+        ConsoleHeading.Text = currentState switch { "stopped" => UiText.T("起動する準備ができました"), "unprepared" => UiText.T("macOS をセットアップ"), "shutdown" => UiText.T("macOS は電源オフです"), "unknown" => UiText.T("VM の状態を確認してください"), _ => consoleDetached ? UiText.T("別ウィンドウで表示中") : UiText.T("VM の画面を待っています") };
+        ConsoleDescription.Text = currentState switch { "stopped" => UiText.T("上の「起動」から macOS を開始できます。"), "unprepared" => UiText.T("設定画面の「macOS のインストール」からインストーラーを選んでください。"), "unknown" => UiText.T("「更新」で状態を取得してから操作を再試行できます。"), _ => UiText.T("入力の解放は Ctrl + Alt + Win。画面は別ウィンドウにも切り替えられます。") };
         if (selectedEntry?.IsAvailable == false) {
-            ConsoleHeading.Text = "VM の保存先を確認してください";
-            ConsoleDescription.Text = "登録は保持しています。保存先を接続してライブラリを更新するか、「VM を開く」で移動先の .reimsvm を選択してください。";
+            ConsoleHeading.Text = UiText.T("VM の保存先を確認してください");
+            ConsoleDescription.Text = UiText.T("登録は保持しています。保存先を接続してライブラリを更新するか、「VM を開く」で移動先の .reimsvm を選択してください。");
         }
         UpdateWorkspacePresentation();
         ScheduleUsbAutoRefresh();
@@ -368,14 +372,14 @@ public partial class MainWindow : Window
 
     private void DismissError(object sender,RoutedEventArgs e) { Feedback.Visibility=Visibility.Collapsed; }
 
-    private string? ChooseIso() { var dialog=new OpenFileDialog { Filter="macOS インストーラー|*.iso;*.img|すべてのファイル|*.*" }; return dialog.ShowDialog(this)==true ? dialog.FileName : null; }
+    private string? ChooseIso() { var dialog=new OpenFileDialog { Filter=UiText.T("macOS インストーラー|*.iso;*.img|すべてのファイル|*.*") }; return dialog.ShowDialog(this)==true ? dialog.FileName : null; }
     private void BrowseIso(object sender,RoutedEventArgs e) { if (!IsUiBusy && CanOperate("Setup") && ChooseIso() is string path) Iso.Text=path; }
     private void BrowseHardwareIso(object sender,RoutedEventArgs e) { if (!IsUiBusy && loadedHardware && CanOperate("SetHardware") && ChooseIso() is string path) HardwareIsoPath.Text=path; }
     private async void Setup(object sender,RoutedEventArgs e) {
         if (!RequireAction("Setup")) return;
-        if (!File.Exists(Iso.Text.Trim())) { ShowError("使用する ISO ファイルを選択してください。"); Iso.Focus(); return; }
-        if (!ManagerValidation.Integer(NewDiskSize.Text, 64, 2048, 1, out _)) { ShowError("ディスク容量は 64〜2048 GiB の整数で指定してください。"); NewDiskSize.Focus(); return; }
-        if (!ManagerValidation.Integer(Cpus.Text,1,Math.Min(64,Environment.ProcessorCount),1,out int cpus) || !ManagerValidation.Integer(Memory.Text,4096,131072,4,out int memory)) { ShowError("CPU・メモリの割り当てを確認してください。"); return; }
+        if (!File.Exists(Iso.Text.Trim())) { ShowError(UiText.T("使用する ISO ファイルを選択してください。")); Iso.Focus(); return; }
+        if (!ManagerValidation.Integer(NewDiskSize.Text, 64, 2048, 1, out _)) { ShowError(UiText.T("ディスク容量は 64〜2048 GiB の整数で指定してください。")); NewDiskSize.Focus(); return; }
+        if (!ManagerValidation.Integer(Cpus.Text,1,Math.Min(64,Environment.ProcessorCount),1,out int cpus) || !ManagerValidation.Integer(Memory.Text,4096,131072,4,out int memory)) { ShowError(UiText.T("CPU・メモリの割り当てを確認してください。")); return; }
         if (await Operate("Setup",["-Iso",Iso.Text.Trim(),"-DiskGiB",NewDiskSize.Text.Trim(),"-Cpus",cpus.ToString(),"-MemoryMiB",memory.ToString()])) {
             ConnectIso.IsChecked=true; loadedHardware=false; await RefreshState();
             if (StartAfterSetup.IsChecked==true && selectedEntry is { } entry) await StartPreparedVm(entry,cpus,memory);
@@ -396,11 +400,11 @@ public partial class MainWindow : Window
     private async void SaveSnapshot(object sender,RoutedEventArgs e)
     {
         string name = SnapshotName.Text.Trim();
-        if (!ManagerValidation.SnapshotName(name)) { ShowError("名前は半角英数字で始まる 1〜64 文字です。英数字・_・-・. が使えます。"); SnapshotName.Focus(); return; }
+        if (!ManagerValidation.SnapshotName(name)) { ShowError(UiText.T("名前は半角英数字で始まる 1〜64 文字です。英数字・_・-・. が使えます。")); SnapshotName.Focus(); return; }
         await Operate("SnapshotCreate", ["-Name", name]);
     }
-    private async void RestoreSnapshot(object sender,RoutedEventArgs e) { if (RequireAction("SnapshotRestore") && Snapshots.SelectedIndex >= 0 && Confirm("選択したスナップショットに切り替えます。現在のディスクも保持します。")) await Operate("SnapshotRestore",["-Name",Selected(Snapshots)]); }
-    private async void ForceExit(object sender,RoutedEventArgs e) { if (RequireAction("ForceExit") && Confirm("未保存の macOS 作業を失います。強制終了しますか？")) await Operate("ForceExit"); }
+    private async void RestoreSnapshot(object sender,RoutedEventArgs e) { if (RequireAction("SnapshotRestore") && Snapshots.SelectedIndex >= 0 && Confirm(UiText.T("選択したスナップショットに切り替えます。現在のディスクも保持します。"))) await Operate("SnapshotRestore",["-Name",Selected(Snapshots)]); }
+    private async void ForceExit(object sender,RoutedEventArgs e) { if (RequireAction("ForceExit") && Confirm(UiText.T("未保存の macOS 作業を失います。強制終了しますか？"))) await Operate("ForceExit"); }
     private async void SaveHardware(object sender,RoutedEventArgs e) => await SaveHardwareCore();
     private string[] HardwareArguments() {
         var args=new List<string> {"-Cpus",Cpus.Text.Trim(),"-MemoryMiB",Memory.Text.Trim(),"-Resolution",Selected(Resolution),"-Iso",HardwareIsoPath.Text.Trim(),"-Audio",Sound.IsChecked==true?"dsound":"none"};
@@ -421,7 +425,7 @@ public partial class MainWindow : Window
             // The backend committed these values even if the following status read fails.
             RememberHardwareDraft();
             loadedHardware=false; await RefreshState();
-            ShowSettingsSaved("ハードウェア設定を保存しました。次回起動から使用します。");
+            ShowSettingsSaved(UiText.T("ハードウェア設定を保存しました。次回起動から使用します。"));
         }
         return saved;
     }
@@ -435,8 +439,8 @@ public partial class MainWindow : Window
     }
     private async void ExpandDisk(object sender,RoutedEventArgs e) {
         if (!RequireAction("ExpandDisk")) return;
-        if (!ManagerValidation.Integer(DiskSize.Text,64,2048,1,out int size) || latest.ValueKind != JsonValueKind.Object || size <= latest.GetProperty("disk_gib").GetInt32()) { InvalidField(DiskSize,"現在より大きい容量を 64〜2048 GiB の範囲で指定してください。縮小はできません。"); return; }
-        if (!Confirm($"仮想ディスクを {size} GiB に拡張します。macOS 側の APFS 拡張も必要です。")) return;
+        if (!ManagerValidation.Integer(DiskSize.Text,64,2048,1,out int size) || latest.ValueKind != JsonValueKind.Object || size <= latest.GetProperty("disk_gib").GetInt32()) { InvalidField(DiskSize,UiText.T("現在より大きい容量を 64〜2048 GiB の範囲で指定してください。縮小はできません。")); return; }
+        if (!Confirm(UiText.Format($"仮想ディスクを {size} GiB に拡張します。macOS 側の APFS 拡張も必要です。"))) return;
         await Operate("ExpandDisk",["-DiskGiB",size.ToString()]);
     }
     private async void ApplyResolution(object sender,RoutedEventArgs e) => await ApplyResolutionCore();
@@ -445,13 +449,13 @@ public partial class MainWindow : Window
     {
         if (!RequireAction("ApplyResolution") || !loadedHardware || committedHardware is null) return false;
         string resolution = Selected(Resolution);
-        if (!ManagerValidation.Resolution(resolution)) return InvalidField(Resolution, "対応する解像度を選び直してください。");
+        if (!ManagerValidation.Resolution(resolution)) return InvalidField(Resolution, UiText.T("対応する解像度を選び直してください。"));
         if (!await Operate("ApplyResolution", ["-Resolution", resolution])) return false;
         // Only this field was committed; unrelated staged CPU/network edits must
         // remain pending, and Cancel must restore the newly saved resolution.
         committedHardware = committedHardware with { Resolution = resolution };
         hardwareDirty = CaptureHardwareDraft() != committedHardware;
-        ShowSettingsSaved("解像度を適用・保存しました。次回の VM 起動後も保持します。");
+        ShowSettingsSaved(UiText.T("解像度を適用・保存しました。次回の VM 起動後も保持します。"));
         UpdatePowerControls();
         return true;
     }
@@ -461,44 +465,44 @@ public partial class MainWindow : Window
         Tabs.SelectedIndex=7;
     }
     private async void InstallTap(object sender,RoutedEventArgs e) {
-        if (!RequireAction("InstallTap") || !Confirm("Reims 専用の TAP ドライバーを管理者権限で準備します。公式ファイルを取得し、署名を確認して導入します。ブリッジ作成と Windows の再起動は別に行います。続けますか？")) return;
+        if (!RequireAction("InstallTap") || !Confirm(UiText.T("Reims 専用の TAP ドライバーを管理者権限で準備します。公式ファイルを取得し、署名を確認して導入します。ブリッジ作成と Windows の再起動は別に行います。続けますか？"))) return;
         var entry=selectedEntry;string resultFile=Path.Combine(VmDirectory,"state","tap-install-result.json");
         DateTime started=DateTime.UtcNow;
         if (!await Operate("InstallTap",[],true)) {
-            ShowError(ErrorNotice.Text+"\nドライバーが追加済みの場合があります。接続先と導入ログを確認してから再試行してください。");return;
+            ShowError(ErrorNotice.Text+UiText.T("\nドライバーが追加済みの場合があります。接続先と導入ログを確認してから再試行してください。"));return;
         }
         if (entry != selectedEntry || closing) return;
         try {
             var result=TapInstallResult.Read(resultFile,started);
             if (result.RestartRequired) {
-                StatusDetail.Text="TAP の準備に Windows の再起動が必要です。作業を保存して再起動し、導入を再実行してください。";
-                MessageBox.Show(this,StatusDetail.Text,"TAP ドライバー",MessageBoxButton.OK,MessageBoxImage.Information);
+                StatusDetail.Text=UiText.T("TAP の準備に Windows の再起動が必要です。作業を保存して再起動し、導入を再実行してください。");
+                MessageBox.Show(this,StatusDetail.Text,UiText.T("TAP ドライバー"),MessageBoxButton.OK,MessageBoxImage.Information);
             } else {
                 if (result.Owned && result.AdapterName is { } name && BridgeTap.Items.Contains(name)) BridgeTap.SelectedItem=name;
-                StatusDetail.Text="TAP の準備ができました。接続先と専用 TAP を選び、必要な場合にブリッジを作成してください。";
+                StatusDetail.Text=UiText.T("TAP の準備ができました。接続先と専用 TAP を選び、必要な場合にブリッジを作成してください。");
             }
             UpdatePowerControls();
-        } catch (Exception error) { ShowError("TAP の導入結果を確認できません。ドライバーが追加済みの場合があります。\n"+error.Message); }
+        } catch (Exception error) { ShowError(UiText.T("TAP の導入結果を確認できません。ドライバーが追加済みの場合があります。\n")+error.Message); }
     }
     private async void CreateBridge(object sender,RoutedEventArgs e) {
         if (!RequireAction("CreateBridge")) return;
         string tap=Selected(BridgeTap);
-        if (string.IsNullOrWhiteSpace(tap) || Physical.SelectedItem is not NetworkUplink physical) { ShowError("物理接続先と、詳細にある Reims 専用 TAP を選択してください。"); return; }
-        if (Confirm($"接続先: {physical.DisplayName}\n専用 TAP: {tap}\nWindows の LAN が一時的に切断され、IP アドレスが変わる場合があります。ブリッジを作成しますか？") &&
+        if (string.IsNullOrWhiteSpace(tap) || Physical.SelectedItem is not NetworkUplink physical) { ShowError(UiText.T("物理接続先と、詳細にある Reims 専用 TAP を選択してください。")); return; }
+        if (Confirm(UiText.Format($"接続先: {physical.DisplayName}\n専用 TAP: {tap}\nWindows の LAN が一時的に切断され、IP アドレスが変わる場合があります。ブリッジを作成しますか？")) &&
             await Operate("CreateBridge",["-Adapter",tap,"-PhysicalAdapter",physical.Id],true)) {
             Uplink.SelectedValue=physical.Id; Tap.SelectedItem=tap;
-            StatusDetail.Text="ブリッジを準備しました。ネットワーク設定でブリッジを選び、適用してください。VM の通信状態は未確認です。";
+            StatusDetail.Text=UiText.T("ブリッジを準備しました。ネットワーク設定でブリッジを選び、適用してください。VM の通信状態は未確認です。");
             UpdatePowerControls();
         }
     }
     private async void RemoveBridge(object sender,RoutedEventArgs e) {
         if (!RequireAction("RemoveBridge")) return;
-        if (hardwareDirty || identityDirty) { ShowError("未保存の設定を適用またはキャンセルしてから、ブリッジを解除してください。"); return; }
-        if (Confirm("この VM に記録されたブリッジを解除し、VM を NAT に戻します。Windows の通信が一時的に切れる場合があります。続けますか？"))
+        if (hardwareDirty || identityDirty) { ShowError(UiText.T("未保存の設定を適用またはキャンセルしてから、ブリッジを解除してください。")); return; }
+        if (Confirm(UiText.T("この VM に記録されたブリッジを解除し、VM を NAT に戻します。Windows の通信が一時的に切れる場合があります。続けますか？")))
             await Operate("RemoveBridge",[],true);
     }
     private async void Pair(object sender,RoutedEventArgs e) => await Operate("Pair",["-User",GuestUser.Text,"-Fingerprint",Fingerprint.Text]);
-    private async void GenerateIdentity(object sender,RoutedEventArgs e) { if (Confirm("シリアル・MLB・ROM を更新します。SystemUUID は保持します。") && await Operate("GenerateIdentity")) await ReadIdentity(); }
+    private async void GenerateIdentity(object sender,RoutedEventArgs e) { if (Confirm(UiText.T("シリアル・MLB・ROM を更新します。SystemUUID は保持します。")) && await Operate("GenerateIdentity")) await ReadIdentity(); }
     private async void EnableWhpx(object sender,RoutedEventArgs e) => await Operate("EnableWhpx",[],true);
     private bool Confirm(string text) => MessageBox.Show(this,text,"Reims Manager",MessageBoxButton.OKCancel,MessageBoxImage.Warning,MessageBoxResult.Cancel)==MessageBoxResult.OK;
 
@@ -519,13 +523,13 @@ public partial class MainWindow : Window
             if (!File.Exists(Path.Combine(AppContext.BaseDirectory,"scripts",component))) throw new Exception("Missing packaged setup component: "+component);
         ConfigureEngine(folder,Environment.ProcessPath!);
         machines.Add(new VmEntry("macOS Tahoe",Path.Combine(folder,"Tahoe.reimsvm"),Path.Combine(folder,"Tahoe.data")));
-        Library.ItemsSource=machines; Library.SelectedIndex=0; State.Text="停止中";
+        Library.ItemsSource=machines; Library.SelectedIndex=0; State.Text=UiText.T("停止中");
         currentState="stopped"; UpdatePowerControls();
         if (!StartButton.IsEnabled || PowerOffButton.IsEnabled) throw new Exception("Stopped power controls are incorrect");
         currentState="running"; UpdatePowerControls();
         if (StartButton.IsEnabled || !PowerOffButton.IsEnabled) throw new Exception("Running power controls are incorrect");
         CheckWorkspaceBehavior();
-        currentState="stopped"; State.Text="完全停止"; UpdatePowerControls();
+        currentState="stopped"; State.Text=UiText.T("完全停止"); UpdatePowerControls();
         if (Application.Current.GetType().GetProperty("ThemeMode")?.GetValue(Application.Current)?.ToString()!="System") throw new Exception("Fluent theme not loaded");
         for (int tab=0;tab<Tabs.Items.Count;tab++) {
             Tabs.SelectedIndex=tab; await Dispatcher.InvokeAsync(()=>{},DispatcherPriority.ApplicationIdle); UpdateLayout();
@@ -542,12 +546,12 @@ public partial class MainWindow : Window
         await Dispatcher.InvokeAsync(()=>{},DispatcherPriority.ApplicationIdle); UpdateLayout();
         SaveImage(Path.Combine(folder,"compact-hardware.png"));
         if (Memory.ActualWidth < 100 || SaveHardwareButton.ActualWidth < 60) throw new Exception("Compact layout hides essential controls");
-        Tabs.SelectedIndex = 0; currentState = "paused"; State.Text="一時停止"; UpdatePowerControls();
+        Tabs.SelectedIndex = 0; currentState = "paused"; State.Text=UiText.T("一時停止"); UpdatePowerControls();
         await Dispatcher.InvokeAsync(()=>{},DispatcherPriority.ApplicationIdle); UpdateLayout();
         SaveImage(Path.Combine(folder,"compact-paused.png"));
         Width = originalWidth; Height = originalHeight;
-        currentState = "unknown"; State.Text="状態を確認できません";
-        StatusDetail.Text="テスト用: 管理接続からの応答がありません。更新して再試行できます。";
+        currentState = "unknown"; State.Text=UiText.T("状態を確認できません");
+        StatusDetail.Text=UiText.T("テスト用: 管理接続からの応答がありません。更新して再試行できます。");
         UpdatePowerControls(); await Dispatcher.InvokeAsync(()=>{},DispatcherPriority.ApplicationIdle); UpdateLayout();
         SaveImage(Path.Combine(folder,"connection-error.png"));
     }

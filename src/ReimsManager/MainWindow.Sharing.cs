@@ -46,12 +46,12 @@ public partial class MainWindow
         ClipboardSharing.IsEnabled = !IsUiBusy && HasVm;
         if (ClipboardSharing.IsChecked != true) {
             if (clipboardTimer.IsEnabled) { clipboardTimer.Stop(); ResetClipboard(); }
-            ClipboardStatus.Text = "自動共有はオフです。この VM の設定として保存されます。";
+            ClipboardStatus.Text = UiText.T("自動共有はオフです。この VM の設定として保存されます。");
         } else if (!CanShareClipboard || closing) {
             if (clipboardTimer.IsEnabled) { clipboardTimer.Stop(); ResetClipboard(); }
-            ClipboardStatus.Text = "自動共有はオンです。VM が実行中になり、SSH に接続できると共有を再開します。";
+            ClipboardStatus.Text = UiText.T("自動共有はオンです。VM が実行中になり、SSH に接続できると共有を再開します。");
         } else if (!clipboardTimer.IsEnabled) {
-            ClipboardStatus.Text = "自動共有はオンです。SSH の接続を確認しています。";
+            ClipboardStatus.Text = UiText.T("自動共有はオンです。SSH の接続を確認しています。");
             if (!selfTest) clipboardTimer.Start();
         }
     }
@@ -80,7 +80,7 @@ public partial class MainWindow
                 if (current == host || coldUnknown) lastClipboard = guest;
             }
             token.ThrowIfCancellationRequested();
-            ClipboardStatus.Text = "テキストを共有しています。";
+            ClipboardStatus.Text = UiText.T("テキストを共有しています。");
         } catch (OperationCanceledException) when (token.IsCancellationRequested) { }
         catch (Exception error) { if (!token.IsCancellationRequested && !closing) ClipboardStatus.Text = error.Message; }
         finally { clipboardBusy = false; }
@@ -90,7 +90,7 @@ public partial class MainWindow
     {
         if (clipboardBusy || !CanOperate("Clipboard") || closing) return; clipboardBusy = true;
         var token = clipboardCancel.Token;
-        try { if (Clipboard.ContainsText()) { await GuestClipboard.Transfer(VmDirectory, Clipboard.GetText(), token); token.ThrowIfCancellationRequested(); ClipboardStatus.Text = "macOS にコピーしました。"; } }
+        try { if (Clipboard.ContainsText()) { await GuestClipboard.Transfer(VmDirectory, Clipboard.GetText(), token); token.ThrowIfCancellationRequested(); ClipboardStatus.Text = UiText.T("macOS にコピーしました。"); } }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { }
         catch (Exception error) { if (!token.IsCancellationRequested && !closing) ClipboardStatus.Text = error.Message; }
         finally { clipboardBusy = false; }
@@ -99,7 +99,7 @@ public partial class MainWindow
     {
         if (clipboardBusy || !CanOperate("Clipboard") || closing) return; clipboardBusy = true;
         var token = clipboardCancel.Token;
-        try { string text = await GuestClipboard.Transfer(VmDirectory, null, token); token.ThrowIfCancellationRequested(); if (text.Length > 0) Clipboard.SetText(text); ClipboardStatus.Text = "Windows にコピーしました。"; }
+        try { string text = await GuestClipboard.Transfer(VmDirectory, null, token); token.ThrowIfCancellationRequested(); if (text.Length > 0) Clipboard.SetText(text); ClipboardStatus.Text = UiText.T("Windows にコピーしました。"); }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { }
         catch (Exception error) { if (!token.IsCancellationRequested && !closing) ClipboardStatus.Text = error.Message; }
         finally { clipboardBusy = false; }
@@ -130,7 +130,7 @@ public partial class MainWindow
         if (!await ReadIdentity() && version == contextVersion) identityDirty = wasDirty;
         UpdatePowerControls();
     }
-    private bool ConfirmIdentityChange() => !selfTest && Confirm("この VM の識別情報を変更します。Apple Account の再認証が必要になることがあります。");
+    private bool ConfirmIdentityChange() => !selfTest && Confirm(UiText.T("この VM の識別情報を変更します。Apple Account の再認証が必要になることがあります。"));
     private async void SaveIdentity(object sender, RoutedEventArgs e) => await SaveIdentityCore();
     private async Task<bool> SaveIdentityCore(bool confirm = true)
     {
@@ -142,7 +142,10 @@ public partial class MainWindow
         return true;
     }
 
-    private sealed record UsbEntry(string Id, string Label, bool Present, bool Selected, bool Active, bool Attached, string ErrorText = "");
+    private sealed record UsbEntry(string Id, string Label, bool Present, bool Selected, bool Active, bool Attached, string ErrorText = "")
+    {
+        public string DisplayLabel => UiText.UsbLabel(Label);
+    }
     private long usbRequestVersion, usbInventoryContext = -1;
     private long usbAutoRefreshAttemptContext = -1;
     private bool refreshingUsb, usbDriverRestartPending;
@@ -155,7 +158,7 @@ public partial class MainWindow
         usbInventoryContext = -1; refreshingUsb = false;
         usbAutoRefreshAttemptContext = -1;
         UsbDevices.ItemsSource = null;
-        UsbHint.Text = "「デバイス一覧を更新」で、この VM の USB 登録と接続状態を確認します。";
+        UsbHint.Text = UiText.T("「デバイス一覧を更新」で、この VM の USB 登録と接続状態を確認します。");
     }
 
     private void UpdateUsbControls()
@@ -170,37 +173,37 @@ public partial class MainWindow
         UsbDevices.IsEnabled = available;
         UsbAttachButton.IsEnabled = available && !iphonePending && CanOperate("AttachUsb") && selected is { Present: true, Attached: false };
         UsbDetachButton.IsEnabled = available && CanOperate("DetachUsb") && selected is not null && (selected.Selected || selected.Active);
-        UsbAttachButton.Content = iphonePending ? "接続処理中" : selected is { Selected: true } or { Active: true } ? "再接続" : "接続して自動接続に登録";
-        UsbSelectionHint.Text = refreshingUsb ? "USB の一覧を確認しています…" : !current
-            ? "一覧を更新してから操作してください。" : selected is null
-                ? "操作する USB デバイスを一覧から選択してください。" : selected.Attached
-                    ? "VM に接続中です。解除すると自動接続の登録も削除します。" : selected.Selected || selected.Active
-                        ? selected.Present ? "接続待ちです。「再接続」で転送をやり直せます。" : "この機器は接続待ちです。登録の解除は VM の停止中でもできます。"
+        UsbAttachButton.Content = iphonePending ? UiText.T("接続処理中") : selected is { Selected: true } or { Active: true } ? UiText.T("再接続") : UiText.T("接続して自動接続に登録");
+        UsbSelectionHint.Text = refreshingUsb ? UiText.T("USB の一覧を確認しています…") : !current
+            ? UiText.T("一覧を更新してから操作してください。") : selected is null
+                ? UiText.T("操作する USB デバイスを一覧から選択してください。") : selected.Attached
+                    ? UiText.T("VM に接続中です。解除すると自動接続の登録も削除します。") : selected.Selected || selected.Active
+                        ? selected.Present ? UiText.T("接続待ちです。「再接続」で転送をやり直せます。") : UiText.T("この機器は接続待ちです。登録の解除は VM の停止中でもできます。")
                         : selected.Id.StartsWith("hostiphone-", StringComparison.Ordinal)
-                            ? "iPhone は署名済みドライバーへ一時的に切り替えます。管理者確認後、再接続が必要な場合があります。解除時は元のドライバーへ戻します。"
-                            : "接続すると、この VM の次回起動時にも同じ USB ポートから自動接続します。";
-        if (iphonePending) UsbSelectionHint.Text = "iPhone の接続・復元処理中です。抜き差し待ちの場合は USB を再接続してください。やり直す場合は、一度切断してください。";
+                            ? UiText.T("iPhone は署名済みドライバーへ一時的に切り替えます。管理者確認後、再接続が必要な場合があります。解除時は元のドライバーへ戻します。")
+                            : UiText.T("接続すると、この VM の次回起動時にも同じ USB ポートから自動接続します。");
+        if (iphonePending) UsbSelectionHint.Text = UiText.T("iPhone の接続・復元処理中です。抜き差し待ちの場合は USB を再接続してください。やり直す場合は、一度切断してください。");
         if (selected is { ErrorText.Length: > 0 }) UsbSelectionHint.Text += "\n" + selected.ErrorText;
 
         string Mode(int index) => index == 1 ? "UsbDk" : "WinUSB";
         if (!loadedHardware || committedHardware is null) {
-            UsbBackendHint.Text = "VM の保存済みの転送方式を確認しています。";
+            UsbBackendHint.Text = UiText.T("VM の保存済みの転送方式を確認しています。");
             return;
         }
         string saved = Mode(committedHardware.UsbBackend);
         string active = latest.ValueKind == JsonValueKind.Object && latest.TryGetProperty("usb_backend_active", out var backend) && backend.ValueKind == JsonValueKind.String
-            ? backend.GetString() switch { "usbdk" => "UsbDk", "winusb" => "WinUSB", _ => "未確認" } : "未確認";
-        UsbBackendHint.Text = $"保存済み: {saved}" + (currentState is "stopped" or "unprepared" ? "。" : $" ／ 実行中: {active}。") +
-            (UsbBackend.SelectedIndex != committedHardware.UsbBackend ? $" 未保存の変更: {Mode(UsbBackend.SelectedIndex)}。" : "") +
-            "\n方式を変更するには USB の登録を解除し、VM を完全終了して変更を保存します。UsbDk は導入後にここで選択してください。再起動後、機器を選び直します。";
-        UsbBackendHint.Text += "\niPhone の通常・復旧・DFU 接続には WinUSB 方式を使用します。";
-        if (active == "未確認" && currentState is not ("stopped" or "unprepared"))
-            UsbBackendHint.Text += " 現在の方式は VM の完全終了と再起動後に確認できます。";
+            ? backend.GetString() switch { "usbdk" => "UsbDk", "winusb" => "WinUSB", _ => UiText.T("未確認") } : UiText.T("未確認");
+        UsbBackendHint.Text = UiText.Format($"保存済み: {saved}") + (currentState is "stopped" or "unprepared" ? "。" : UiText.Format($" ／ 実行中: {active}。")) +
+            (UsbBackend.SelectedIndex != committedHardware.UsbBackend ? UiText.Format($" 未保存の変更: {Mode(UsbBackend.SelectedIndex)}。") : "") +
+            UiText.T("\n方式を変更するには USB の登録を解除し、VM を完全終了して変更を保存します。UsbDk は導入後にここで選択してください。再起動後、機器を選び直します。");
+        UsbBackendHint.Text += UiText.T("\niPhone の通常・復旧・DFU 接続には WinUSB 方式を使用します。");
+        if (active == UiText.T("未確認") && currentState is not ("stopped" or "unprepared"))
+            UsbBackendHint.Text += UiText.T(" 現在の方式は VM の完全終了と再起動後に確認できます。");
         if ((saved == "UsbDk" || active == "UsbDk" || UsbBackend.SelectedIndex == 1) && latest.ValueKind == JsonValueKind.Object &&
             latest.TryGetProperty("usb_usbdk_installed", out var installed) && installed.ValueKind == JsonValueKind.False)
-            UsbBackendHint.Text += "\nUsbDk の導入を確認できません。VM を完全終了して「UsbDk を導入」を実行してください。";
+            UsbBackendHint.Text += UiText.T("\nUsbDk の導入を確認できません。VM を完全終了して「UsbDk を導入」を実行してください。");
         if (usbDriverRestartPending)
-            UsbBackendHint.Text += "\nUsbDk の適用には Windows の再起動が必要です。作業を保存してから Windows を再起動してください。";
+            UsbBackendHint.Text += UiText.T("\nUsbDk の適用には Windows の再起動が必要です。作業を保存してから Windows を再起動してください。");
     }
 
     private bool UsbAutoRefreshEligible => UsbPage is not null && UsbPage.IsVisible && !IsUiBusy && CanOperate("ListUsb");
@@ -227,20 +230,20 @@ public partial class MainWindow
     {
         if (IsUiBusy || refreshingUsb) return false;
         if (!await Operate("InstallUsbDk", elevate: true)) {
-            UsbHint.Text = "UsbDk の導入結果を確認できません。表示されたエラーを確認し、再試行してください。";
+            UsbHint.Text = UiText.T("UsbDk の導入結果を確認できません。表示されたエラーを確認し、再試行してください。");
             return false;
         }
         if (usbDriverInstallResult is not { } result) {
-            ShowError("UsbDk の導入結果を確認できません。必要条件を再確認してください。");
+            ShowError(UiText.T("UsbDk の導入結果を確認できません。必要条件を再確認してください。"));
             return false;
         }
         usbDriverRestartPending |= result.RestartRequired;
         UsbHint.Text = usbDriverRestartPending
-            ? "UsbDk の導入は完了しました。適用には Windows の再起動が必要です。作業を保存して Windows を再起動し、転送方式で UsbDk を選んで保存してください。"
-            : "UsbDk を導入しました。転送方式で UsbDk を選んで保存し、VM を完全終了してから起動してください。";
+            ? UiText.T("UsbDk の導入は完了しました。適用には Windows の再起動が必要です。作業を保存して Windows を再起動し、転送方式で UsbDk を選んで保存してください。")
+            : UiText.T("UsbDk を導入しました。転送方式で UsbDk を選んで保存し、VM を完全終了してから起動してください。");
         UpdatePowerControls();
         if (result.RestartRequired && !selfTest)
-            MessageBox.Show(this, UsbHint.Text, "Windows の再起動が必要です", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show(this, UsbHint.Text, UiText.T("Windows の再起動が必要です"), MessageBoxButton.OK, MessageBoxImage.Information);
         return true;
     }
 
@@ -253,29 +256,29 @@ public partial class MainWindow
         var cancellation = statusCancellation.Token;
         string? selectedId = (UsbDevices.SelectedItem as UsbEntry)?.Id;
         usbInventoryContext = -1; refreshingUsb = true;
-        UsbHint.Text = "USB の登録と接続状態を確認しています…";
+        UsbHint.Text = UiText.T("USB の登録と接続状態を確認しています…");
         UpdatePowerControls();
         try {
             using var list = JsonDocument.Parse(await Execute("ListUsb", [], cancellation: cancellation));
             if (version != contextVersion || request != usbRequestVersion || closing || cancellation.IsCancellationRequested) return false;
             var devices = list.RootElement.EnumerateArray().Select(x => new UsbEntry(
-                x.GetProperty("id").GetString() ?? throw new JsonException("USB の識別情報がありません。"),
-                x.GetProperty("label").GetString() ?? "USB デバイス", x.GetProperty("present").GetBoolean(), x.GetProperty("selected").GetBoolean(),
+                x.GetProperty("id").GetString() ?? throw new JsonException(UiText.T("USB の識別情報がありません。")),
+                x.GetProperty("label").GetString() ?? UiText.T("USB デバイス"), x.GetProperty("present").GetBoolean(), x.GetProperty("selected").GetBoolean(),
                 x.TryGetProperty("active", out var active) && active.GetBoolean(), x.TryGetProperty("attached", out var attached) && attached.GetBoolean(),
                 x.TryGetProperty("error", out var error) ? error.GetString() ?? "" : "")).ToArray();
-            if (devices.Any(x => x.ErrorText.Length > 2048)) throw new JsonException("USB エラー情報が長すぎます。");
+            if (devices.Any(x => x.ErrorText.Length > 2048)) throw new JsonException(UiText.T("USB エラー情報が長すぎます。"));
             UsbDevices.ItemsSource = devices;
             UsbDevices.SelectedItem = devices.FirstOrDefault(x => x.Id == selectedId);
             usbInventoryContext = version;
             UsbHint.Text = currentState == "stopped"
-                ? "停止中も Windows に接続した USB と登録済みの未接続機器を確認できます。接続は VM の起動後、登録の解除は停止中も行えます。"
-                : devices.Length == 0 ? "現在の方式では USB を取得できていません。機器の接続・ドライバー・Windows 側で使用中のアプリを確認し、一覧を更新してください。"
-                    : "登録はこの VM に保存されます。別の USB ポートへ移した機器は、古い登録を解除して選び直してください。";
+                ? UiText.T("停止中も Windows に接続した USB と登録済みの未接続機器を確認できます。接続は VM の起動後、登録の解除は停止中も行えます。")
+                : devices.Length == 0 ? UiText.T("現在の方式では USB を取得できていません。機器の接続・ドライバー・Windows 側で使用中のアプリを確認し、一覧を更新してください。")
+                    : UiText.T("登録はこの VM に保存されます。別の USB ポートへ移した機器は、古い登録を解除して選び直してください。");
             return true;
         } catch (Exception error) {
             if (version == contextVersion && request == usbRequestVersion && !closing) {
                 UsbDevices.ItemsSource = null;
-                UsbHint.Text = error is OperationCanceledException ? "USB の確認を中断しました。一覧を更新して再試行してください。" : "USB の一覧を取得できません。「デバイス一覧を更新」で再試行してください。\n" + error.Message;
+                UsbHint.Text = error is OperationCanceledException ? UiText.T("USB の確認を中断しました。一覧を更新して再試行してください。") : UiText.T("USB の一覧を取得できません。「デバイス一覧を更新」で再試行してください。\n") + error.Message;
             }
             return false;
         } finally {
