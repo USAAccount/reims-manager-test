@@ -143,14 +143,16 @@ public partial class MainWindow
         bool menu = SessionPowerButton.ContextMenu.IsOpen || SessionCursorMenuButton.ContextMenu.IsOpen;
         // A foreign guest owns its input queue; pointer hit-testing must not require Manager focus.
         nint pointedWindow = FullScreenWindowAt(cursor);
-        bool ownedPointer = pointedWindow == MainHandle || FullScreenAncestor(pointedWindow, 3) == MainHandle;
+        nint toolbar = new WindowInteropHelper(fullScreenToolbar).Handle;
+        // WPF's owned toolbar can still be its own GA_ROOTOWNER; recognize its HWND directly.
+        bool overToolbarWindow = toolbar != 0 && (pointedWindow == toolbar || FullScreenAncestor(pointedWindow, 2) == toolbar);
+        bool ownedPointer = overToolbarWindow || pointedWindow == MainHandle || FullScreenAncestor(pointedWindow, 3) == MainHandle;
         if (!ownedPointer && !menu) {
             fullScreenToolbar.Hide(); topEdgeHover.Reset(); fullScreenHoverState = "outside-console"; return;
         }
         bool atTop = cursor.X >= fullScreenBounds.Left && cursor.X < fullScreenBounds.Right &&
             cursor.Y >= fullScreenBounds.Top && cursor.Y < fullScreenBounds.Top + 32 * VisualTreeHelper.GetDpi(this).DpiScaleY;
         if (fullScreenToolbar.IsVisible) {
-            nint toolbar = new WindowInteropHelper(fullScreenToolbar).Handle;
             bool overToolbar = FullScreenWindowRect(toolbar, out var bounds) && cursor.X >= bounds.Left && cursor.X < bounds.Right &&
                 cursor.Y >= bounds.Top && cursor.Y < bounds.Bottom + 6;
             if (!atTop && !overToolbar && !menu) { fullScreenToolbar.Hide(); topEdgeHover.Reset(); }
