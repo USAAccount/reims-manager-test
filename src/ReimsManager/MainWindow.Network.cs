@@ -58,9 +58,9 @@ public partial class MainWindow
             var inventory = NetworkInventory.Parse(await Execute("GetNetworkUplinks", [], cancellation: statusCancellation.Token));
             if (version != contextVersion || busy || closing) return;
             ApplyNetworkChoices(inventory);
-            NetworkNotice.Text = "物理リンクの表示は LAN・インターネットの疎通確認ではありません。IPv4 / IPv6 の利用可否は回線・ルーターにも依存します。";
+            NetworkNotice.Text = UiText.T("物理リンクの表示は LAN・インターネットの疎通確認ではありません。IPv4 / IPv6 の利用可否は回線・ルーターにも依存します。");
         } catch (Exception error) {
-            if (version == contextVersion && !closing) NetworkNotice.Text = "接続先を取得できません。現在の VM 設定は保持しています。\n" + error.Message;
+            if (version == contextVersion && !closing) NetworkNotice.Text = UiText.T("接続先を取得できません。現在の VM 設定は保持しています。\n") + error.Message;
         }
     }
 
@@ -71,7 +71,7 @@ public partial class MainWindow
         try {
             var values = inventory.Uplinks.ToList();
             foreach (string saved in new[] { selected, physical }.Where(value => value.Length > 0).Distinct())
-                if (values.All(value => value.Id != saved)) values.Add(new(saved, "保存済みの接続先", "現在見つかりません", "other", "見つかりません", false));
+                if (values.All(value => value.Id != saved)) values.Add(new(saved, UiText.T("保存済みの接続先"), UiText.T("現在見つかりません"), "other", UiText.T("見つかりません"), false));
             Uplink.ItemsSource = Physical.ItemsSource = values;
             Uplink.SelectedValue = selected; Physical.SelectedValue = physical;
             var connectedWifi = values.Where(value => value.Kind == "wifi" && value.Connected).ToArray();
@@ -84,7 +84,7 @@ public partial class MainWindow
     private void SelectSavedUplink(string id)
     {
         if (id.Length > 0 && Uplink.Items.Cast<NetworkUplink>().All(value => value.Id != id)) {
-            var values = Uplink.Items.Cast<NetworkUplink>().Append(new(id, "保存済みの接続先", "現在見つかりません", "other", "見つかりません", false)).ToArray();
+            var values = Uplink.Items.Cast<NetworkUplink>().Append(new(id, UiText.T("保存済みの接続先"), UiText.T("現在見つかりません"), "other", UiText.T("見つかりません"), false)).ToArray();
             Uplink.ItemsSource = values;
         }
         Uplink.SelectedValue = id;
@@ -110,13 +110,13 @@ public partial class MainWindow
             (wifiForwarder.Configured || wifiForwarder.Running || wifiForwarder.Kind==WifiForwarderState.LegacyMacNat || !string.IsNullOrWhiteSpace(wifiForwarder.Error));
         WifiCompatCard.Visibility = selectedWifi || configured || WifiForwarderState.IsMacNat(hardwareForwarder) ? Visibility.Visible : Visibility.Collapsed;
         WiredBridgeControls.Visibility = selectedWifi || configured || WifiForwarderState.IsMacNat(hardwareForwarder) ? Visibility.Collapsed : Visibility.Visible;
-        WifiForwarderSummary.Text = currentState == "unknown" || wifiForwarder is null ? "転送状態は未確認です" : wifiForwarder.Summary(currentState);
+        WifiForwarderSummary.Text = currentState == "unknown" || wifiForwarder is null ? UiText.T("転送状態は未確認です") : wifiForwarder.Summary(currentState);
         string? error = currentState=="unknown" ? StatusDetail.Text : wifiStatusError ?? wifiForwarder?.Error;
         WifiForwarderDetail.Text = string.IsNullOrWhiteSpace(error)
-            ? "準備完了はプロセスの初期化状態です。LAN・インターネットの IPv4 / IPv6 疎通は別途確認してください。"
+            ? UiText.T("準備完了はプロセスの初期化状態です。LAN・インターネットの IPv4 / IPv6 疎通は別途確認してください。")
             : error.Length > 2048 ? error[..2048]+"…" : error;
         if (wifiForwarder?.Kind==WifiForwarderState.LegacyMacNat)
-            WifiForwarderDetail.Text="旧 IPv4 設定です。「Wi-Fi 互換接続を準備」を再実行して、IPv6 用の設定を準備してください。\n"+WifiForwarderDetail.Text;
+            WifiForwarderDetail.Text=UiText.T("旧 IPv4 設定です。「Wi-Fi 互換接続を準備」を再実行して、IPv6 用の設定を準備してください。\n")+WifiForwarderDetail.Text;
         PrepareWifiButton.IsEnabled = !IsUiBusy && CanOperate("PrepareWifi") && selectedWifi && wifiForwarder is { KnownKind: true } &&
             (wifiForwarder.Installed || PacketFilterTerms.IsChecked == true);
         DisableWifiButton.IsEnabled = !IsUiBusy && CanOperate("DisableWifi") && (configured || WifiForwarderState.IsMacNat(hardwareForwarder));
@@ -129,7 +129,7 @@ public partial class MainWindow
     private bool CanCommitWifiOperation()
     {
         if (!loadedHardware || committedHardware is null) {
-            ShowError("元の設定をまだ読み込めていません。変更を保持しました。状態を更新して確認してください。");return false;
+            ShowError(UiText.T("元の設定をまだ読み込めていません。変更を保持しました。状態を更新して確認してください。"));return false;
         }
         return true;
     }
@@ -139,11 +139,11 @@ public partial class MainWindow
     private async Task<bool> PrepareWifiCore()
     {
         if (!RequireAction("PrepareWifi") || !CanCommitWifiOperation()) return false;
-        if (Physical.SelectedItem is not NetworkUplink { Kind: "wifi" } physical || wifiForwarder is not { KnownKind: true }) { ShowError("物理 Wi-Fi と転送状態を確認してください。");return false; }
+        if (Physical.SelectedItem is not NetworkUplink { Kind: "wifi" } physical || wifiForwarder is not { KnownKind: true }) { ShowError(UiText.T("物理 Wi-Fi と転送状態を確認してください。"));return false; }
         string[] arguments;
         try { arguments = WifiForwarderState.PrepareArguments(physical.Id,wifiForwarder.Installed,PacketFilterTerms.IsChecked == true); }
         catch(Exception error) { ShowError(error.Message);return false; }
-        if (!ManagerValidation.Host(GuestHost.Text.Trim())) { ShowError("macOS の IP アドレス・ホスト名を確認してください。");return false; }
+        if (!ManagerValidation.Host(GuestHost.Text.Trim())) { ShowError(UiText.T("macOS の IP アドレス・ホスト名を確認してください。"));return false; }
         if (GuestHost.Text.Trim().Length>0) arguments=arguments.Concat(new[]{"-GuestHost",GuestHost.Text.Trim()}).ToArray();
         string resultFile=System.IO.Path.Combine(VmDirectory,"state","wifi-prepare-result.json");
         var entry=selectedEntry;DateTime started=DateTime.UtcNow;
@@ -154,19 +154,19 @@ public partial class MainWindow
             if(!completed) {
                 try {
                     string? error=WifiPrepareResult.Read(resultFile,started).Error;
-                    if(!string.IsNullOrWhiteSpace(error)) ShowError("Wi-Fi の準備に失敗しました。一部の設定が変更済みの可能性があるため、状態を確認してください。\n"+error);
+                    if(!string.IsNullOrWhiteSpace(error)) ShowError(UiText.T("Wi-Fi の準備に失敗しました。一部の設定が変更済みの可能性があるため、状態を確認してください。\n")+error);
                 } catch { } // A missing/stale/malformed optional receipt must not replace the original error.
                 return false;
             }
             try {
                 var result=WifiPrepareResult.Read(resultFile,started);
                 if (result.RestartRequired) {
-                    string message="準備を続けるには Windows の再起動が必要です。未保存の変更は保持しています。再起動前に保存または破棄し、Wi-Fi の準備をもう一度実行してください。";
+                    string message=UiText.T("準備を続けるには Windows の再起動が必要です。未保存の変更は保持しています。再起動前に保存または破棄し、Wi-Fi の準備をもう一度実行してください。");
                     if (selfTest) ShowError(message);
-                    else MessageBox.Show(this,message,"Wi-Fi 互換接続",MessageBoxButton.OK,MessageBoxImage.Information);
-                } else if (!result.Prepared || !result.Configured) { ShowError("Wi-Fi の準備は未完了です。転送状態とログを確認してください。"); }
+                    else MessageBox.Show(this,message,UiText.T("Wi-Fi 互換接続"),MessageBoxButton.OK,MessageBoxImage.Information);
+                } else if (!result.Prepared || !result.Configured) { ShowError(UiText.T("Wi-Fi の準備は未完了です。転送状態とログを確認してください。")); }
                 return !result.RestartRequired && result.Prepared && result.Configured;
-            } catch (Exception error) { ShowError("Wi-Fi の準備結果を確認できません。変更済みの可能性があるため、状態とログを確認してください。\n"+error.Message); }
+            } catch (Exception error) { ShowError(UiText.T("Wi-Fi の準備結果を確認できません。変更済みの可能性があるため、状態とログを確認してください。\n")+error.Message); }
         } finally { applyingSettings=false;UpdatePowerControls(); }
         return false;
     }

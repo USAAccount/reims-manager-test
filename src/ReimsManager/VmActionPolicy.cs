@@ -34,30 +34,30 @@ internal static class VmActionPolicy
     internal static string[] StartArguments(bool withInstaller) => withInstaller ? ["-WithInstaller"] : [];
 
     internal static string StateLabel(string state) => state switch {
-        "running" => "実行中", "shutdown" => "電源オフ", "paused" => "一時停止",
-        "suspended" => "サスペンド", "stopped" => "完全停止", "unprepared" => "未セットアップ",
-        "prelaunch" => "起動待ち", "unknown" => "状態を確認できません", _ => "要確認: " + state
+        "running" => UiText.T("実行中"), "shutdown" => UiText.T("電源オフ"), "paused" => UiText.T("一時停止"),
+        "suspended" => UiText.T("サスペンド"), "stopped" => UiText.T("完全停止"), "unprepared" => UiText.T("未セットアップ"),
+        "prelaunch" => UiText.T("起動待ち"), "unknown" => UiText.T("状態を確認できません"), _ => UiText.T("要確認: ") + state
     };
 
     internal static string Label(string action) => action switch {
-        "Start" => "VM を起動", "PowerOff" => "macOS をシャットダウン", "Restart" => "macOS を再起動",
-        "Exit" => "VM を完全終了", "ForceExit" => "VM を強制終了", "Pause" => "VM を一時停止", "Resume" => "VM を再開",
-        "Setup" => "仮想ディスクとインストーラーを準備", "ImportDisk" => "元ディスクを保持して取り込み",
-        "SetHardware" => "ハードウェア設定を保存", "SnapshotCreate" => "スナップショットを保存", "SnapshotRestore" => "スナップショットを復元",
-        "ExpandDisk" => "仮想ディスクを拡張", "OptimizeDisk" => "ディスク差分を整理", "Pair" => "SSH の指紋を確認",
-        "SetIdentity" => "Mac の識別情報を保存", "GenerateIdentity" => "Mac の識別情報を生成", "CollectLogs" => "診断ログを収集",
-        "ApplyBootProfile" => "OpenCore の起動プロファイルを再適用",
-        "EnableGuestBridge" => "GPU 互換ブリッジを適用", "DisableGuestBridge" => "GPU 互換ブリッジを解除",
-        "RemoveBridge" => "ブリッジを解除して NAT に復帰",
-        "InstallTap" => "専用 TAP ドライバーを準備",
-        "PrepareWifi" => "Wi-Fi 互換接続を準備", "DisableWifi" => "Wi-Fi 互換接続を解除",
-        "EnableCursorAid" => "カーソル互換表示を有効化", "DisableCursorAid" => "カーソル互換表示を無効化",
-        "MoveCursorToMainDisplay" => "カーソルを VM 本体の画面へ移動", "MoveCursorToExtendedDisplay" => "カーソルを拡張画面へ移動",
-        "HideHostCursor" => "Windows 側のカーソルを隠す", "ShowHostCursor" => "Windows 側のカーソルを表示",
-        "LightenExtendedDisplay" => "拡張画面を軽量化", "RestoreExtendedDisplay" => "拡張画面の画質を戻す",
-        "ApplyResolution" => "ゲストの解像度を変更",
-        "ListUsb" => "USB デバイスを取得", "AttachUsb" => "USB の接続を確認", "DetachUsb" => "USB の登録を解除",
-        "InstallUsbDk" => "USB 転送ドライバーを導入", _ => action
+        "Start" => UiText.T("VM を起動"), "PowerOff" => UiText.T("macOS をシャットダウン"), "Restart" => UiText.T("macOS を再起動"),
+        "Exit" => UiText.T("VM を完全終了"), "ForceExit" => UiText.T("VM を強制終了"), "Pause" => UiText.T("VM を一時停止"), "Resume" => UiText.T("VM を再開"),
+        "Setup" => UiText.T("仮想ディスクとインストーラーを準備"), "ImportDisk" => UiText.T("元ディスクを保持して取り込み"),
+        "SetHardware" => UiText.T("ハードウェア設定を保存"), "SnapshotCreate" => UiText.T("スナップショットを保存"), "SnapshotRestore" => UiText.T("スナップショットを復元"),
+        "ExpandDisk" => UiText.T("仮想ディスクを拡張"), "OptimizeDisk" => UiText.T("ディスク差分を整理"), "Pair" => UiText.T("SSH の指紋を確認"),
+        "SetIdentity" => UiText.T("Mac の識別情報を保存"), "GenerateIdentity" => UiText.T("Mac の識別情報を生成"), "CollectLogs" => UiText.T("診断ログを収集"),
+        "ApplyBootProfile" => UiText.T("OpenCore の起動プロファイルを再適用"),
+        "EnableGuestBridge" => UiText.T("GPU 互換ブリッジを適用"), "DisableGuestBridge" => UiText.T("GPU 互換ブリッジを解除"),
+        "RemoveBridge" => UiText.T("ブリッジを解除して NAT に復帰"),
+        "InstallTap" => UiText.T("専用 TAP ドライバーを準備"),
+        "PrepareWifi" => UiText.T("Wi-Fi 互換接続を準備"), "DisableWifi" => UiText.T("Wi-Fi 互換接続を解除"),
+        "EnableCursorAid" => UiText.T("カーソル互換表示を有効化"), "DisableCursorAid" => UiText.T("カーソル互換表示を無効化"),
+        "MoveCursorToMainDisplay" => UiText.T("カーソルを VM 本体の画面へ移動"), "MoveCursorToExtendedDisplay" => UiText.T("カーソルを拡張画面へ移動"),
+        "HideHostCursor" => UiText.T("Windows 側のカーソルを隠す"), "ShowHostCursor" => UiText.T("Windows 側のカーソルを表示"),
+        "LightenExtendedDisplay" => UiText.T("拡張画面を軽量化"), "RestoreExtendedDisplay" => UiText.T("拡張画面の画質を戻す"),
+        "ApplyResolution" => UiText.T("ゲストの解像度を変更"),
+        "ListUsb" => UiText.T("USB デバイスを取得"), "AttachUsb" => UiText.T("USB の接続を確認"), "DetachUsb" => UiText.T("USB の登録を解除"),
+        "InstallUsbDk" => UiText.T("USB 転送ドライバーを導入"), _ => action
     };
 }
 

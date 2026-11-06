@@ -1,0 +1,2150 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <data name="&#10;UsbDk の導入を確認できません。VM を完全終了して「UsbDk を導入」を実行してください。" xml:space="preserve">
+    <value>
+UsbDk の導入を確認できません。VM を完全終了して「UsbDk を導入」を実行してください。</value>
+  </data>
+  <data name="&#10;UsbDk の適用には Windows の再起動が必要です。作業を保存してから Windows を再起動してください。" xml:space="preserve">
+    <value>
+UsbDk の適用には Windows の再起動が必要です。作業を保存してから Windows を再起動してください。</value>
+  </data>
+  <data name="&#10;iPhone の通常・復旧・DFU 接続には WinUSB 方式を使用します。" xml:space="preserve">
+    <value>
+iPhone の通常・復旧・DFU 接続には WinUSB 方式を使用します。</value>
+  </data>
+  <data name="&#10;ドライバーが追加済みの場合があります。接続先と導入ログを確認してから再試行してください。" xml:space="preserve">
+    <value>
+ドライバーが追加済みの場合があります。接続先と導入ログを確認してから再試行してください。</value>
+  </data>
+  <data name="&#10;方式を変更するには USB の登録を解除し、VM を完全終了して変更を保存します。UsbDk は導入後にここで選択してください。再起動後、機器を選び直します。" xml:space="preserve">
+    <value>
+方式を変更するには USB の登録を解除し、VM を完全終了して変更を保存します。UsbDk は導入後にここで選択してください。再起動後、機器を選び直します。</value>
+  </data>
+  <data name="&#10;詳細: " xml:space="preserve">
+    <value>
+詳細: </value>
+  </data>
+  <data name=" 復元にも失敗しました: " xml:space="preserve">
+    <value> 復元にも失敗しました: </value>
+  </data>
+  <data name=" 未保存の変更: {0}。" xml:space="preserve">
+    <value> 未保存の変更: {0}。</value>
+  </data>
+  <data name=" 現在の方式は VM の完全終了と再起動後に確認できます。" xml:space="preserve">
+    <value> 現在の方式は VM の完全終了と再起動後に確認できます。</value>
+  </data>
+  <data name=" 現在は自動起動を保留します。VM の作成はできます。" xml:space="preserve">
+    <value> 現在は自動起動を保留します。VM の作成はできます。</value>
+  </data>
+  <data name=" ／ 実行中: {0}。" xml:space="preserve">
+    <value> ／ 実行中: {0}。</value>
+  </data>
+  <data name="--qemu には --root も指定してください。" xml:space="preserve">
+    <value>--qemu には --root も指定してください。</value>
+  </data>
+  <data name=".reimsvm ファイルから再開" xml:space="preserve">
+    <value>.reimsvm ファイルから再開</value>
+  </data>
+  <data name=".sha256」を保存してください。" xml:space="preserve">
+    <value>.sha256」を保存してください。</value>
+  </data>
+  <data name="1  インストーラーを選択" xml:space="preserve">
+    <value>1  インストーラーを選択</value>
+  </data>
+  <data name="1 / 3  エンジンの準備" xml:space="preserve">
+    <value>1 / 3  エンジンの準備</value>
+  </data>
+  <data name="1 ソケット / Windows Hypervisor Platform" xml:space="preserve">
+    <value>1 ソケット / Windows Hypervisor Platform</value>
+  </data>
+  <data name="1 回のクリックで、SSH ペアリング済みの VM に同梱ヘルパーを検証・導入して起動します。解除は「設定 → ディスプレイ → カーソル互換表示 → オフにする」。" xml:space="preserve">
+    <value>1 回のクリックで、SSH ペアリング済みの VM に同梱ヘルパーを検証・導入して起動します。解除は「設定 → ディスプレイ → カーソル互換表示 → オフにする」。</value>
+  </data>
+  <data name="2  ディスクを準備" xml:space="preserve">
+    <value>2  ディスクを準備</value>
+  </data>
+  <data name="2 / 3  Windows の準備" xml:space="preserve">
+    <value>2 / 3  Windows の準備</value>
+  </data>
+  <data name="3  作成後の動作" xml:space="preserve">
+    <value>3  作成後の動作</value>
+  </data>
+  <data name="3 / 3  仮想マシンを作成" xml:space="preserve">
+    <value>3 / 3  仮想マシンを作成</value>
+  </data>
+  <data name="4 MiB 単位。入力欄と連動します。" xml:space="preserve">
+    <value>4 MiB 単位。入力欄と連動します。</value>
+  </data>
+  <data name="APFS / HFS の起動ディスクを検索する設定を再適用します。SMBIOS・保存済みの識別情報は保持します。VM の完全終了後に操作してください。" xml:space="preserve">
+    <value>APFS / HFS の起動ディスクを検索する設定を再適用します。SMBIOS・保存済みの識別情報は保持します。VM の完全終了後に操作してください。</value>
+  </data>
+  <data name="Apple Account にログイン済みの場合、識別情報を変更すると再認証が必要になることがあります。" xml:space="preserve">
+    <value>Apple Account にログイン済みの場合、識別情報を変更すると再認証が必要になることがあります。</value>
+  </data>
+  <data name="CD/DVD・ISO" xml:space="preserve">
+    <value>CD/DVD・ISO</value>
+  </data>
+  <data name="CI またはリリースから取得した Reims エンジン" xml:space="preserve">
+    <value>CI またはリリースから取得した Reims エンジン</value>
+  </data>
+  <data name="CPU と空きメモリを確認できていません。再確認が完了するまで自動起動を保留します。" xml:space="preserve">
+    <value>CPU と空きメモリを確認できていません。再確認が完了するまで自動起動を保留します。</value>
+  </data>
+  <data name="CPU は 1〜{0} の整数で指定してください。" xml:space="preserve">
+    <value>CPU は 1〜{0} の整数で指定してください。</value>
+  </data>
+  <data name="CPU またはメモリの計画を確認できません。" xml:space="preserve">
+    <value>CPU またはメモリの計画を確認できません。</value>
+  </data>
+  <data name="CPU コア数" xml:space="preserve">
+    <value>CPU コア数</value>
+  </data>
+  <data name="CPU 数" xml:space="preserve">
+    <value>CPU 数</value>
+  </data>
+  <data name="CPU 数はホストの範囲内、メモリは 4096 MiB 以上・4 MiB 単位で指定してください。" xml:space="preserve">
+    <value>CPU 数はホストの範囲内、メモリは 4096 MiB 以上・4 MiB 単位で指定してください。</value>
+  </data>
+  <data name="CPU・メモリの割り当てを確認してください。" xml:space="preserve">
+    <value>CPU・メモリの割り当てを確認してください。</value>
+  </data>
+  <data name="Disk Utility で仮想ディスクを APFS に初期化し、macOS をインストールします。初回設定後、REIMSTOOLS の setup.command を実行してください。" xml:space="preserve">
+    <value>Disk Utility で仮想ディスクを APFS に初期化し、macOS をインストールします。初回設定後、REIMSTOOLS の setup.command を実行してください。</value>
+  </data>
+  <data name="Finder の REIMSTOOLS から setup.command を開き、表示されたユーザー名と指紋を入力します。" xml:space="preserve">
+    <value>Finder の REIMSTOOLS から setup.command を開き、表示されたユーザー名と指紋を入力します。</value>
+  </data>
+  <data name="GPU 互換ブリッジ" xml:space="preserve">
+    <value>GPU 互換ブリッジ</value>
+  </data>
+  <data name="GPU 互換ブリッジを解除" xml:space="preserve">
+    <value>GPU 互換ブリッジを解除</value>
+  </data>
+  <data name="GPU 互換ブリッジを適用" xml:space="preserve">
+    <value>GPU 互換ブリッジを適用</value>
+  </data>
+  <data name="ISO が見つかりません。選び直すか、接続をオフにしてパスを空にしてください。" xml:space="preserve">
+    <value>ISO が見つかりません。選び直すか、接続をオフにしてパスを空にしてください。</value>
+  </data>
+  <data name="ISO を選択…" xml:space="preserve">
+    <value>ISO を選択…</value>
+  </data>
+  <data name="LAN に接続する物理 Wi-Fi・有線 LAN" xml:space="preserve">
+    <value>LAN に接続する物理 Wi-Fi・有線 LAN</value>
+  </data>
+  <data name="LAN に直接接続" xml:space="preserve">
+    <value>LAN に直接接続</value>
+  </data>
+  <data name="LAN 接続の準備" xml:space="preserve">
+    <value>LAN 接続の準備</value>
+  </data>
+  <data name="LAN 接続を準備" xml:space="preserve">
+    <value>LAN 接続を準備</value>
+  </data>
+  <data name="MLB ボードシリアル" xml:space="preserve">
+    <value>MLB ボードシリアル</value>
+  </data>
+  <data name="MLB（ボードシリアル）" xml:space="preserve">
+    <value>MLB（ボードシリアル）</value>
+  </data>
+  <data name="Mac のシリアル番号" xml:space="preserve">
+    <value>Mac のシリアル番号</value>
+  </data>
+  <data name="Mac のモデル" xml:space="preserve">
+    <value>Mac のモデル</value>
+  </data>
+  <data name="Mac の識別情報" xml:space="preserve">
+    <value>Mac の識別情報</value>
+  </data>
+  <data name="Mac の識別情報を保存" xml:space="preserve">
+    <value>Mac の識別情報を保存</value>
+  </data>
+  <data name="Mac の識別情報を生成" xml:space="preserve">
+    <value>Mac の識別情報を生成</value>
+  </data>
+  <data name="Manager のウィンドウが見つかりません。" xml:space="preserve">
+    <value>Manager のウィンドウが見つかりません。</value>
+  </data>
+  <data name="NAT（通常はこちら）" xml:space="preserve">
+    <value>NAT（通常はこちら）</value>
+  </data>
+  <data name="OpenCore の起動プロファイルを再適用" xml:space="preserve">
+    <value>OpenCore の起動プロファイルを再適用</value>
+  </data>
+  <data name="OpenCore の起動設定（macOS 26.x）" xml:space="preserve">
+    <value>OpenCore の起動設定（macOS 26.x）</value>
+  </data>
+  <data name="PowerShell 7 をインストールしてください。" xml:space="preserve">
+    <value>PowerShell 7 をインストールしてください。</value>
+  </data>
+  <data name="QEMU・OpenCore・OVMF・GPU ROM・ゲスト用アドオンを自動で準備します。macOS のインストールと初回設定は VM の画面で行ってください。" xml:space="preserve">
+    <value>QEMU・OpenCore・OVMF・GPU ROM・ゲスト用アドオンを自動で準備します。macOS のインストールと初回設定は VM の画面で行ってください。</value>
+  </data>
+  <data name="ROM 12 桁の16進数" xml:space="preserve">
+    <value>ROM 12 桁の16進数</value>
+  </data>
+  <data name="ROM（12 桁の16進数）" xml:space="preserve">
+    <value>ROM（12 桁の16進数）</value>
+  </data>
+  <data name="Reims Manager の設定|*.json" xml:space="preserve">
+    <value>Reims Manager の設定|*.json</value>
+  </data>
+  <data name="Reims エンジン|*.zip" xml:space="preserve">
+    <value>Reims エンジン|*.zip</value>
+  </data>
+  <data name="Reims エンジン|qemu-system-x86_64.exe" xml:space="preserve">
+    <value>Reims エンジン|qemu-system-x86_64.exe</value>
+  </data>
+  <data name="Reims エンジンをセットアップ" xml:space="preserve">
+    <value>Reims エンジンをセットアップ</value>
+  </data>
+  <data name="Reims エンジンを設定" xml:space="preserve">
+    <value>Reims エンジンを設定</value>
+  </data>
+  <data name="Reims エンジンを設定してセットアップを始めます。" xml:space="preserve">
+    <value>Reims エンジンを設定してセットアップを始めます。</value>
+  </data>
+  <data name="Reims 仮想マシン|*.reimsvm" xml:space="preserve">
+    <value>Reims 仮想マシン|*.reimsvm</value>
+  </data>
+  <data name="Reims 対応 QEMU が見つかりません。エンジンのフォルダーを確認してください。" xml:space="preserve">
+    <value>Reims 対応 QEMU が見つかりません。エンジンのフォルダーを確認してください。</value>
+  </data>
+  <data name="Reims 対応 QEMU、必要な DLL、OpenCore、OVMF、GPU ROM、ISO ツールをまとめて導入します。" xml:space="preserve">
+    <value>Reims 対応 QEMU、必要な DLL、OpenCore、OVMF、GPU ROM、ISO ツールをまとめて導入します。</value>
+  </data>
+  <data name="Reims 対応の QEMU を選択" xml:space="preserve">
+    <value>Reims 対応の QEMU を選択</value>
+  </data>
+  <data name="Reims 専用の TAP ドライバーを管理者権限で準備します。公式ファイルを取得し、署名を確認して導入します。ブリッジ作成と Windows の再起動は別に行います。続けますか？" xml:space="preserve">
+    <value>Reims 専用の TAP ドライバーを管理者権限で準備します。公式ファイルを取得し、署名を確認して導入します。ブリッジ作成と Windows の再起動は別に行います。続けますか？</value>
+  </data>
+  <data name="SHA256 指紋" xml:space="preserve">
+    <value>SHA256 指紋</value>
+  </data>
+  <data name="SSH の指紋を確認" xml:space="preserve">
+    <value>SSH の指紋を確認</value>
+  </data>
+  <data name="SSH ペアリング" xml:space="preserve">
+    <value>SSH ペアリング</value>
+  </data>
+  <data name="SSH ペアリングを設定" xml:space="preserve">
+    <value>SSH ペアリングを設定</value>
+  </data>
+  <data name="SSH ホスト鍵の SHA256 指紋" xml:space="preserve">
+    <value>SSH ホスト鍵の SHA256 指紋</value>
+  </data>
+  <data name="SSH 接続する macOS ユーザー名" xml:space="preserve">
+    <value>SSH 接続する macOS ユーザー名</value>
+  </data>
+  <data name="TAP の導入結果を確認できません。ドライバーが追加済みの場合があります。&#10;" xml:space="preserve">
+    <value>TAP の導入結果を確認できません。ドライバーが追加済みの場合があります。
+</value>
+  </data>
+  <data name="TAP の準備ができました。接続先と専用 TAP を選び、必要な場合にブリッジを作成してください。" xml:space="preserve">
+    <value>TAP の準備ができました。接続先と専用 TAP を選び、必要な場合にブリッジを作成してください。</value>
+  </data>
+  <data name="TAP の準備に Windows の再起動が必要です。作業を保存して再起動し、導入を再実行してください。" xml:space="preserve">
+    <value>TAP の準備に Windows の再起動が必要です。作業を保存して再起動し、導入を再実行してください。</value>
+  </data>
+  <data name="TAP アダプター" xml:space="preserve">
+    <value>TAP アダプター</value>
+  </data>
+  <data name="TAP ドライバー" xml:space="preserve">
+    <value>TAP ドライバー</value>
+  </data>
+  <data name="TAP 導入結果のデバイス情報を確認できません。" xml:space="preserve">
+    <value>TAP 導入結果のデバイス情報を確認できません。</value>
+  </data>
+  <data name="TAP 導入結果の形式が対応していません。" xml:space="preserve">
+    <value>TAP 導入結果の形式が対応していません。</value>
+  </data>
+  <data name="USB の一覧を取得できません。「デバイス一覧を更新」で再試行してください。&#10;" xml:space="preserve">
+    <value>USB の一覧を取得できません。「デバイス一覧を更新」で再試行してください。
+</value>
+  </data>
+  <data name="USB の一覧を確認しています…" xml:space="preserve">
+    <value>USB の一覧を確認しています…</value>
+  </data>
+  <data name="USB の接続を確認" xml:space="preserve">
+    <value>USB の接続を確認</value>
+  </data>
+  <data name="USB の接続操作は実行できます。転送方式の変更は、VM の完全終了後に保存できます。" xml:space="preserve">
+    <value>USB の接続操作は実行できます。転送方式の変更は、VM の完全終了後に保存できます。</value>
+  </data>
+  <data name="USB の登録と接続状態を確認しています…" xml:space="preserve">
+    <value>USB の登録と接続状態を確認しています…</value>
+  </data>
+  <data name="USB の登録を解除" xml:space="preserve">
+    <value>USB の登録を解除</value>
+  </data>
+  <data name="USB の登録・解除は即時反映。転送方式は「変更を保存」で確定します。" xml:space="preserve">
+    <value>USB の登録・解除は即時反映。転送方式は「変更を保存」で確定します。</value>
+  </data>
+  <data name="USB の確認を中断しました。一覧を更新して再試行してください。" xml:space="preserve">
+    <value>USB の確認を中断しました。一覧を更新して再試行してください。</value>
+  </data>
+  <data name="USB の識別情報がありません。" xml:space="preserve">
+    <value>USB の識別情報がありません。</value>
+  </data>
+  <data name="USB エラー情報が長すぎます。" xml:space="preserve">
+    <value>USB エラー情報が長すぎます。</value>
+  </data>
+  <data name="USB デバイス" xml:space="preserve">
+    <value>USB デバイス</value>
+  </data>
+  <data name="USB デバイスの登録と接続状態" xml:space="preserve">
+    <value>USB デバイスの登録と接続状態</value>
+  </data>
+  <data name="USB デバイスを取得" xml:space="preserve">
+    <value>USB デバイスを取得</value>
+  </data>
+  <data name="USB ドライバーを導入（任意）" xml:space="preserve">
+    <value>USB ドライバーを導入（任意）</value>
+  </data>
+  <data name="USB 転送ドライバーを導入" xml:space="preserve">
+    <value>USB 転送ドライバーを導入</value>
+  </data>
+  <data name="USB 転送方式" xml:space="preserve">
+    <value>USB 転送方式</value>
+  </data>
+  <data name="USBデバイス" xml:space="preserve">
+    <value>USBデバイス</value>
+  </data>
+  <data name="UsbDk の一時結果ファイルを削除できませんでした: " xml:space="preserve">
+    <value>UsbDk の一時結果ファイルを削除できませんでした: </value>
+  </data>
+  <data name="UsbDk の導入は完了しました。適用には Windows の再起動が必要です。作業を保存して Windows を再起動し、転送方式で UsbDk を選んで保存してください。" xml:space="preserve">
+    <value>UsbDk の導入は完了しました。適用には Windows の再起動が必要です。作業を保存して Windows を再起動し、転送方式で UsbDk を選んで保存してください。</value>
+  </data>
+  <data name="UsbDk の導入は完了しました。適用には Windows の再起動が必要です。作業を保存して Windows を再起動してください。自動起動は保留します。再起動後、VM の USB 設定で UsbDk を選んで保存してください。" xml:space="preserve">
+    <value>UsbDk の導入は完了しました。適用には Windows の再起動が必要です。作業を保存して Windows を再起動してください。自動起動は保留します。再起動後、VM の USB 設定で UsbDk を選んで保存してください。</value>
+  </data>
+  <data name="UsbDk の導入結果を確認できません。Windows の再起動が必要か不明です。USB 設定から導入状態を再確認してください。" xml:space="preserve">
+    <value>UsbDk の導入結果を確認できません。Windows の再起動が必要か不明です。USB 設定から導入状態を再確認してください。</value>
+  </data>
+  <data name="UsbDk の導入結果を確認できません。必要条件を再確認してください。" xml:space="preserve">
+    <value>UsbDk の導入結果を確認できません。必要条件を再確認してください。</value>
+  </data>
+  <data name="UsbDk の導入結果を確認できません。表示されたエラーを確認し、再試行してください。" xml:space="preserve">
+    <value>UsbDk の導入結果を確認できません。表示されたエラーを確認し、再試行してください。</value>
+  </data>
+  <data name="UsbDk の適用には Windows の再起動が必要です。VM の作成は進められますが、自動起動は保留します。" xml:space="preserve">
+    <value>UsbDk の適用には Windows の再起動が必要です。VM の作成は進められますが、自動起動は保留します。</value>
+  </data>
+  <data name="UsbDk を導入…" xml:space="preserve">
+    <value>UsbDk を導入…</value>
+  </data>
+  <data name="UsbDk を導入しました。VM の USB 設定で UsbDk を選んで保存し、VM を完全終了してから起動してください。" xml:space="preserve">
+    <value>UsbDk を導入しました。VM の USB 設定で UsbDk を選んで保存し、VM を完全終了してから起動してください。</value>
+  </data>
+  <data name="UsbDk を導入しました。転送方式で UsbDk を選んで保存し、VM を完全終了してから起動してください。" xml:space="preserve">
+    <value>UsbDk を導入しました。転送方式で UsbDk を選んで保存し、VM を完全終了してから起動してください。</value>
+  </data>
+  <data name="VM が管理コマンドを拒否しました。" xml:space="preserve">
+    <value>VM が管理コマンドを拒否しました。</value>
+  </data>
+  <data name="VM に接続中です。解除すると自動接続の登録も削除します。" xml:space="preserve">
+    <value>VM に接続中です。解除すると自動接続の登録も削除します。</value>
+  </data>
+  <data name="VM のデータは VM ファイルと同じフォルダー内に置いてください。" xml:space="preserve">
+    <value>VM のデータは VM ファイルと同じフォルダー内に置いてください。</value>
+  </data>
+  <data name="VM のデータ保存先がありません。" xml:space="preserve">
+    <value>VM のデータ保存先がありません。</value>
+  </data>
+  <data name="VM のページ" xml:space="preserve">
+    <value>VM のページ</value>
+  </data>
+  <data name="VM の保存先: " xml:space="preserve">
+    <value>VM の保存先: </value>
+  </data>
+  <data name="VM の保存先が見つかりません。ドライブの接続を確認してください。" xml:space="preserve">
+    <value>VM の保存先が見つかりません。ドライブの接続を確認してください。</value>
+  </data>
+  <data name="VM の保存先を確認してください" xml:space="preserve">
+    <value>VM の保存先を確認してください</value>
+  </data>
+  <data name="VM の保存先を開く" xml:space="preserve">
+    <value>VM の保存先を開く</value>
+  </data>
+  <data name="VM の保存済みの転送方式を確認しています。" xml:space="preserve">
+    <value>VM の保存済みの転送方式を確認しています。</value>
+  </data>
+  <data name="VM の名前で絞り込み" xml:space="preserve">
+    <value>VM の名前で絞り込み</value>
+  </data>
+  <data name="VM の名前と保存先を確認してください。" xml:space="preserve">
+    <value>VM の名前と保存先を確認してください。</value>
+  </data>
+  <data name="VM の名前または保存先が不正です。" xml:space="preserve">
+    <value>VM の名前または保存先が不正です。</value>
+  </data>
+  <data name="VM の名前を確認してください。区切り文字や Windows の予約名は使用できません。" xml:space="preserve">
+    <value>VM の名前を確認してください。区切り文字や Windows の予約名は使用できません。</value>
+  </data>
+  <data name="VM の実行記録が大きすぎます。" xml:space="preserve">
+    <value>VM の実行記録が大きすぎます。</value>
+  </data>
+  <data name="VM の応答が上限を超えました。" xml:space="preserve">
+    <value>VM の応答が上限を超えました。</value>
+  </data>
+  <data name="VM の準備ができました。上の「起動」から macOS のインストールを始められます。" xml:space="preserve">
+    <value>VM の準備ができました。上の「起動」から macOS のインストールを始められます。</value>
+  </data>
+  <data name="VM の準備は完了しました。自動起動は保留しています。空き RAM と Windows の再起動要否を確認してください。" xml:space="preserve">
+    <value>VM の準備は完了しました。自動起動は保留しています。空き RAM と Windows の再起動要否を確認してください。</value>
+  </data>
+  <data name="VM の状態を確認してください" xml:space="preserve">
+    <value>VM の状態を確認してください</value>
+  </data>
+  <data name="VM の状態を確認できません。更新してから再試行してください。" xml:space="preserve">
+    <value>VM の状態を確認できません。更新してから再試行してください。</value>
+  </data>
+  <data name="VM の画面に接続してから全画面表示にしてください。" xml:space="preserve">
+    <value>VM の画面に接続してから全画面表示にしてください。</value>
+  </data>
+  <data name="VM の画面を待っています" xml:space="preserve">
+    <value>VM の画面を待っています</value>
+  </data>
+  <data name="VM の画面を接続" xml:space="preserve">
+    <value>VM の画面を接続</value>
+  </data>
+  <data name="VM の登録とエンジンの保存先はアプリ更新後も保持します。" xml:space="preserve">
+    <value>VM の登録とエンジンの保存先はアプリ更新後も保持します。</value>
+  </data>
+  <data name="VM の管理ポートが不正です。" xml:space="preserve">
+    <value>VM の管理ポートが不正です。</value>
+  </data>
+  <data name="VM の管理接続が閉じられました。" xml:space="preserve">
+    <value>VM の管理接続が閉じられました。</value>
+  </data>
+  <data name="VM の管理接続を使用中です。操作の完了後に再試行してください。" xml:space="preserve">
+    <value>VM の管理接続を使用中です。操作の完了後に再試行してください。</value>
+  </data>
+  <data name="VM の管理接続を確認できませんでした。" xml:space="preserve">
+    <value>VM の管理接続を確認できませんでした。</value>
+  </data>
+  <data name="VM の親フォルダー" xml:space="preserve">
+    <value>VM の親フォルダー</value>
+  </data>
+  <data name="VM は実行中です" xml:space="preserve">
+    <value>VM は実行中です</value>
+  </data>
+  <data name="VM を一時停止" xml:space="preserve">
+    <value>VM を一時停止</value>
+  </data>
+  <data name="VM を作成するか、既存の VM を開いてください。" xml:space="preserve">
+    <value>VM を作成するか、既存の VM を開いてください。</value>
+  </data>
+  <data name="VM を保存する親フォルダー" xml:space="preserve">
+    <value>VM を保存する親フォルダー</value>
+  </data>
+  <data name="VM を再開" xml:space="preserve">
+    <value>VM を再開</value>
+  </data>
+  <data name="VM を動かす準備" xml:space="preserve">
+    <value>VM を動かす準備</value>
+  </data>
+  <data name="VM を完全終了" xml:space="preserve">
+    <value>VM を完全終了</value>
+  </data>
+  <data name="VM を完全終了してから保存します。復元しても現在のディスクは保持されます。" xml:space="preserve">
+    <value>VM を完全終了してから保存します。復元しても現在のディスクは保持されます。</value>
+  </data>
+  <data name="VM を完全終了すると、ハードウェア設定やディスクを変更できます。" xml:space="preserve">
+    <value>VM を完全終了すると、ハードウェア設定やディスクを変更できます。</value>
+  </data>
+  <data name="VM を強制終了" xml:space="preserve">
+    <value>VM を強制終了</value>
+  </data>
+  <data name="VM を検索" xml:space="preserve">
+    <value>VM を検索</value>
+  </data>
+  <data name="VM を読み込めません: {0}&#10;{1}&#10;" xml:space="preserve">
+    <value>VM を読み込めません: {0}
+{1}
+</value>
+  </data>
+  <data name="VM を起動" xml:space="preserve">
+    <value>VM を起動</value>
+  </data>
+  <data name="VM を開く…" xml:space="preserve">
+    <value>VM を開く…</value>
+  </data>
+  <data name="VM ファイルは既に存在します。" xml:space="preserve">
+    <value>VM ファイルは既に存在します。</value>
+  </data>
+  <data name="VM ファイルを開くか、新規作成してください。" xml:space="preserve">
+    <value>VM ファイルを開くか、新規作成してください。</value>
+  </data>
+  <data name="VM 本体の画面へ移動" xml:space="preserve">
+    <value>VM 本体の画面へ移動</value>
+  </data>
+  <data name="VM 画面の所有者が変更されたため、元の状態を上書きできません。" xml:space="preserve">
+    <value>VM 画面の所有者が変更されたため、元の状態を上書きできません。</value>
+  </data>
+  <data name="VM 画面の所有者が変更されました。" xml:space="preserve">
+    <value>VM 画面の所有者が変更されました。</value>
+  </data>
+  <data name="VM 画面の所有関係が変更されました。" xml:space="preserve">
+    <value>VM 画面の所有関係が変更されました。</value>
+  </data>
+  <data name="VM 画面の接続と復元に失敗しました。" xml:space="preserve">
+    <value>VM 画面の接続と復元に失敗しました。</value>
+  </data>
+  <data name="VM 画面の表示領域を設定できませんでした。" xml:space="preserve">
+    <value>VM 画面の表示領域を設定できませんでした。</value>
+  </data>
+  <data name="VM 画面の配置を変更できませんでした。" xml:space="preserve">
+    <value>VM 画面の配置を変更できませんでした。</value>
+  </data>
+  <data name="VM 画面の配置を維持できませんでした。別ウィンドウ表示を使用してください。" xml:space="preserve">
+    <value>VM 画面の配置を維持できませんでした。別ウィンドウ表示を使用してください。</value>
+  </data>
+  <data name="VM 画面の領域を復元できませんでした。" xml:space="preserve">
+    <value>VM 画面の領域を復元できませんでした。</value>
+  </data>
+  <data name="VM 画面をアプリに戻す" xml:space="preserve">
+    <value>VM 画面をアプリに戻す</value>
+  </data>
+  <data name="VM 画面を別ウィンドウにする" xml:space="preserve">
+    <value>VM 画面を別ウィンドウにする</value>
+  </data>
+  <data name="VM 画面を復元できないため、管理ウィンドウを閉じられません。" xml:space="preserve">
+    <value>VM 画面を復元できないため、管理ウィンドウを閉じられません。</value>
+  </data>
+  <data name="VMDK / QCOW2 / RAW · 元のディスクは変更しません" xml:space="preserve">
+    <value>VMDK / QCOW2 / RAW · 元のディスクは変更しません</value>
+  </data>
+  <data name="VMの概要" xml:space="preserve">
+    <value>VMの概要</value>
+  </data>
+  <data name="VMの電源操作" xml:space="preserve">
+    <value>VMの電源操作</value>
+  </data>
+  <data name="VM画面を別ウィンドウで開く" xml:space="preserve">
+    <value>VM画面を別ウィンドウで開く</value>
+  </data>
+  <data name="WHPX を有効にする（管理者）" xml:space="preserve">
+    <value>WHPX を有効にする（管理者）</value>
+  </data>
+  <data name="WHPX を有効化…" xml:space="preserve">
+    <value>WHPX を有効化…</value>
+  </data>
+  <data name="Wi-Fi の準備に失敗しました。一部の設定が変更済みの可能性があるため、状態を確認してください。&#10;" xml:space="preserve">
+    <value>Wi-Fi の準備に失敗しました。一部の設定が変更済みの可能性があるため、状態を確認してください。
+</value>
+  </data>
+  <data name="Wi-Fi の準備は未完了です。転送状態とログを確認してください。" xml:space="preserve">
+    <value>Wi-Fi の準備は未完了です。転送状態とログを確認してください。</value>
+  </data>
+  <data name="Wi-Fi の準備結果を確認できません。変更済みの可能性があるため、状態とログを確認してください。&#10;" xml:space="preserve">
+    <value>Wi-Fi の準備結果を確認できません。変更済みの可能性があるため、状態とログを確認してください。
+</value>
+  </data>
+  <data name="Wi-Fi は IPv4 / IPv6 の互換接続、有線 LAN は Windows ブリッジを使用します。" xml:space="preserve">
+    <value>Wi-Fi は IPv4 / IPv6 の互換接続、有線 LAN は Windows ブリッジを使用します。</value>
+  </data>
+  <data name="Wi-Fi 互換接続" xml:space="preserve">
+    <value>Wi-Fi 互換接続</value>
+  </data>
+  <data name="Wi-Fi 互換接続の解除ボタンで、専用 TAP の設定を復元してから NAT に戻してください。ほかの未保存の変更は保持しています。" xml:space="preserve">
+    <value>Wi-Fi 互換接続の解除ボタンで、専用 TAP の設定を復元してから NAT に戻してください。ほかの未保存の変更は保持しています。</value>
+  </data>
+  <data name="Wi-Fi 互換接続は未設定です" xml:space="preserve">
+    <value>Wi-Fi 互換接続は未設定です</value>
+  </data>
+  <data name="Wi-Fi 互換接続を準備" xml:space="preserve">
+    <value>Wi-Fi 互換接続を準備</value>
+  </data>
+  <data name="Wi-Fi 互換接続を解除" xml:space="preserve">
+    <value>Wi-Fi 互換接続を解除</value>
+  </data>
+  <data name="Wi-Fi 互換接続（IPv4 / IPv6）" xml:space="preserve">
+    <value>Wi-Fi 互換接続（IPv4 / IPv6）</value>
+  </data>
+  <data name="Wi-Fi 準備結果が一致しません。" xml:space="preserve">
+    <value>Wi-Fi 準備結果が一致しません。</value>
+  </data>
+  <data name="Wi-Fi 準備結果のエラー形式が正しくありません。" xml:space="preserve">
+    <value>Wi-Fi 準備結果のエラー形式が正しくありません。</value>
+  </data>
+  <data name="Wi-Fi 準備結果の形式に対応していません。" xml:space="preserve">
+    <value>Wi-Fi 準備結果の形式に対応していません。</value>
+  </data>
+  <data name="Windows と macOS の間でテキストをコピー＆ペーストできます。" xml:space="preserve">
+    <value>Windows と macOS の間でテキストをコピー＆ペーストできます。</value>
+  </data>
+  <data name="Windows にコピーしました。" xml:space="preserve">
+    <value>Windows にコピーしました。</value>
+  </data>
+  <data name="Windows に戻す: Ctrl + Alt + Home / Ctrl + Alt + Win" xml:space="preserve">
+    <value>Windows に戻す: Ctrl + Alt + Home / Ctrl + Alt + Win</value>
+  </data>
+  <data name="Windows に戻す: Ctrl + Alt + Home（対応エンジン）" xml:space="preserve">
+    <value>Windows に戻す: Ctrl + Alt + Home（対応エンジン）</value>
+  </data>
+  <data name="Windows に接続したデバイスを、この VM に接続します。接続中は Windows 側から使用できません。" xml:space="preserve">
+    <value>Windows に接続したデバイスを、この VM に接続します。接続中は Windows 側から使用できません。</value>
+  </data>
+  <data name="Windows のインターネット接続を共有します。Apple Account も使用できます。" xml:space="preserve">
+    <value>Windows のインターネット接続を共有します。Apple Account も使用できます。</value>
+  </data>
+  <data name="Windows のサウンド設定" xml:space="preserve">
+    <value>Windows のサウンド設定</value>
+  </data>
+  <data name="Windows のハードウェア仮想化を使用します。" xml:space="preserve">
+    <value>Windows のハードウェア仮想化を使用します。</value>
+  </data>
+  <data name="Windows の再起動が必要です" xml:space="preserve">
+    <value>Windows の再起動が必要です</value>
+  </data>
+  <data name="Windows の再起動が必要です。作業を保存して再起動し、Manager でセットアップを再開してください。エンジンの保存先は記録済みです。" xml:space="preserve">
+    <value>Windows の再起動が必要です。作業を保存して再起動し、Manager でセットアップを再開してください。エンジンの保存先は記録済みです。</value>
+  </data>
+  <data name="Windows の標準デバイスを macOS と共有します。" xml:space="preserve">
+    <value>Windows の標準デバイスを macOS と共有します。</value>
+  </data>
+  <data name="Windows の準備を確認して ISO を選ぶ" xml:space="preserve">
+    <value>Windows の準備を確認して ISO を選ぶ</value>
+  </data>
+  <data name="Windows の準備を確認できませんでした。「再確認」でやり直してください。" xml:space="preserve">
+    <value>Windows の準備を確認できませんでした。「再確認」でやり直してください。</value>
+  </data>
+  <data name="Windows の確認画面で管理者権限を許可してください。自動再起動は行いません。" xml:space="preserve">
+    <value>Windows の確認画面で管理者権限を許可してください。自動再起動は行いません。</value>
+  </data>
+  <data name="Windows の管理者権限が必要です。作成時はネットワーク接続が一時的に切れる場合があります。" xml:space="preserve">
+    <value>Windows の管理者権限が必要です。作成時はネットワーク接続が一時的に切れる場合があります。</value>
+  </data>
+  <data name="Windows の表示言語に合わせる" xml:space="preserve">
+    <value>Windows の表示言語に合わせる</value>
+  </data>
+  <data name="Windows の設定変更が完了してから閉じてください。" xml:space="preserve">
+    <value>Windows の設定変更が完了してから閉じてください。</value>
+  </data>
+  <data name="Windows 側のカーソルを表示" xml:space="preserve">
+    <value>Windows 側のカーソルを表示</value>
+  </data>
+  <data name="Windows 側のカーソルを隠す" xml:space="preserve">
+    <value>Windows 側のカーソルを隠す</value>
+  </data>
+  <data name="Windows 側を表示" xml:space="preserve">
+    <value>Windows 側を表示</value>
+  </data>
+  <data name="Windows 側を隠す" xml:space="preserve">
+    <value>Windows 側を隠す</value>
+  </data>
+  <data name="ZIP を選択…" xml:space="preserve">
+    <value>ZIP を選択…</value>
+  </data>
+  <data name="iPhone の接続・復元処理中です。抜き差し待ちの場合は USB を再接続してください。やり直す場合は、一度切断してください。" xml:space="preserve">
+    <value>iPhone の接続・復元処理中です。抜き差し待ちの場合は USB を再接続してください。やり直す場合は、一度切断してください。</value>
+  </data>
+  <data name="iPhone は署名済みドライバーへ一時的に切り替えます。管理者確認後、再接続が必要な場合があります。解除時は元のドライバーへ戻します。" xml:space="preserve">
+    <value>iPhone は署名済みドライバーへ一時的に切り替えます。管理者確認後、再接続が必要な場合があります。解除時は元のドライバーへ戻します。</value>
+  </data>
+  <data name="macOS 26 の Intel VM では、画面幅が 2048 ピクセルを超えると表示が乱れる既知の問題があります。安定した操作には 1920 × 1080 を推奨します。4K は描画負荷も高くなります。" xml:space="preserve">
+    <value>macOS 26 の Intel VM では、画面幅が 2048 ピクセルを超えると表示が乱れる既知の問題があります。安定した操作には 1920 × 1080 を推奨します。4K は描画負荷も高くなります。</value>
+  </data>
+  <data name="macOS 26.x の共通 ABI に対応する GPU 互換ブリッジを適用・解除します。未対応の ABI や不明なレイアウトは安全に拒否します。" xml:space="preserve">
+    <value>macOS 26.x の共通 ABI に対応する GPU 互換ブリッジを適用・解除します。未対応の ABI や不明なレイアウトは安全に拒否します。</value>
+  </data>
+  <data name="macOS とペアリング" xml:space="preserve">
+    <value>macOS とペアリング</value>
+  </data>
+  <data name="macOS と接続" xml:space="preserve">
+    <value>macOS と接続</value>
+  </data>
+  <data name="macOS にコピーしました。" xml:space="preserve">
+    <value>macOS にコピーしました。</value>
+  </data>
+  <data name="macOS に割り当てるメモリを選びます。" xml:space="preserve">
+    <value>macOS に割り当てるメモリを選びます。</value>
+  </data>
+  <data name="macOS の IP アドレス / ホスト名" xml:space="preserve">
+    <value>macOS の IP アドレス / ホスト名</value>
+  </data>
+  <data name="macOS の IP アドレスまたはホスト名" xml:space="preserve">
+    <value>macOS の IP アドレスまたはホスト名</value>
+  </data>
+  <data name="macOS の IP アドレスまたはホスト名を確認してください。" xml:space="preserve">
+    <value>macOS の IP アドレスまたはホスト名を確認してください。</value>
+  </data>
+  <data name="macOS の IP アドレス・ホスト名を確認してください。" xml:space="preserve">
+    <value>macOS の IP アドレス・ホスト名を確認してください。</value>
+  </data>
+  <data name="macOS の ISO / IMG を参照ボタンから選択するか、完全なパスを指定してください。" xml:space="preserve">
+    <value>macOS の ISO / IMG を参照ボタンから選択するか、完全なパスを指定してください。</value>
+  </data>
+  <data name="macOS のインストーラーを選択" xml:space="preserve">
+    <value>macOS のインストーラーを選択</value>
+  </data>
+  <data name="macOS のインストール" xml:space="preserve">
+    <value>macOS のインストール</value>
+  </data>
+  <data name="macOS のパスワードは保存しません。SSH 鍵はこの VM のフォルダーに保持します。" xml:space="preserve">
+    <value>macOS のパスワードは保存しません。SSH 鍵はこの VM のフォルダーに保持します。</value>
+  </data>
+  <data name="macOS の接続先を名前解決できませんでした。" xml:space="preserve">
+    <value>macOS の接続先を名前解決できませんでした。</value>
+  </data>
+  <data name="macOS の更新検出を修復" xml:space="preserve">
+    <value>macOS の更新検出を修復</value>
+  </data>
+  <data name="macOS は電源オフです" xml:space="preserve">
+    <value>macOS は電源オフです</value>
+  </data>
+  <data name="macOS は電源オフです。VM はまだ完全停止していません" xml:space="preserve">
+    <value>macOS は電源オフです。VM はまだ完全停止していません</value>
+  </data>
+  <data name="macOS は電源オフです。設定変更には「••• → 完全終了」で QEMU も終了してください。" xml:space="preserve">
+    <value>macOS は電源オフです。設定変更には「••• → 完全終了」で QEMU も終了してください。</value>
+  </data>
+  <data name="macOS は電源オフですが QEMU は残っています。「••• → 完全終了」を選択してください。" xml:space="preserve">
+    <value>macOS は電源オフですが QEMU は残っています。「••• → 完全終了」を選択してください。</value>
+  </data>
+  <data name="macOS をインストール" xml:space="preserve">
+    <value>macOS をインストール</value>
+  </data>
+  <data name="macOS をシャットダウン" xml:space="preserve">
+    <value>macOS をシャットダウン</value>
+  </data>
+  <data name="macOS をセットアップ" xml:space="preserve">
+    <value>macOS をセットアップ</value>
+  </data>
+  <data name="macOS を再起動" xml:space="preserve">
+    <value>macOS を再起動</value>
+  </data>
+  <data name="macOS インストーラー (ISO / IMG)" xml:space="preserve">
+    <value>macOS インストーラー (ISO / IMG)</value>
+  </data>
+  <data name="macOS インストーラー|*.iso;*.img" xml:space="preserve">
+    <value>macOS インストーラー|*.iso;*.img</value>
+  </data>
+  <data name="macOS インストーラー|*.iso;*.img|すべてのファイル|*.*" xml:space="preserve">
+    <value>macOS インストーラー|*.iso;*.img|すべてのファイル|*.*</value>
+  </data>
+  <data name="macOS インストーラーの保存先" xml:space="preserve">
+    <value>macOS インストーラーの保存先</value>
+  </data>
+  <data name="macOS ユーザー名" xml:space="preserve">
+    <value>macOS ユーザー名</value>
+  </data>
+  <data name="macOS 接続の設定を確認してください。" xml:space="preserve">
+    <value>macOS 接続の設定を確認してください。</value>
+  </data>
+  <data name="macOSを再起動" xml:space="preserve">
+    <value>macOSを再起動</value>
+  </data>
+  <data name="{0} vCPU  ·  {1:0.###} GiB メモリ  ·  {2} GiB ディスク  ·  {3}" xml:space="preserve">
+    <value>{0} vCPU  ·  {1:0.###} GiB メモリ  ·  {2} GiB ディスク  ·  {3}</value>
+  </data>
+  <data name="▶  再開" xml:space="preserve">
+    <value>▶  再開</value>
+  </data>
+  <data name="▶  起動" xml:space="preserve">
+    <value>▶  起動</value>
+  </data>
+  <data name="「デバイス一覧を更新」で、この VM の USB 登録と接続状態を確認します。" xml:space="preserve">
+    <value>「デバイス一覧を更新」で、この VM の USB 登録と接続状態を確認します。</value>
+  </data>
+  <data name="「仮想マシンの設定 → macOS のインストール」から初期セットアップを行ってください。" xml:space="preserve">
+    <value>「仮想マシンの設定 → macOS のインストール」から初期セットアップを行ってください。</value>
+  </data>
+  <data name="「再開」してから macOS の電源操作を行えます。" xml:space="preserve">
+    <value>「再開」してから macOS の電源操作を行えます。</value>
+  </data>
+  <data name="「変更を保存」で確定した設定は、次回の VM 起動から使用します。" xml:space="preserve">
+    <value>「変更を保存」で確定した設定は、次回の VM 起動から使用します。</value>
+  </data>
+  <data name="「新規」または「開く」から追加" xml:space="preserve">
+    <value>「新規」または「開く」から追加</value>
+  </data>
+  <data name="「更新」で状態を取得してから操作を再試行できます。" xml:space="preserve">
+    <value>「更新」で状態を取得してから操作を再試行できます。</value>
+  </data>
+  <data name="「状態を更新」で再確認できます。入力中の変更は保持します。" xml:space="preserve">
+    <value>「状態を更新」で再確認できます。入力中の変更は保持します。</value>
+  </data>
+  <data name="ここに VM の画面が表示されます" xml:space="preserve">
+    <value>ここに VM の画面が表示されます</value>
+  </data>
+  <data name="この VM に記録されたブリッジを解除し、VM を NAT に戻します。Windows の通信が一時的に切れる場合があります。続けますか？" xml:space="preserve">
+    <value>この VM に記録されたブリッジを解除し、VM を NAT に戻します。Windows の通信が一時的に切れる場合があります。続けますか？</value>
+  </data>
+  <data name="この VM の macOS ユーザーで、ログイン後もオンの状態が続きます。ミラーリングは自動検出しません。必要なときだけオンにし、不要になったらオフにしてください。操作には実行中の VM と SSH ペアリングが必要です。" xml:space="preserve">
+    <value>この VM の macOS ユーザーで、ログイン後もオンの状態が続きます。ミラーリングは自動検出しません。必要なときだけオンにし、不要になったらオフにしてください。操作には実行中の VM と SSH ペアリングが必要です。</value>
+  </data>
+  <data name="この VM の識別情報を変更します。Apple Account の再認証が必要になることがあります。" xml:space="preserve">
+    <value>この VM の識別情報を変更します。Apple Account の再認証が必要になることがあります。</value>
+  </data>
+  <data name="この VM ファイルの形式には対応していません。" xml:space="preserve">
+    <value>この VM ファイルの形式には対応していません。</value>
+  </data>
+  <data name="このコンピューター" xml:space="preserve">
+    <value>このコンピューター</value>
+  </data>
+  <data name="この保存先にはデータがあります。別の名前または親フォルダーを選んでください。" xml:space="preserve">
+    <value>この保存先にはデータがあります。別の名前または親フォルダーを選んでください。</value>
+  </data>
+  <data name="この保存先には既にデータがあります。別の VM 名を選択してください。" xml:space="preserve">
+    <value>この保存先には既にデータがあります。別の VM 名を選択してください。</value>
+  </data>
+  <data name="この機器は接続待ちです。登録の解除は VM の停止中でもできます。" xml:space="preserve">
+    <value>この機器は接続待ちです。登録の解除は VM の停止中でもできます。</value>
+  </data>
+  <data name="しています…" xml:space="preserve">
+    <value>しています…</value>
+  </data>
+  <data name="その他" xml:space="preserve">
+    <value>その他</value>
+  </data>
+  <data name="その他の電源操作" xml:space="preserve">
+    <value>その他の電源操作</value>
+  </data>
+  <data name="アプリ設定が保存可能なサイズを超えています。元の設定は保持しています。" xml:space="preserve">
+    <value>アプリ設定が保存可能なサイズを超えています。元の設定は保持しています。</value>
+  </data>
+  <data name="アプリ設定のバックアップを復元しました。読み込めなかった元のファイルは保持しています。" xml:space="preserve">
+    <value>アプリ設定のバックアップを復元しました。読み込めなかった元のファイルは保持しています。</value>
+  </data>
+  <data name="アプリ設定のファイルが見つからず、バックアップも読み込めません。バックアップは保持しています。" xml:space="preserve">
+    <value>アプリ設定のファイルが見つからず、バックアップも読み込めません。バックアップは保持しています。</value>
+  </data>
+  <data name="アプリ設定のファイルが見つからないため、バックアップから設定を復元しました。" xml:space="preserve">
+    <value>アプリ設定のファイルが見つからないため、バックアップから設定を復元しました。</value>
+  </data>
+  <data name="アプリ設定の保存先" xml:space="preserve">
+    <value>アプリ設定の保存先</value>
+  </data>
+  <data name="アプリ設定は保存しましたが、復元用のバックアップを作成できませんでした。&#10;" xml:space="preserve">
+    <value>アプリ設定は保存しましたが、復元用のバックアップを作成できませんでした。
+</value>
+  </data>
+  <data name="アプリ設定を保存できませんでした。VM のディスクは変更していません。&#10;" xml:space="preserve">
+    <value>アプリ設定を保存できませんでした。VM のディスクは変更していません。
+</value>
+  </data>
+  <data name="アプリ設定を読み込めません。元のファイルは保持しています。「登録・保存先」から設定を取り込めます。" xml:space="preserve">
+    <value>アプリ設定を読み込めません。元のファイルは保持しています。「登録・保存先」から設定を取り込めます。</value>
+  </data>
+  <data name="インストーラー" xml:space="preserve">
+    <value>インストーラー</value>
+  </data>
+  <data name="インストーラーと仮想ディスクを準備してから、構成を変更できます。" xml:space="preserve">
+    <value>インストーラーと仮想ディスクを準備してから、構成を変更できます。</value>
+  </data>
+  <data name="インストーラーを接続して起動（一時指定・保存しません）" xml:space="preserve">
+    <value>インストーラーを接続して起動（一時指定・保存しません）</value>
+  </data>
+  <data name="インストーラーを接続するには、存在する ISO / IMG を選択してください。" xml:space="preserve">
+    <value>インストーラーを接続するには、存在する ISO / IMG を選択してください。</value>
+  </data>
+  <data name="インストーラーを選ぶ" xml:space="preserve">
+    <value>インストーラーを選ぶ</value>
+  </data>
+  <data name="インストーラーを選択し、「仮想マシンを作成」でディスクを準備します。" xml:space="preserve">
+    <value>インストーラーを選択し、「仮想マシンを作成」でディスクを準備します。</value>
+  </data>
+  <data name="インストールが終わったら接続を解除できます。" xml:space="preserve">
+    <value>インストールが終わったら接続を解除できます。</value>
+  </data>
+  <data name="ウィンドウを閉じる" xml:space="preserve">
+    <value>ウィンドウを閉じる</value>
+  </data>
+  <data name="ウィンドウを閉じる（VMは終了しません）" xml:space="preserve">
+    <value>ウィンドウを閉じる（VMは終了しません）</value>
+  </data>
+  <data name="エンジン ZIP" xml:space="preserve">
+    <value>エンジン ZIP</value>
+  </data>
+  <data name="エンジン ZIP を選択してください。" xml:space="preserve">
+    <value>エンジン ZIP を選択してください。</value>
+  </data>
+  <data name="エンジンの保存先" xml:space="preserve">
+    <value>エンジンの保存先</value>
+  </data>
+  <data name="エンジンの保存先を参照ボタンから選択するか、完全なパスを指定してください。" xml:space="preserve">
+    <value>エンジンの保存先を参照ボタンから選択するか、完全なパスを指定してください。</value>
+  </data>
+  <data name="エンジンの保存先を記録できませんでした。アプリ設定の保存先を確認して再試行してください。" xml:space="preserve">
+    <value>エンジンの保存先を記録できませんでした。アプリ設定の保存先を確認して再試行してください。</value>
+  </data>
+  <data name="エンジンの保存先を設定すると、VM の構成と動作状態を確認できます。" xml:space="preserve">
+    <value>エンジンの保存先を設定すると、VM の構成と動作状態を確認できます。</value>
+  </data>
+  <data name="エンジンの固定版情報を読み込めません。" xml:space="preserve">
+    <value>エンジンの固定版情報を読み込めません。</value>
+  </data>
+  <data name="エンジンの準備" xml:space="preserve">
+    <value>エンジンの準備</value>
+  </data>
+  <data name="エンジンの準備から始める" xml:space="preserve">
+    <value>エンジンの準備から始める</value>
+  </data>
+  <data name="エンジンの親フォルダーを選択" xml:space="preserve">
+    <value>エンジンの親フォルダーを選択</value>
+  </data>
+  <data name="エンジンをセットアップ…" xml:space="preserve">
+    <value>エンジンをセットアップ…</value>
+  </data>
+  <data name="エンジンを切り替える前に、選択した VM を完全終了してください。" xml:space="preserve">
+    <value>エンジンを切り替える前に、選択した VM を完全終了してください。</value>
+  </data>
+  <data name="エンジンを準備してください" xml:space="preserve">
+    <value>エンジンを準備してください</value>
+  </data>
+  <data name="エンジンを設定…" xml:space="preserve">
+    <value>エンジンを設定…</value>
+  </data>
+  <data name="エンジン未設定" xml:space="preserve">
+    <value>エンジン未設定</value>
+  </data>
+  <data name="エンジン設定" xml:space="preserve">
+    <value>エンジン設定</value>
+  </data>
+  <data name="エンジン設定済み" xml:space="preserve">
+    <value>エンジン設定済み</value>
+  </data>
+  <data name="オフにする" xml:space="preserve">
+    <value>オフにする</value>
+  </data>
+  <data name="オンにする" xml:space="preserve">
+    <value>オンにする</value>
+  </data>
+  <data name="カーソルの移動と設定" xml:space="preserve">
+    <value>カーソルの移動と設定</value>
+  </data>
+  <data name="カーソルを VM 本体の画面へ移動" xml:space="preserve">
+    <value>カーソルを VM 本体の画面へ移動</value>
+  </data>
+  <data name="カーソルを拡張画面へ移動" xml:space="preserve">
+    <value>カーソルを拡張画面へ移動</value>
+  </data>
+  <data name="カーソルを表示" xml:space="preserve">
+    <value>カーソルを表示</value>
+  </data>
+  <data name="カーソル互換表示" xml:space="preserve">
+    <value>カーソル互換表示</value>
+  </data>
+  <data name="カーソル互換表示をオフ" xml:space="preserve">
+    <value>カーソル互換表示をオフ</value>
+  </data>
+  <data name="カーソル互換表示をオフにする" xml:space="preserve">
+    <value>カーソル互換表示をオフにする</value>
+  </data>
+  <data name="カーソル互換表示をオンにする" xml:space="preserve">
+    <value>カーソル互換表示をオンにする</value>
+  </data>
+  <data name="カーソル互換表示を有効化" xml:space="preserve">
+    <value>カーソル互換表示を有効化</value>
+  </data>
+  <data name="カーソル互換表示を無効化" xml:space="preserve">
+    <value>カーソル互換表示を無効化</value>
+  </data>
+  <data name="キャンセル" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="クリップボード" xml:space="preserve">
+    <value>クリップボード</value>
+  </data>
+  <data name="クリップボード共有" xml:space="preserve">
+    <value>クリップボード共有</value>
+  </data>
+  <data name="クリップボード接続に失敗しました。VM の起動と SSH ペアリングを確認してください。" xml:space="preserve">
+    <value>クリップボード接続に失敗しました。VM の起動と SSH ペアリングを確認してください。</value>
+  </data>
+  <data name="ゲストの解像度を変更" xml:space="preserve">
+    <value>ゲストの解像度を変更</value>
+  </data>
+  <data name="コンソール" xml:space="preserve">
+    <value>コンソール</value>
+  </data>
+  <data name="コンソールに切り替えて接続" xml:space="preserve">
+    <value>コンソールに切り替えて接続</value>
+  </data>
+  <data name="コンソールに接続" xml:space="preserve">
+    <value>コンソールに接続</value>
+  </data>
+  <data name="サスペンド" xml:space="preserve">
+    <value>サスペンド</value>
+  </data>
+  <data name="シャットダウン" xml:space="preserve">
+    <value>シャットダウン</value>
+  </data>
+  <data name="シリアル・MLB・ROM を更新します。SystemUUID は保持します。" xml:space="preserve">
+    <value>シリアル・MLB・ROM を更新します。SystemUUID は保持します。</value>
+  </data>
+  <data name="シリアル番号" xml:space="preserve">
+    <value>シリアル番号</value>
+  </data>
+  <data name="スナップショット" xml:space="preserve">
+    <value>スナップショット</value>
+  </data>
+  <data name="スナップショットの保存・復元は、このページの操作ボタンで実行します。" xml:space="preserve">
+    <value>スナップショットの保存・復元は、このページの操作ボタンで実行します。</value>
+  </data>
+  <data name="スナップショットを保存" xml:space="preserve">
+    <value>スナップショットを保存</value>
+  </data>
+  <data name="スナップショットを復元" xml:space="preserve">
+    <value>スナップショットを復元</value>
+  </data>
+  <data name="スピーカーを共有" xml:space="preserve">
+    <value>スピーカーを共有</value>
+  </data>
+  <data name="セットアップ" xml:space="preserve">
+    <value>セットアップ</value>
+  </data>
+  <data name="セットアップ…" xml:space="preserve">
+    <value>セットアップ…</value>
+  </data>
+  <data name="セットアップがまだ完了していません" xml:space="preserve">
+    <value>セットアップがまだ完了していません</value>
+  </data>
+  <data name="セットアップして続ける" xml:space="preserve">
+    <value>セットアップして続ける</value>
+  </data>
+  <data name="セットアップできませんでした。内容を確認して再試行できます。" xml:space="preserve">
+    <value>セットアップできませんでした。内容を確認して再試行できます。</value>
+  </data>
+  <data name="セットアップの詳細" xml:space="preserve">
+    <value>セットアップの詳細</value>
+  </data>
+  <data name="セットアップを起動できませんでした。" xml:space="preserve">
+    <value>セットアップを起動できませんでした。</value>
+  </data>
+  <data name="セットアップを開く" xml:space="preserve">
+    <value>セットアップを開く</value>
+  </data>
+  <data name="ダウンロードして続ける" xml:space="preserve">
+    <value>ダウンロードして続ける</value>
+  </data>
+  <data name="ダウンロード済みのエンジン ZIP を使用" xml:space="preserve">
+    <value>ダウンロード済みのエンジン ZIP を使用</value>
+  </data>
+  <data name="テキストを共有しています。" xml:space="preserve">
+    <value>テキストを共有しています。</value>
+  </data>
+  <data name="テキストを自動で共有する" xml:space="preserve">
+    <value>テキストを自動で共有する</value>
+  </data>
+  <data name="テスト用: 管理接続からの応答がありません。更新して再試行できます。" xml:space="preserve">
+    <value>テスト用: 管理接続からの応答がありません。更新して再試行できます。</value>
+  </data>
+  <data name="ディスク (GiB)" xml:space="preserve">
+    <value>ディスク (GiB)</value>
+  </data>
+  <data name="ディスクの拡張・整理は、それぞれの操作ボタンで実行します。" xml:space="preserve">
+    <value>ディスクの拡張・整理は、それぞれの操作ボタンで実行します。</value>
+  </data>
+  <data name="ディスク容量は 64〜2048 GiB の整数で指定してください。" xml:space="preserve">
+    <value>ディスク容量は 64〜2048 GiB の整数で指定してください。</value>
+  </data>
+  <data name="ディスク差分を整理" xml:space="preserve">
+    <value>ディスク差分を整理</value>
+  </data>
+  <data name="ディスプレイ" xml:space="preserve">
+    <value>ディスプレイ</value>
+  </data>
+  <data name="デバイス一覧を更新" xml:space="preserve">
+    <value>デバイス一覧を更新</value>
+  </data>
+  <data name="ドライバーの利用条件への同意が必要です。" xml:space="preserve">
+    <value>ドライバーの利用条件への同意が必要です。</value>
+  </data>
+  <data name="ドライバー・転送ツールの準備が必要です" xml:space="preserve">
+    <value>ドライバー・転送ツールの準備が必要です</value>
+  </data>
+  <data name="ドラッグまたは方向キーでライブラリの幅を変更" xml:space="preserve">
+    <value>ドラッグまたは方向キーでライブラリの幅を変更</value>
+  </data>
+  <data name="ネットワーク" xml:space="preserve">
+    <value>ネットワーク</value>
+  </data>
+  <data name="ネットワーク一覧の形式に対応していません。" xml:space="preserve">
+    <value>ネットワーク一覧の形式に対応していません。</value>
+  </data>
+  <data name="ハードウェア" xml:space="preserve">
+    <value>ハードウェア</value>
+  </data>
+  <data name="ハードウェアの設定を変更できる状態にします。" xml:space="preserve">
+    <value>ハードウェアの設定を変更できる状態にします。</value>
+  </data>
+  <data name="ハードウェア・識別情報" xml:space="preserve">
+    <value>ハードウェア・識別情報</value>
+  </data>
+  <data name="ハードウェア設定は「変更を保存」で確定し、次回の VM 起動から使用します。" xml:space="preserve">
+    <value>ハードウェア設定は「変更を保存」で確定し、次回の VM 起動から使用します。</value>
+  </data>
+  <data name="ハードウェア設定を保存" xml:space="preserve">
+    <value>ハードウェア設定を保存</value>
+  </data>
+  <data name="ハードウェア設定を保存しました。次回起動から使用します。" xml:space="preserve">
+    <value>ハードウェア設定を保存しました。次回起動から使用します。</value>
+  </data>
+  <data name="ハードディスク" xml:space="preserve">
+    <value>ハードディスク</value>
+  </data>
+  <data name="ファイル" xml:space="preserve">
+    <value>ファイル</value>
+  </data>
+  <data name="ブリッジ" xml:space="preserve">
+    <value>ブリッジ</value>
+  </data>
+  <data name="ブリッジの準備で選択した Reims 専用 TAP を指定してください。" xml:space="preserve">
+    <value>ブリッジの準備で選択した Reims 専用 TAP を指定してください。</value>
+  </data>
+  <data name="ブリッジを作成…" xml:space="preserve">
+    <value>ブリッジを作成…</value>
+  </data>
+  <data name="ブリッジを準備した専用 TAP を選びます。物理アダプターを直接 VM に転送する設定ではありません。" xml:space="preserve">
+    <value>ブリッジを準備した専用 TAP を選びます。物理アダプターを直接 VM に転送する設定ではありません。</value>
+  </data>
+  <data name="ブリッジを準備しました。ネットワーク設定でブリッジを選び、適用してください。VM の通信状態は未確認です。" xml:space="preserve">
+    <value>ブリッジを準備しました。ネットワーク設定でブリッジを選び、適用してください。VM の通信状態は未確認です。</value>
+  </data>
+  <data name="ブリッジを解除して NAT に復帰" xml:space="preserve">
+    <value>ブリッジを解除して NAT に復帰</value>
+  </data>
+  <data name="ブリッジを解除して NAT に戻す…" xml:space="preserve">
+    <value>ブリッジを解除して NAT に戻す…</value>
+  </data>
+  <data name="プロセッサ" xml:space="preserve">
+    <value>プロセッサ</value>
+  </data>
+  <data name="ホストの Wi-Fi・有線 LAN を選び、「LAN 接続の準備」から接続を準備してください。" xml:space="preserve">
+    <value>ホストの Wi-Fi・有線 LAN を選び、「LAN 接続の準備」から接続を準備してください。</value>
+  </data>
+  <data name="ホストの接続先" xml:space="preserve">
+    <value>ホストの接続先</value>
+  </data>
+  <data name="ホストの空きメモリを残して設定してください。" xml:space="preserve">
+    <value>ホストの空きメモリを残して設定してください。</value>
+  </data>
+  <data name="マイクは macOS のアプリが録音を開始したときに使用します。Windows と macOS の両方でマイクの使用許可を確認してください。" xml:space="preserve">
+    <value>マイクは macOS のアプリが録音を開始したときに使用します。Windows と macOS の両方でマイクの使用許可を確認してください。</value>
+  </data>
+  <data name="マイクを使用するには、スピーカー共有も有効にしてください。" xml:space="preserve">
+    <value>マイクを使用するには、スピーカー共有も有効にしてください。</value>
+  </data>
+  <data name="マイクを共有" xml:space="preserve">
+    <value>マイクを共有</value>
+  </data>
+  <data name="マイク・スピーカー" xml:space="preserve">
+    <value>マイク・スピーカー</value>
+  </data>
+  <data name="メモリ" xml:space="preserve">
+    <value>メモリ</value>
+  </data>
+  <data name="メモリ (MiB)" xml:space="preserve">
+    <value>メモリ (MiB)</value>
+  </data>
+  <data name="メモリ MiB" xml:space="preserve">
+    <value>メモリ MiB</value>
+  </data>
+  <data name="メモリは 4096〜131072 MiB、4 MiB 単位で指定してください。" xml:space="preserve">
+    <value>メモリは 4096〜131072 MiB、4 MiB 単位で指定してください。</value>
+  </data>
+  <data name="モデル" xml:space="preserve">
+    <value>モデル</value>
+  </data>
+  <data name="ライブラリ" xml:space="preserve">
+    <value>ライブラリ</value>
+  </data>
+  <data name="ライブラリに戻る" xml:space="preserve">
+    <value>ライブラリに戻る</value>
+  </data>
+  <data name="ライブラリに戻る（VMは実行を続けます）" xml:space="preserve">
+    <value>ライブラリに戻る（VMは実行を続けます）</value>
+  </data>
+  <data name="ライブラリの幅を変更" xml:space="preserve">
+    <value>ライブラリの幅を変更</value>
+  </data>
+  <data name="ライブラリを更新" xml:space="preserve">
+    <value>ライブラリを更新</value>
+  </data>
+  <data name="ワークスペースを始める" xml:space="preserve">
+    <value>ワークスペースを始める</value>
+  </data>
+  <data name="一時停止" xml:space="preserve">
+    <value>一時停止</value>
+  </data>
+  <data name="一時停止・完全終了など" xml:space="preserve">
+    <value>一時停止・完全終了など</value>
+  </data>
+  <data name="一時停止中は構成を変更できません" xml:space="preserve">
+    <value>一時停止中は構成を変更できません</value>
+  </data>
+  <data name="一致する VM はありません" xml:space="preserve">
+    <value>一致する VM はありません</value>
+  </data>
+  <data name="一覧を更新してから操作してください。" xml:space="preserve">
+    <value>一覧を更新してから操作してください。</value>
+  </data>
+  <data name="上の「起動」から macOS を開始できます。" xml:space="preserve">
+    <value>上の「起動」から macOS を開始できます。</value>
+  </data>
+  <data name="他の VPN の TAP を選ばず、Reims 専用のものを明示して選択してください。" xml:space="preserve">
+    <value>他の VPN の TAP を選ばず、Reims 専用のものを明示して選択してください。</value>
+  </data>
+  <data name="以前の TAP 接続を保持しています。接続先を変更する場合は Wi-Fi・有線 LAN を選び、ブリッジを準備してください。" xml:space="preserve">
+    <value>以前の TAP 接続を保持しています。接続先を変更する場合は Wi-Fi・有線 LAN を選び、ブリッジを準備してください。</value>
+  </data>
+  <data name="以前のアプリ設定を取り込む" xml:space="preserve">
+    <value>以前のアプリ設定を取り込む</value>
+  </data>
+  <data name="以前の設定を取り込む…" xml:space="preserve">
+    <value>以前の設定を取り込む…</value>
+  </data>
+  <data name="仮想ディスク|*.vmdk;*.qcow2;*.img;*.raw" xml:space="preserve">
+    <value>仮想ディスク|*.vmdk;*.qcow2;*.img;*.raw</value>
+  </data>
+  <data name="仮想ディスクとインストーラーを準備" xml:space="preserve">
+    <value>仮想ディスクとインストーラーを準備</value>
+  </data>
+  <data name="仮想ディスクはまだ準備されていません" xml:space="preserve">
+    <value>仮想ディスクはまだ準備されていません</value>
+  </data>
+  <data name="仮想ディスクは使用量に応じて増えます。選んだフォルダーの中に VM ごとのフォルダーを作成します。" xml:space="preserve">
+    <value>仮想ディスクは使用量に応じて増えます。選んだフォルダーの中に VM ごとのフォルダーを作成します。</value>
+  </data>
+  <data name="仮想ディスクを {0} GiB に拡張します。macOS 側の APFS 拡張も必要です。" xml:space="preserve">
+    <value>仮想ディスクを {0} GiB に拡張します。macOS 側の APFS 拡張も必要です。</value>
+  </data>
+  <data name="仮想ディスクを拡張" xml:space="preserve">
+    <value>仮想ディスクを拡張</value>
+  </data>
+  <data name="仮想ディスク容量 GiB" xml:space="preserve">
+    <value>仮想ディスク容量 GiB</value>
+  </data>
+  <data name="仮想マシン" xml:space="preserve">
+    <value>仮想マシン</value>
+  </data>
+  <data name="仮想マシンの名前" xml:space="preserve">
+    <value>仮想マシンの名前</value>
+  </data>
+  <data name="仮想マシンの設定" xml:space="preserve">
+    <value>仮想マシンの設定</value>
+  </data>
+  <data name="仮想マシンの設定項目" xml:space="preserve">
+    <value>仮想マシンの設定項目</value>
+  </data>
+  <data name="仮想マシンを作成" xml:space="preserve">
+    <value>仮想マシンを作成</value>
+  </data>
+  <data name="仮想マシンを作成するか、ライブラリから選択してください。" xml:space="preserve">
+    <value>仮想マシンを作成するか、ライブラリから選択してください。</value>
+  </data>
+  <data name="仮想マシンを検索" xml:space="preserve">
+    <value>仮想マシンを検索</value>
+  </data>
+  <data name="仮想マシンを起動" xml:space="preserve">
+    <value>仮想マシンを起動</value>
+  </data>
+  <data name="仮想マシンを開く" xml:space="preserve">
+    <value>仮想マシンを開く</value>
+  </data>
+  <data name="仮想マシンを開く (Ctrl+O)" xml:space="preserve">
+    <value>仮想マシンを開く (Ctrl+O)</value>
+  </data>
+  <data name="仮想マシンを開く…" xml:space="preserve">
+    <value>仮想マシンを開く…</value>
+  </data>
+  <data name="仮想マシン一覧" xml:space="preserve">
+    <value>仮想マシン一覧</value>
+  </data>
+  <data name="任意" xml:space="preserve">
+    <value>任意</value>
+  </data>
+  <data name="休止状態は使用しないでください。GPU 互換ブリッジは共通 ABI を実行時に検証し、不明なレイアウトは拒否します。" xml:space="preserve">
+    <value>休止状態は使用しないでください。GPU 互換ブリッジは共通 ABI を実行時に検証し、不明なレイアウトは拒否します。</value>
+  </data>
+  <data name="作成後、インストーラーを起動する" xml:space="preserve">
+    <value>作成後、インストーラーを起動する</value>
+  </data>
+  <data name="使用する ISO ファイルを選択してください。" xml:space="preserve">
+    <value>使用する ISO ファイルを選択してください。</value>
+  </data>
+  <data name="保存" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="保存していないハードウェア設定または Mac の識別情報があります。変更を破棄して続けますか？" xml:space="preserve">
+    <value>保存していないハードウェア設定または Mac の識別情報があります。変更を破棄して続けますか？</value>
+  </data>
+  <data name="保存していない設定があります。「変更を保存」または「変更を破棄」で確定してから起動してください。" xml:space="preserve">
+    <value>保存していない設定があります。「変更を保存」または「変更を破棄」で確定してから起動してください。</value>
+  </data>
+  <data name="保存して閉じる" xml:space="preserve">
+    <value>保存して閉じる</value>
+  </data>
+  <data name="保存するスナップショットの名前" xml:space="preserve">
+    <value>保存するスナップショットの名前</value>
+  </data>
+  <data name="保存する名前" xml:space="preserve">
+    <value>保存する名前</value>
+  </data>
+  <data name="保存先とインストーラーを選びます。作成前に必要条件とメモリをもう一度確認します。" xml:space="preserve">
+    <value>保存先とインストーラーを選びます。作成前に必要条件とメモリをもう一度確認します。</value>
+  </data>
+  <data name="保存先の親フォルダー" xml:space="preserve">
+    <value>保存先の親フォルダー</value>
+  </data>
+  <data name="保存先は参照ボタンから選択するか、完全なパスを入力してください。" xml:space="preserve">
+    <value>保存先は参照ボタンから選択するか、完全なパスを入力してください。</value>
+  </data>
+  <data name="保存先を確認" xml:space="preserve">
+    <value>保存先を確認</value>
+  </data>
+  <data name="保存先を選んでセットアップを開始します。" xml:space="preserve">
+    <value>保存先を選んでセットアップを開始します。</value>
+  </data>
+  <data name="保存先を開く" xml:space="preserve">
+    <value>保存先を開く</value>
+  </data>
+  <data name="保存済み: {0}" xml:space="preserve">
+    <value>保存済み: {0}</value>
+  </data>
+  <data name="保存済みの VM を開く" xml:space="preserve">
+    <value>保存済みの VM を開く</value>
+  </data>
+  <data name="保存済みの接続先" xml:space="preserve">
+    <value>保存済みの接続先</value>
+  </data>
+  <data name="保存済みの構成と VM の状態を再確認 (F5)。入力中の変更は保持します。" xml:space="preserve">
+    <value>保存済みの構成と VM の状態を再確認 (F5)。入力中の変更は保持します。</value>
+  </data>
+  <data name="保存済みの構成を確認しています。" xml:space="preserve">
+    <value>保存済みの構成を確認しています。</value>
+  </data>
+  <data name="保存済みの状態" xml:space="preserve">
+    <value>保存済みの状態</value>
+  </data>
+  <data name="停止中" xml:space="preserve">
+    <value>停止中</value>
+  </data>
+  <data name="停止中も Windows に接続した USB と登録済みの未接続機器を確認できます。接続は VM の起動後、登録の解除は停止中も行えます。" xml:space="preserve">
+    <value>停止中も Windows に接続した USB と登録済みの未接続機器を確認できます。接続は VM の起動後、登録の解除は停止中も行えます。</value>
+  </data>
+  <data name="元の画質へ戻す" xml:space="preserve">
+    <value>元の画質へ戻す</value>
+  </data>
+  <data name="元の画面に戻る" xml:space="preserve">
+    <value>元の画面に戻る</value>
+  </data>
+  <data name="元の設定をまだ読み込めていません。変更を保持しました。状態を更新して確認してください。" xml:space="preserve">
+    <value>元の設定をまだ読み込めていません。変更を保持しました。状態を更新して確認してください。</value>
+  </data>
+  <data name="元ディスクを保持して取り込み" xml:space="preserve">
+    <value>元ディスクを保持して取り込み</value>
+  </data>
+  <data name="先に Reims エンジンを設定してください。" xml:space="preserve">
+    <value>先に Reims エンジンを設定してください。</value>
+  </data>
+  <data name="先に Reims エンジンを設定してください。VM ファイルはまだ作成していません。" xml:space="preserve">
+    <value>先に Reims エンジンを設定してください。VM ファイルはまだ作成していません。</value>
+  </data>
+  <data name="先に Reims エンジンを選択してください。" xml:space="preserve">
+    <value>先に Reims エンジンを選択してください。</value>
+  </data>
+  <data name="先に VM を再開してください。設定変更には、その後の完全終了が必要です。" xml:space="preserve">
+    <value>先に VM を再開してください。設定変更には、その後の完全終了が必要です。</value>
+  </data>
+  <data name="先に「LAN 接続の準備」で、この Wi-Fi の互換接続を準備してください。ほかの未保存の変更は保持しています。" xml:space="preserve">
+    <value>先に「LAN 接続の準備」で、この Wi-Fi の互換接続を準備してください。ほかの未保存の変更は保持しています。</value>
+  </data>
+  <data name="入力の解放は Ctrl + Alt + Win。画面は別ウィンドウにも切り替えられます。" xml:space="preserve">
+    <value>入力の解放は Ctrl + Alt + Win。画面は別ウィンドウにも切り替えられます。</value>
+  </data>
+  <data name="入力を Windows に戻す: Ctrl + Alt + Home / Ctrl + Alt + Win（Home は対応エンジンが必要です）" xml:space="preserve">
+    <value>入力を Windows に戻す: Ctrl + Alt + Home / Ctrl + Alt + Win（Home は対応エンジンが必要です）</value>
+  </data>
+  <data name="全画面を終了" xml:space="preserve">
+    <value>全画面を終了</value>
+  </data>
+  <data name="全画面表示" xml:space="preserve">
+    <value>全画面表示</value>
+  </data>
+  <data name="全画面表示 (F11)" xml:space="preserve">
+    <value>全画面表示 (F11)</value>
+  </data>
+  <data name="共有" xml:space="preserve">
+    <value>共有</value>
+  </data>
+  <data name="共有する設定は VM ごとに保存され、次回この VM を開いたときも引き継ぎます。アプリの起動中、VM が実行中のときにテキストを共有します。画像・ファイルは対象外です。" xml:space="preserve">
+    <value>共有する設定は VM ごとに保存され、次回この VM を開いたときも引き継ぎます。アプリの起動中、VM が実行中のときにテキストを共有します。画像・ファイルは対象外です。</value>
+  </data>
+  <data name="共有できるテキストは 1 MiB までです。" xml:space="preserve">
+    <value>共有できるテキストは 1 MiB までです。</value>
+  </data>
+  <data name="共有には SSH のペアリングが必要です。コピー内容をファイルやログには保存しません。" xml:space="preserve">
+    <value>共有には SSH のペアリングが必要です。コピー内容をファイルやログには保存しません。</value>
+  </data>
+  <data name="内部 TAP アダプター" xml:space="preserve">
+    <value>内部 TAP アダプター</value>
+  </data>
+  <data name="再接続" xml:space="preserve">
+    <value>再接続</value>
+  </data>
+  <data name="再確認" xml:space="preserve">
+    <value>再確認</value>
+  </data>
+  <data name="再起動" xml:space="preserve">
+    <value>再起動</value>
+  </data>
+  <data name="再開" xml:space="preserve">
+    <value>再開</value>
+  </data>
+  <data name="再開して macOS をシャットダウンし、VM を完全終了してから変更できます。" xml:space="preserve">
+    <value>再開して macOS をシャットダウンし、VM を完全終了してから変更できます。</value>
+  </data>
+  <data name="処理が完了するまでお待ちください…" xml:space="preserve">
+    <value>処理が完了するまでお待ちください…</value>
+  </data>
+  <data name="処理しています…" xml:space="preserve">
+    <value>処理しています…</value>
+  </data>
+  <data name="処理中は閉じられません。ディスクへの書き込みが完了してから閉じてください。" xml:space="preserve">
+    <value>処理中は閉じられません。ディスクへの書き込みが完了してから閉じてください。</value>
+  </data>
+  <data name="別の Reims Manager が設定を保存しています。少し待って再試行してください。" xml:space="preserve">
+    <value>別の Reims Manager が設定を保存しています。少し待って再試行してください。</value>
+  </data>
+  <data name="別のウィンドウでエンジンの設定が変わりました。現在の接続を維持しています。VM の完全終了後にライブラリを更新すると反映します。" xml:space="preserve">
+    <value>別のウィンドウでエンジンの設定が変わりました。現在の接続を維持しています。VM の完全終了後にライブラリを更新すると反映します。</value>
+  </data>
+  <data name="別の操作を処理しています。" xml:space="preserve">
+    <value>別の操作を処理しています。</value>
+  </data>
+  <data name="別の設定フォルダーの settings.json から登録を追加。現在の登録は保持します。" xml:space="preserve">
+    <value>別の設定フォルダーの settings.json から登録を追加。現在の登録は保持します。</value>
+  </data>
+  <data name="別ウィンドウで表示中" xml:space="preserve">
+    <value>別ウィンドウで表示中</value>
+  </data>
+  <data name="別ウィンドウで開く" xml:space="preserve">
+    <value>別ウィンドウで開く</value>
+  </data>
+  <data name="割り当て: {0} vCPU / {1} MiB。Windows の空き RAM: {2} MiB。" xml:space="preserve">
+    <value>割り当て: {0} vCPU / {1} MiB。Windows の空き RAM: {2} MiB。</value>
+  </data>
+  <data name="割り当てを再確認" xml:space="preserve">
+    <value>割り当てを再確認</value>
+  </data>
+  <data name="割り当てを変更しました。「割り当てを再確認」で現在の空き RAM を確認できます。作成時にも再確認します。" xml:space="preserve">
+    <value>割り当てを変更しました。「割り当てを再確認」で現在の空き RAM を確認できます。作成時にも再確認します。</value>
+  </data>
+  <data name="割り当てメモリ MiB" xml:space="preserve">
+    <value>割り当てメモリ MiB</value>
+  </data>
+  <data name="割り当て容量 (MiB)" xml:space="preserve">
+    <value>割り当て容量 (MiB)</value>
+  </data>
+  <data name="参照…" xml:space="preserve">
+    <value>参照…</value>
+  </data>
+  <data name="名前は半角英数字で始まる 1〜64 文字です。英数字・_・-・. が使えます。" xml:space="preserve">
+    <value>名前は半角英数字で始まる 1〜64 文字です。英数字・_・-・. が使えます。</value>
+  </data>
+  <data name="名前解決のアドレスが不正です。" xml:space="preserve">
+    <value>名前解決のアドレスが不正です。</value>
+  </data>
+  <data name="名前解決の応答が上限を超えました。" xml:space="preserve">
+    <value>名前解決の応答が上限を超えました。</value>
+  </data>
+  <data name="名前解決の応答が不正です。" xml:space="preserve">
+    <value>名前解決の応答が不正です。</value>
+  </data>
+  <data name="名前解決プロセスを起動できません。" xml:space="preserve">
+    <value>名前解決プロセスを起動できません。</value>
+  </data>
+  <data name="商用ライセンス" xml:space="preserve">
+    <value>商用ライセンス</value>
+  </data>
+  <data name="変更はありません。" xml:space="preserve">
+    <value>変更はありません。</value>
+  </data>
+  <data name="変更を保存" xml:space="preserve">
+    <value>変更を保存</value>
+  </data>
+  <data name="変更を保存しました。次回起動から使用します。" xml:space="preserve">
+    <value>変更を保存しました。次回起動から使用します。</value>
+  </data>
+  <data name="変更を破棄…" xml:space="preserve">
+    <value>変更を破棄…</value>
+  </data>
+  <data name="外部ドライバーは非商用の個人・学術用途、商用評価向けです。商用運用・再配布には配布元の別ライセンスが必要です。導入時は Windows 全体の通信が一時的に切れる場合があります。" xml:space="preserve">
+    <value>外部ドライバーは非商用の個人・学術用途、商用評価向けです。商用運用・再配布には配布元の別ライセンスが必要です。導入時は Windows 全体の通信が一時的に切れる場合があります。</value>
+  </data>
+  <data name="完全に停止した VM のディスクを選択（元データは保持）" xml:space="preserve">
+    <value>完全に停止した VM のディスクを選択（元データは保持）</value>
+  </data>
+  <data name="完全停止" xml:space="preserve">
+    <value>完全停止</value>
+  </data>
+  <data name="完全終了" xml:space="preserve">
+    <value>完全終了</value>
+  </data>
+  <data name="完全終了（設定変更前）" xml:space="preserve">
+    <value>完全終了（設定変更前）</value>
+  </data>
+  <data name="実行中" xml:space="preserve">
+    <value>実行中</value>
+  </data>
+  <data name="実行中の macOS に適用" xml:space="preserve">
+    <value>実行中の macOS に適用</value>
+  </data>
+  <data name="容量を拡張…" xml:space="preserve">
+    <value>容量を拡張…</value>
+  </data>
+  <data name="対応していない起動オプションです。" xml:space="preserve">
+    <value>対応していない起動オプションです。</value>
+  </data>
+  <data name="対応するリリースをダウンロード" xml:space="preserve">
+    <value>対応するリリースをダウンロード</value>
+  </data>
+  <data name="対応する解像度を選び直してください。" xml:space="preserve">
+    <value>対応する解像度を選び直してください。</value>
+  </data>
+  <data name="対応する起動時の解像度を選び直してください。" xml:space="preserve">
+    <value>対応する起動時の解像度を選び直してください。</value>
+  </data>
+  <data name="対応エンジンで、VM の画面内だけ Windows 側のカーソルを隠します。VM 内にカーソルを表示するには、上の「カーソル互換表示」などゲスト側で描画するカーソルが必要です。入力を Windows に戻す: Ctrl + Alt + Home / Ctrl + Alt + Win。" xml:space="preserve">
+    <value>対応エンジンで、VM の画面内だけ Windows 側のカーソルを隠します。VM 内にカーソルを表示するには、上の「カーソル互換表示」などゲスト側で描画するカーソルが必要です。入力を Windows に戻す: Ctrl + Alt + Home / Ctrl + Alt + Win。</value>
+  </data>
+  <data name="対応エンジンの検証結果を確認できません。" xml:space="preserve">
+    <value>対応エンジンの検証結果を確認できません。</value>
+  </data>
+  <data name="専用 TAP を自動で準備します。IPv6 の実際の利用可否はルーター・回線の対応状況にも依存します。" xml:space="preserve">
+    <value>専用 TAP を自動で準備します。IPv6 の実際の利用可否はルーター・回線の対応状況にも依存します。</value>
+  </data>
+  <data name="専用 TAP ドライバーを準備" xml:space="preserve">
+    <value>専用 TAP ドライバーを準備</value>
+  </data>
+  <data name="専用 TAP ドライバーを自動導入…" xml:space="preserve">
+    <value>専用 TAP ドライバーを自動導入…</value>
+  </data>
+  <data name="専用 TAP 上の macOS 接続先が複数あります。接続設定を確認してください。" xml:space="preserve">
+    <value>専用 TAP 上の macOS 接続先が複数あります。接続設定を確認してください。</value>
+  </data>
+  <data name="導入済みのエンジンを検証しています…" xml:space="preserve">
+    <value>導入済みのエンジンを検証しています…</value>
+  </data>
+  <data name="導入済みのエンジンを検証して再利用" xml:space="preserve">
+    <value>導入済みのエンジンを検証して再利用</value>
+  </data>
+  <data name="導入済みエンジンのフォルダー" xml:space="preserve">
+    <value>導入済みエンジンのフォルダー</value>
+  </data>
+  <data name="強制終了…" xml:space="preserve">
+    <value>強制終了…</value>
+  </data>
+  <data name="復元…" xml:space="preserve">
+    <value>復元…</value>
+  </data>
+  <data name="復元するスナップショット" xml:space="preserve">
+    <value>復元するスナップショット</value>
+  </data>
+  <data name="必要なエンジンの取得、Windows の準備、インストーラーの選択を順番に案内します。導入済みのエンジンは再利用できます。" xml:space="preserve">
+    <value>必要なエンジンの取得、Windows の準備、インストーラーの選択を順番に案内します。導入済みのエンジンは再利用できます。</value>
+  </data>
+  <data name="必要な機能と空きメモリを確認しています…" xml:space="preserve">
+    <value>必要な機能と空きメモリを確認しています…</value>
+  </data>
+  <data name="必要な機能を確認しています…" xml:space="preserve">
+    <value>必要な機能を確認しています…</value>
+  </data>
+  <data name="必要な部品を固定版から取得します。導入後、そのまま VM の作成に進みます。" xml:space="preserve">
+    <value>必要な部品を固定版から取得します。導入後、そのまま VM の作成に進みます。</value>
+  </data>
+  <data name="必要条件に戻る" xml:space="preserve">
+    <value>必要条件に戻る</value>
+  </data>
+  <data name="必要条件の確認を中断しました。" xml:space="preserve">
+    <value>必要条件の確認を中断しました。</value>
+  </data>
+  <data name="必要条件の確認を中断しました。「再確認」でやり直してください。" xml:space="preserve">
+    <value>必要条件の確認を中断しました。「再確認」でやり直してください。</value>
+  </data>
+  <data name="必要条件の確認結果を取得・読み取りできませんでした。" xml:space="preserve">
+    <value>必要条件の確認結果を取得・読み取りできませんでした。</value>
+  </data>
+  <data name="必要条件の確認結果を読み込めません。対応する Manager を使ってください。" xml:space="preserve">
+    <value>必要条件の確認結果を読み込めません。対応する Manager を使ってください。</value>
+  </data>
+  <data name="必須の準備ができました。USB 転送など任意の機能は後から追加できます。" xml:space="preserve">
+    <value>必須の準備ができました。USB 転送など任意の機能は後から追加できます。</value>
+  </data>
+  <data name="必須の項目を確認します。USB・ブリッジ接続の準備は後からでも行えます。" xml:space="preserve">
+    <value>必須の項目を確認します。USB・ブリッジ接続の準備は後からでも行えます。</value>
+  </data>
+  <data name="拡張後、macOS の Disk Utility でも APFS 領域を拡張します。" xml:space="preserve">
+    <value>拡張後、macOS の Disk Utility でも APFS 領域を拡張します。</value>
+  </data>
+  <data name="拡張後のディスク容量 GiB" xml:space="preserve">
+    <value>拡張後のディスク容量 GiB</value>
+  </data>
+  <data name="拡張後の容量 (GiB)" xml:space="preserve">
+    <value>拡張後の容量 (GiB)</value>
+  </data>
+  <data name="拡張画面の広さを保ったまま、描画ピクセル数が少ないモードに切り替えます。文字の精細さは下がります。VM 本体の画面は変更しません。" xml:space="preserve">
+    <value>拡張画面の広さを保ったまま、描画ピクセル数が少ないモードに切り替えます。文字の精細さは下がります。VM 本体の画面は変更しません。</value>
+  </data>
+  <data name="拡張画面の画質を戻す" xml:space="preserve">
+    <value>拡張画面の画質を戻す</value>
+  </data>
+  <data name="拡張画面の軽量化" xml:space="preserve">
+    <value>拡張画面の軽量化</value>
+  </data>
+  <data name="拡張画面へ移動" xml:space="preserve">
+    <value>拡張画面へ移動</value>
+  </data>
+  <data name="拡張画面を軽くする" xml:space="preserve">
+    <value>拡張画面を軽くする</value>
+  </data>
+  <data name="拡張画面を軽量化" xml:space="preserve">
+    <value>拡張画面を軽量化</value>
+  </data>
+  <data name="指紋を照合して接続" xml:space="preserve">
+    <value>指紋を照合して接続</value>
+  </data>
+  <data name="接続" xml:space="preserve">
+    <value>接続</value>
+  </data>
+  <data name="接続して自動接続に登録" xml:space="preserve">
+    <value>接続して自動接続に登録</value>
+  </data>
+  <data name="接続し直した保存先や、別のアプリで追加した VM を再確認" xml:space="preserve">
+    <value>接続し直した保存先や、別のアプリで追加した VM を再確認</value>
+  </data>
+  <data name="接続する Wi-Fi・有線 LAN を選びます。通常のインターネット利用には NAT を使用できます。選択だけでは Windows の接続を変更しません。" xml:space="preserve">
+    <value>接続する Wi-Fi・有線 LAN を選びます。通常のインターネット利用には NAT を使用できます。選択だけでは Windows の接続を変更しません。</value>
+  </data>
+  <data name="接続すると、この VM の次回起動時にも同じ USB ポートから自動接続します。" xml:space="preserve">
+    <value>接続すると、この VM の次回起動時にも同じ USB ポートから自動接続します。</value>
+  </data>
+  <data name="接続について" xml:space="preserve">
+    <value>接続について</value>
+  </data>
+  <data name="接続の準備・解除は、それぞれの操作ボタンで実行します。" xml:space="preserve">
+    <value>接続の準備・解除は、それぞれの操作ボタンで実行します。</value>
+  </data>
+  <data name="接続は「指紋を照合して接続」で実行します。" xml:space="preserve">
+    <value>接続は「指紋を照合して接続」で実行します。</value>
+  </data>
+  <data name="接続先: {0}&#10;専用 TAP: {1}&#10;Windows の LAN が一時的に切断され、IP アドレスが変わる場合があります。ブリッジを作成しますか？" xml:space="preserve">
+    <value>接続先: {0}
+専用 TAP: {1}
+Windows の LAN が一時的に切断され、IP アドレスが変わる場合があります。ブリッジを作成しますか？</value>
+  </data>
+  <data name="接続先を取得できません。現在の VM 設定は保持しています。&#10;" xml:space="preserve">
+    <value>接続先を取得できません。現在の VM 設定は保持しています。
+</value>
+  </data>
+  <data name="接続先を更新" xml:space="preserve">
+    <value>接続先を更新</value>
+  </data>
+  <data name="接続処理中" xml:space="preserve">
+    <value>接続処理中</value>
+  </data>
+  <data name="接続待ちです。「再接続」で転送をやり直せます。" xml:space="preserve">
+    <value>接続待ちです。「再接続」で転送をやり直せます。</value>
+  </data>
+  <data name="操作する USB デバイスを一覧から選択してください。" xml:space="preserve">
+    <value>操作する USB デバイスを一覧から選択してください。</value>
+  </data>
+  <data name="操作する VM を選択してください。" xml:space="preserve">
+    <value>操作する VM を選択してください。</value>
+  </data>
+  <data name="操作する仮想マシンを選択してください。" xml:space="preserve">
+    <value>操作する仮想マシンを選択してください。</value>
+  </data>
+  <data name="操作に失敗しました ({0})。" xml:space="preserve">
+    <value>操作に失敗しました ({0})。</value>
+  </data>
+  <data name="操作ログ" xml:space="preserve">
+    <value>操作ログ</value>
+  </data>
+  <data name="新しい VM の名前と保存先" xml:space="preserve">
+    <value>新しい VM の名前と保存先</value>
+  </data>
+  <data name="新しい仮想マシン" xml:space="preserve">
+    <value>新しい仮想マシン</value>
+  </data>
+  <data name="新しい仮想マシン (Ctrl+N)" xml:space="preserve">
+    <value>新しい仮想マシン (Ctrl+N)</value>
+  </data>
+  <data name="新しい仮想マシン…" xml:space="preserve">
+    <value>新しい仮想マシン…</value>
+  </data>
+  <data name="新しく生成…" xml:space="preserve">
+    <value>新しく生成…</value>
+  </data>
+  <data name="新規" xml:space="preserve">
+    <value>新規</value>
+  </data>
+  <data name="新規ディスクの容量 (GiB)" xml:space="preserve">
+    <value>新規ディスクの容量 (GiB)</value>
+  </data>
+  <data name="新規ディスクの容量 GiB" xml:space="preserve">
+    <value>新規ディスクの容量 GiB</value>
+  </data>
+  <data name="新規導入では未使用のフォルダー、再利用では導入済みエンジンのフォルダーを指定します。VM は別の保存先に作成します。" xml:space="preserve">
+    <value>新規導入では未使用のフォルダー、再利用では導入済みエンジンのフォルダーを指定します。VM は別の保存先に作成します。</value>
+  </data>
+  <data name="既存のエンジンを選択…" xml:space="preserve">
+    <value>既存のエンジンを選択…</value>
+  </data>
+  <data name="既存のディスクを取り込む…" xml:space="preserve">
+    <value>既存のディスクを取り込む…</value>
+  </data>
+  <data name="既存のフォルダーには上書きしません。「再利用」を選択するか、新しい保存先を指定してください。" xml:space="preserve">
+    <value>既存のフォルダーには上書きしません。「再利用」を選択するか、新しい保存先を指定してください。</value>
+  </data>
+  <data name="既存ディスクを取り込む" xml:space="preserve">
+    <value>既存ディスクを取り込む</value>
+  </data>
+  <data name="旧 IPv4 設定です。「Wi-Fi 互換接続を準備」を再実行して、IPv6 用の設定を準備してください。&#10;" xml:space="preserve">
+    <value>旧 IPv4 設定です。「Wi-Fi 互換接続を準備」を再実行して、IPv6 用の設定を準備してください。
+</value>
+  </data>
+  <data name="旧 IPv4 設定・IPv6 用に再準備が必要です" xml:space="preserve">
+    <value>旧 IPv4 設定・IPv6 用に再準備が必要です</value>
+  </data>
+  <data name="更新" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="最初に一度だけ必要です。設定後に VM を作成・起動できます。" xml:space="preserve">
+    <value>最初に一度だけ必要です。設定後に VM を作成・起動できます。</value>
+  </data>
+  <data name="最大化 / 元に戻す" xml:space="preserve">
+    <value>最大化 / 元に戻す</value>
+  </data>
+  <data name="最大化または元に戻す" xml:space="preserve">
+    <value>最大化または元に戻す</value>
+  </data>
+  <data name="最大容量: {0} GiB&#10;{1}" xml:space="preserve">
+    <value>最大容量: {0} GiB
+{1}</value>
+  </data>
+  <data name="最小化" xml:space="preserve">
+    <value>最小化</value>
+  </data>
+  <data name="最新の TAP 導入結果を確認できません。" xml:space="preserve">
+    <value>最新の TAP 導入結果を確認できません。</value>
+  </data>
+  <data name="最新の Wi-Fi 準備結果を確認できません。" xml:space="preserve">
+    <value>最新の Wi-Fi 準備結果を確認できません。</value>
+  </data>
+  <data name="有線 LAN" xml:space="preserve">
+    <value>有線 LAN</value>
+  </data>
+  <data name="有線 LAN は Windows ブリッジで接続します。作成時に Windows の通信が一時的に切れる場合があります。" xml:space="preserve">
+    <value>有線 LAN は Windows ブリッジで接続します。作成時に Windows の通信が一時的に切れる場合があります。</value>
+  </data>
+  <data name="未セットアップ" xml:space="preserve">
+    <value>未セットアップ</value>
+  </data>
+  <data name="未保存の macOS 作業を失います。強制終了しますか？" xml:space="preserve">
+    <value>未保存の macOS 作業を失います。強制終了しますか？</value>
+  </data>
+  <data name="未保存のハードウェア・識別情報を元に戻します。実行済みの操作は保持します。" xml:space="preserve">
+    <value>未保存のハードウェア・識別情報を元に戻します。実行済みの操作は保持します。</value>
+  </data>
+  <data name="未保存の変更" xml:space="preserve">
+    <value>未保存の変更</value>
+  </data>
+  <data name="未保存の変更: {0} (Ctrl+S)" xml:space="preserve">
+    <value>未保存の変更: {0} (Ctrl+S)</value>
+  </data>
+  <data name="未保存の変更: {0}。保存には VM の完全停止が必要です。" xml:space="preserve">
+    <value>未保存の変更: {0}。保存には VM の完全停止が必要です。</value>
+  </data>
+  <data name="未保存の変更はありません。" xml:space="preserve">
+    <value>未保存の変更はありません。</value>
+  </data>
+  <data name="未保存の設定を適用またはキャンセルしてから、ブリッジを解除してください。" xml:space="preserve">
+    <value>未保存の設定を適用またはキャンセルしてから、ブリッジを解除してください。</value>
+  </data>
+  <data name="未対応の転送方式" xml:space="preserve">
+    <value>未対応の転送方式</value>
+  </data>
+  <data name="未確認" xml:space="preserve">
+    <value>未確認</value>
+  </data>
+  <data name="未設定" xml:space="preserve">
+    <value>未設定</value>
+  </data>
+  <data name="未選択" xml:space="preserve">
+    <value>未選択</value>
+  </data>
+  <data name="検証して続ける" xml:space="preserve">
+    <value>検証して続ける</value>
+  </data>
+  <data name="検証して選択" xml:space="preserve">
+    <value>検証して選択</value>
+  </data>
+  <data name="概要" xml:space="preserve">
+    <value>概要</value>
+  </data>
+  <data name="構成を読み込んでいます" xml:space="preserve">
+    <value>構成を読み込んでいます</value>
+  </data>
+  <data name="構成を読み込んでいます。" xml:space="preserve">
+    <value>構成を読み込んでいます。</value>
+  </data>
+  <data name="次回以降もインストーラーを接続する場合は、「CD/DVD・ISO」で起動時の設定を保存してください。" xml:space="preserve">
+    <value>次回以降もインストーラーを接続する場合は、「CD/DVD・ISO」で起動時の設定を保存してください。</value>
+  </data>
+  <data name="準備ができたらインストーラーを起動する" xml:space="preserve">
+    <value>準備ができたらインストーラーを起動する</value>
+  </data>
+  <data name="準備しています…" xml:space="preserve">
+    <value>準備しています…</value>
+  </data>
+  <data name="準備を続けるには Windows の再起動が必要です。未保存の変更は保持しています。再起動前に保存または破棄し、Wi-Fi の準備をもう一度実行してください。" xml:space="preserve">
+    <value>準備を続けるには Windows の再起動が必要です。未保存の変更は保持しています。再起動前に保存または破棄し、Wi-Fi の準備をもう一度実行してください。</value>
+  </data>
+  <data name="準備完了はプロセスの初期化状態です。LAN・インターネットの IPv4 / IPv6 疎通は別途確認してください。" xml:space="preserve">
+    <value>準備完了はプロセスの初期化状態です。LAN・インターネットの IPv4 / IPv6 疎通は別途確認してください。</value>
+  </data>
+  <data name="準備済み" xml:space="preserve">
+    <value>準備済み</value>
+  </data>
+  <data name="物理 Wi-Fi と転送状態を確認してください。" xml:space="preserve">
+    <value>物理 Wi-Fi と転送状態を確認してください。</value>
+  </data>
+  <data name="物理 Wi-Fi を選択してください。" xml:space="preserve">
+    <value>物理 Wi-Fi を選択してください。</value>
+  </data>
+  <data name="物理 Wi-Fi・有線 LAN の接続先" xml:space="preserve">
+    <value>物理 Wi-Fi・有線 LAN の接続先</value>
+  </data>
+  <data name="物理アダプターの一覧を確認できません。" xml:space="preserve">
+    <value>物理アダプターの一覧を確認できません。</value>
+  </data>
+  <data name="物理リンクあり" xml:space="preserve">
+    <value>物理リンクあり</value>
+  </data>
+  <data name="物理リンクの表示は LAN・インターネットの疎通確認ではありません。IPv4 / IPv6 の利用可否は回線・ルーターにも依存します。" xml:space="preserve">
+    <value>物理リンクの表示は LAN・インターネットの疎通確認ではありません。IPv4 / IPv6 の利用可否は回線・ルーターにも依存します。</value>
+  </data>
+  <data name="物理接続先と、詳細にある Reims 専用 TAP を選択してください。" xml:space="preserve">
+    <value>物理接続先と、詳細にある Reims 専用 TAP を選択してください。</value>
+  </data>
+  <data name="状態を保存・復元" xml:space="preserve">
+    <value>状態を保存・復元</value>
+  </data>
+  <data name="状態を更新" xml:space="preserve">
+    <value>状態を更新</value>
+  </data>
+  <data name="状態を更新 (F5)" xml:space="preserve">
+    <value>状態を更新 (F5)</value>
+  </data>
+  <data name="状態を確認できません" xml:space="preserve">
+    <value>状態を確認できません</value>
+  </data>
+  <data name="状態取得がタイムアウトしました。「更新」で再試行できます。" xml:space="preserve">
+    <value>状態取得がタイムアウトしました。「更新」で再試行できます。</value>
+  </data>
+  <data name="現在のログイン中だけ適用します。再接続後は必要に応じて再適用してください。変更後に別の設定が適用された場合は、保存した設定で上書きしません。" xml:space="preserve">
+    <value>現在のログイン中だけ適用します。再接続後は必要に応じて再適用してください。変更後に別の設定が適用された場合は、保存した設定で上書きしません。</value>
+  </data>
+  <data name="現在の方式では USB を取得できていません。機器の接続・ドライバー・Windows 側で使用中のアプリを確認し、一覧を更新してください。" xml:space="preserve">
+    <value>現在の方式では USB を取得できていません。機器の接続・ドライバー・Windows 側で使用中のアプリを確認し、一覧を更新してください。</value>
+  </data>
+  <data name="現在の状態では実行できません。ディスク・設定変更は VM の完全停止後に行ってください。" xml:space="preserve">
+    <value>現在の状態では実行できません。ディスク・設定変更は VM の完全停止後に行ってください。</value>
+  </data>
+  <data name="現在の設定を読み込む" xml:space="preserve">
+    <value>現在の設定を読み込む</value>
+  </data>
+  <data name="現在より大きい容量を 64〜2048 GiB の範囲で指定してください。縮小はできません。" xml:space="preserve">
+    <value>現在より大きい容量を 64〜2048 GiB の範囲で指定してください。縮小はできません。</value>
+  </data>
+  <data name="現在見つかりません" xml:space="preserve">
+    <value>現在見つかりません</value>
+  </data>
+  <data name="画面ミラーリングでカーソルが見えないときに、macOS の実際のカーソルを通常の画面内容として描画します。" xml:space="preserve">
+    <value>画面ミラーリングでカーソルが見えないときに、macOS の実際のカーソルを通常の画面内容として描画します。</value>
+  </data>
+  <data name="登録はこの VM に保存されます。別の USB ポートへ移した機器は、古い登録を解除して選び直してください。" xml:space="preserve">
+    <value>登録はこの VM に保存されます。別の USB ポートへ移した機器は、古い登録を解除して選び直してください。</value>
+  </data>
+  <data name="登録は保持しています。保存先を接続してライブラリを更新するか、「VM を開く」で移動先の .reimsvm を選択してください。" xml:space="preserve">
+    <value>登録は保持しています。保存先を接続してライブラリを更新するか、「VM を開く」で移動先の .reimsvm を選択してください。</value>
+  </data>
+  <data name="登録を解除して Windows に戻す" xml:space="preserve">
+    <value>登録を解除して Windows に戻す</value>
+  </data>
+  <data name="登録・保存先" xml:space="preserve">
+    <value>登録・保存先</value>
+  </data>
+  <data name="確認した割り当てが一致しません。再確認してください。" xml:space="preserve">
+    <value>確認した割り当てが一致しません。再確認してください。</value>
+  </data>
+  <data name="確認中" xml:space="preserve">
+    <value>確認中</value>
+  </data>
+  <data name="移動先の画面配置と倍率を読み取り、実際の画面中央へ移動します。拡張画面を複数検出した場合は自動選択しません。" xml:space="preserve">
+    <value>移動先の画面配置と倍率を読み取り、実際の画面中央へ移動します。拡張画面を複数検出した場合は自動選択しません。</value>
+  </data>
+  <data name="管理スクリプトが見つかりません。Reims のプロジェクトを選択してください。" xml:space="preserve">
+    <value>管理スクリプトが見つかりません。Reims のプロジェクトを選択してください。</value>
+  </data>
+  <data name="管理プロセスの出力が上限を超えました。診断ログを確認してください。" xml:space="preserve">
+    <value>管理プロセスの出力が上限を超えました。診断ログを確認してください。</value>
+  </data>
+  <data name="管理プロセスを起動できませんでした。" xml:space="preserve">
+    <value>管理プロセスを起動できませんでした。</value>
+  </data>
+  <data name="署名を確認した公式ドライバーを取得します。ブリッジの作成は別の操作です。" xml:space="preserve">
+    <value>署名を確認した公式ドライバーを取得します。ブリッジの作成は別の操作です。</value>
+  </data>
+  <data name="自動共有のオン・オフは、この VM の設定としてすぐに保存します。" xml:space="preserve">
+    <value>自動共有のオン・オフは、この VM の設定としてすぐに保存します。</value>
+  </data>
+  <data name="自動共有はオフです。" xml:space="preserve">
+    <value>自動共有はオフです。</value>
+  </data>
+  <data name="自動共有はオフです。この VM の設定として保存されます。" xml:space="preserve">
+    <value>自動共有はオフです。この VM の設定として保存されます。</value>
+  </data>
+  <data name="自動共有はオンです。SSH の接続を確認しています。" xml:space="preserve">
+    <value>自動共有はオンです。SSH の接続を確認しています。</value>
+  </data>
+  <data name="自動共有はオンです。VM が実行中になり、SSH に接続できると共有を再開します。" xml:space="preserve">
+    <value>自動共有はオンです。VM が実行中になり、SSH に接続できると共有を再開します。</value>
+  </data>
+  <data name="自動起動を保留しました。必要条件を確認してから起動してください。&#10;" xml:space="preserve">
+    <value>自動起動を保留しました。必要条件を確認してから起動してください。
+</value>
+  </data>
+  <data name="表示" xml:space="preserve">
+    <value>表示</value>
+  </data>
+  <data name="表示をクリア" xml:space="preserve">
+    <value>表示をクリア</value>
+  </data>
+  <data name="表示中の VM 数" xml:space="preserve">
+    <value>表示中の VM 数</value>
+  </data>
+  <data name="表示言語" xml:space="preserve">
+    <value>表示言語</value>
+  </data>
+  <data name="表示言語 / Language" xml:space="preserve">
+    <value>表示言語 / Language</value>
+  </data>
+  <data name="要対応" xml:space="preserve">
+    <value>要対応</value>
+  </data>
+  <data name="要対応の項目を確認して、再確認してください。VM はまだ作成していません。" xml:space="preserve">
+    <value>要対応の項目を確認して、再確認してください。VM はまだ作成していません。</value>
+  </data>
+  <data name="要確認: " xml:space="preserve">
+    <value>要確認: </value>
+  </data>
+  <data name="見つからない / 読み込めない · " xml:space="preserve">
+    <value>見つからない / 読み込めない · </value>
+  </data>
+  <data name="見つかりません" xml:space="preserve">
+    <value>見つかりません</value>
+  </data>
+  <data name="解像度を macOS に適用すると、次回起動の設定も保存します。カーソル操作はすぐに反映します。" xml:space="preserve">
+    <value>解像度を macOS に適用すると、次回起動の設定も保存します。カーソル操作はすぐに反映します。</value>
+  </data>
+  <data name="解像度を適用・保存しました。次回の VM 起動後も保持します。" xml:space="preserve">
+    <value>解像度を適用・保存しました。次回の VM 起動後も保持します。</value>
+  </data>
+  <data name="解像度・カーソルの操作は実行できます。その他の起動時設定は、VM の完全終了後に保存できます。" xml:space="preserve">
+    <value>解像度・カーソルの操作は実行できます。その他の起動時設定は、VM の完全終了後に保存できます。</value>
+  </data>
+  <data name="解除して NAT に戻す" xml:space="preserve">
+    <value>解除して NAT に戻す</value>
+  </data>
+  <data name="設定" xml:space="preserve">
+    <value>設定</value>
+  </data>
+  <data name="設定された TAP の IPv6 インターフェース番号を確認できません。" xml:space="preserve">
+    <value>設定された TAP の IPv6 インターフェース番号を確認できません。</value>
+  </data>
+  <data name="設定された TAP インターフェースを確認できません。" xml:space="preserve">
+    <value>設定された TAP インターフェースを確認できません。</value>
+  </data>
+  <data name="設定の保存先を開く" xml:space="preserve">
+    <value>設定の保存先を開く</value>
+  </data>
+  <data name="設定を閉じて戻る" xml:space="preserve">
+    <value>設定を閉じて戻る</value>
+  </data>
+  <data name="設定変更・ディスク操作には完全停止が必要です。macOS をシャットダウンしてから、VM を完全終了してください。" xml:space="preserve">
+    <value>設定変更・ディスク操作には完全停止が必要です。macOS をシャットダウンしてから、VM を完全終了してください。</value>
+  </data>
+  <data name="設定済み・VM の起動待ち" xml:space="preserve">
+    <value>設定済み・VM の起動待ち</value>
+  </data>
+  <data name="設定画面の「macOS のインストール」からインストーラーを選んでください。" xml:space="preserve">
+    <value>設定画面の「macOS のインストール」からインストーラーを選んでください。</value>
+  </data>
+  <data name="設定項目" xml:space="preserve">
+    <value>設定項目</value>
+  </data>
+  <data name="診断ログを保存" xml:space="preserve">
+    <value>診断ログを保存</value>
+  </data>
+  <data name="診断ログを収集" xml:space="preserve">
+    <value>診断ログを収集</value>
+  </data>
+  <data name="詳細: 内部 TAP アダプター" xml:space="preserve">
+    <value>詳細: 内部 TAP アダプター</value>
+  </data>
+  <data name="詳細: 既存の専用 TAP を選択" xml:space="preserve">
+    <value>詳細: 既存の専用 TAP を選択</value>
+  </data>
+  <data name="識別情報" xml:space="preserve">
+    <value>識別情報</value>
+  </data>
+  <data name="識別情報は保存時に確認します。起動・GPU の操作は、その場で実行します。" xml:space="preserve">
+    <value>識別情報は保存時に確認します。起動・GPU の操作は、その場で実行します。</value>
+  </data>
+  <data name="識別情報を保存" xml:space="preserve">
+    <value>識別情報を保存</value>
+  </data>
+  <data name="起動" xml:space="preserve">
+    <value>起動</value>
+  </data>
+  <data name="起動すると、このアプリ内で macOS を操作できます。" xml:space="preserve">
+    <value>起動すると、このアプリ内で macOS を操作できます。</value>
+  </data>
+  <data name="起動する準備ができました" xml:space="preserve">
+    <value>起動する準備ができました</value>
+  </data>
+  <data name="起動オプションの値がありません。" xml:space="preserve">
+    <value>起動オプションの値がありません。</value>
+  </data>
+  <data name="起動プロファイルを再適用" xml:space="preserve">
+    <value>起動プロファイルを再適用</value>
+  </data>
+  <data name="起動待ち" xml:space="preserve">
+    <value>起動待ち</value>
+  </data>
+  <data name="起動時にインストーラーを接続" xml:space="preserve">
+    <value>起動時にインストーラーを接続</value>
+  </data>
+  <data name="起動時に接続する ISO の保存先" xml:space="preserve">
+    <value>起動時に接続する ISO の保存先</value>
+  </data>
+  <data name="起動時の解像度" xml:space="preserve">
+    <value>起動時の解像度</value>
+  </data>
+  <data name="転送エラー" xml:space="preserve">
+    <value>転送エラー</value>
+  </data>
+  <data name="転送プロセスの準備完了（{0}）" xml:space="preserve">
+    <value>転送プロセスの準備完了（{0}）</value>
+  </data>
+  <data name="転送プロセスは停止しています" xml:space="preserve">
+    <value>転送プロセスは停止しています</value>
+  </data>
+  <data name="転送プロセスを初期化しています" xml:space="preserve">
+    <value>転送プロセスを初期化しています</value>
+  </data>
+  <data name="転送プロセス・IPv6 設定の状態を確認できません。" xml:space="preserve">
+    <value>転送プロセス・IPv6 設定の状態を確認できません。</value>
+  </data>
+  <data name="転送方式（変更は次回起動時）" xml:space="preserve">
+    <value>転送方式（変更は次回起動時）</value>
+  </data>
+  <data name="転送状態の形式が対応していません。" xml:space="preserve">
+    <value>転送状態の形式が対応していません。</value>
+  </data>
+  <data name="転送状態は未確認です" xml:space="preserve">
+    <value>転送状態は未確認です</value>
+  </data>
+  <data name="適用に成功すると、次回の VM 起動時にもこの解像度を使用します。VM が停止中の場合は、下の「変更を保存」で起動時の解像度を保存できます。" xml:space="preserve">
+    <value>適用に成功すると、次回の VM 起動時にもこの解像度を使用します。VM が停止中の場合は、下の「変更を保存」で起動時の解像度を保存できます。</value>
+  </data>
+  <data name="適用状況は未確認です。" xml:space="preserve">
+    <value>適用状況は未確認です。</value>
+  </data>
+  <data name="選択した VM のプロセスを確認できません。" xml:space="preserve">
+    <value>選択した VM のプロセスを確認できません。</value>
+  </data>
+  <data name="選択した VM の状態を取得しています。" xml:space="preserve">
+    <value>選択した VM の状態を取得しています。</value>
+  </data>
+  <data name="選択したスナップショットに切り替えます。現在のディスクも保持します。" xml:space="preserve">
+    <value>選択したスナップショットに切り替えます。現在のディスクも保持します。</value>
+  </data>
+  <data name="配布元の ZIP と .zip.sha256 を同じ場所に保存してください。照合は自動で行います。" xml:space="preserve">
+    <value>配布元の ZIP と .zip.sha256 を同じ場所に保存してください。照合は自動で行います。</value>
+  </data>
+  <data name="配布元の ZIP と同じ場所に「" xml:space="preserve">
+    <value>配布元の ZIP と同じ場所に「</value>
+  </data>
+  <data name="配布元の個人利用・評価用の利用条件を確認し、同意します（未導入時に必要）。" xml:space="preserve">
+    <value>配布元の個人利用・評価用の利用条件を確認し、同意します（未導入時に必要）。</value>
+  </data>
+  <data name="配布元の利用条件" xml:space="preserve">
+    <value>配布元の利用条件</value>
+  </data>
+  <data name="閉じる" xml:space="preserve">
+    <value>閉じる</value>
+  </data>
+  <data name="開く" xml:space="preserve">
+    <value>開く</value>
+  </data>
+  <data name="電源オフ" xml:space="preserve">
+    <value>電源オフ</value>
+  </data>
+  <data name="［VM 完全終了後に復元］" xml:space="preserve">
+    <value>［VM 完全終了後に復元］</value>
+  </data>
+  <data name="［エラー・復元の確認が必要］" xml:space="preserve">
+    <value>［エラー・復元の確認が必要］</value>
+  </data>
+  <data name="［元ドライバーの復元待ち］" xml:space="preserve">
+    <value>［元ドライバーの復元待ち］</value>
+  </data>
+  <data name="［再接続・復元待ち］" xml:space="preserve">
+    <value>［再接続・復元待ち］</value>
+  </data>
+  <data name="［復元済み］" xml:space="preserve">
+    <value>［復元済み］</value>
+  </data>
+  <data name="［抜き差し待ち］" xml:space="preserve">
+    <value>［抜き差し待ち］</value>
+  </data>
+  <data name="［接続・復元処理中］" xml:space="preserve">
+    <value>［接続・復元処理中］</value>
+  </data>
+  <data name="［接続中・未登録］" xml:space="preserve">
+    <value>［接続中・未登録］</value>
+  </data>
+  <data name="［接続中・自動接続］" xml:space="preserve">
+    <value>［接続中・自動接続］</value>
+  </data>
+  <data name="［接続中］" xml:space="preserve">
+    <value>［接続中］</value>
+  </data>
+  <data name="［未接続・再接続できます］" xml:space="preserve">
+    <value>［未接続・再接続できます］</value>
+  </data>
+  <data name="［登録済み・VM 起動待ち］" xml:space="preserve">
+    <value>［登録済み・VM 起動待ち］</value>
+  </data>
+  <data name="［登録済み・再接続が必要］" xml:space="preserve">
+    <value>［登録済み・再接続が必要］</value>
+  </data>
+  <data name="［自動接続・接続待ち］" xml:space="preserve">
+    <value>［自動接続・接続待ち］</value>
+  </data>
+</root>

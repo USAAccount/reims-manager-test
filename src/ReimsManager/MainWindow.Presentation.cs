@@ -20,6 +20,14 @@ public partial class MainWindow
         if (TitleBar is null || SettingsPage is null) return;
         presentation.Observe(selectedEntry?.File, currentState);
         bool focus = ConsoleFocused;
+        if (fullScreen && (!focus || !ConsoleView.Attached)) ExitFullScreen(refresh: false);
+        TitleBar.Visibility = GlobalNotices.Visibility = fullScreen ? Visibility.Collapsed : Visibility.Visible;
+        ChromeRoot.BorderThickness = new Thickness(fullScreen ? 0 : 1);
+        SessionFullScreenButton.IsEnabled = FullScreenMenuItem.IsEnabled = !IsUiBusy && (fullScreen || CanOperate("Console"));
+        SessionFullScreenButton.Content = fullScreen ? "\uE73F" : "\uE740";
+        SessionFullScreenButton.ToolTip = fullScreen ? UiText.T("全画面を終了") : UiText.T("全画面表示 (F11)");
+        FullScreenMenuItem.Header = fullScreen ? UiText.T("全画面を終了") : UiText.T("全画面表示");
+        System.Windows.Automation.AutomationProperties.SetName(SessionFullScreenButton, fullScreen ? UiText.T("全画面を終了") : UiText.T("全画面表示"));
         bool settingsVisible = HasVm && SettingsOpen;
         bool manager = !focus && !settingsVisible;
 
@@ -70,8 +78,8 @@ public partial class MainWindow
         bool resume = currentState is "paused" or "prelaunch" or "suspended";
         SessionPauseButton.Tag = resume ? "Resume" : "Pause";
         SessionPauseButton.Content = resume ? "\uE768" : "\uE769";
-        SessionPauseButton.ToolTip = resume ? "再開" : "一時停止";
-        System.Windows.Automation.AutomationProperties.SetName(SessionPauseButton, resume ? "再開" : "一時停止");
+        SessionPauseButton.ToolTip = resume ? UiText.T("再開") : UiText.T("一時停止");
+        System.Windows.Automation.AutomationProperties.SetName(SessionPauseButton, resume ? UiText.T("再開") : UiText.T("一時停止"));
         SessionPauseButton.IsEnabled = CanOperate(resume ? "Resume" : "Pause") && !applyingSettings;
         SessionRestartButton.IsEnabled = CanOperate("Restart") && !applyingSettings;
         SessionPopOutButton.IsEnabled = CanOperate("Console") && !applyingSettings;
@@ -117,28 +125,28 @@ public partial class MainWindow
         ReloadHardwareButton.IsEnabled = !IsUiBusy && pending;
         SaveHardwareButton.IsEnabled = !IsUiBusy && pending && canSave;
         SettingsOkButton.IsEnabled = !IsUiBusy && (!pending || canSave);
-        SettingsOkButton.Content = pending ? "保存して閉じる" : "閉じる";
+        SettingsOkButton.Content = pending ? UiText.T("保存して閉じる") : UiText.T("閉じる");
 
-        string changed = hardwareDirty && identityDirty ? "ハードウェア・識別情報" : hardwareDirty ? "ハードウェア" : "識別情報";
-        SettingsHint.Text = IsUiBusy ? "処理が完了するまでお待ちください…" : pending
-            ? canSave ? $"未保存の変更: {changed} (Ctrl+S)" : $"未保存の変更: {changed}。保存には VM の完全停止が必要です。"
+        string changed = hardwareDirty && identityDirty ? UiText.T("ハードウェア・識別情報") : hardwareDirty ? UiText.T("ハードウェア") : UiText.T("識別情報");
+        SettingsHint.Text = IsUiBusy ? UiText.T("処理が完了するまでお待ちください…") : pending
+            ? canSave ? UiText.Format($"未保存の変更: {changed} (Ctrl+S)") : UiText.Format($"未保存の変更: {changed}。保存には VM の完全停止が必要です。")
             : settingsFeedback.Length > 0 ? settingsFeedback : loadedHardware
-                ? "未保存の変更はありません。" : "保存済みの構成を確認しています。";
+                ? UiText.T("未保存の変更はありません。") : UiText.T("保存済みの構成を確認しています。");
         SettingsHeading.Text = Tabs.SelectedIndex switch {
-            4 => "スナップショット", 5 => "macOS のインストール", 6 => "macOS と接続", 7 => "LAN 接続の準備",
-            _ => "仮想マシンの設定"
+            4 => UiText.T("スナップショット"), 5 => UiText.T("macOS のインストール"), 6 => UiText.T("macOS と接続"), 7 => UiText.T("LAN 接続の準備"),
+            _ => UiText.T("仮想マシンの設定")
         };
         SettingsScopeHint.Text = Tabs.SelectedIndex switch {
-            1 when hardwareCategory == 2 => "ディスクの拡張・整理は、それぞれの操作ボタンで実行します。",
-            1 when hardwareCategory == 5 => "USB の登録・解除は即時反映。転送方式は「変更を保存」で確定します。",
-            1 when hardwareCategory == 7 => "解像度を macOS に適用すると、次回起動の設定も保存します。カーソル操作はすぐに反映します。",
-            1 => "「変更を保存」で確定した設定は、次回の VM 起動から使用します。",
-            2 => "自動共有のオン・オフは、この VM の設定としてすぐに保存します。",
-            3 => "識別情報は保存時に確認します。起動・GPU の操作は、その場で実行します。",
-            4 => "スナップショットの保存・復元は、このページの操作ボタンで実行します。",
-            5 => "インストーラーを選択し、「仮想マシンを作成」でディスクを準備します。",
-            6 => "接続は「指紋を照合して接続」で実行します。",
-            7 => "接続の準備・解除は、それぞれの操作ボタンで実行します。",
+            1 when hardwareCategory == 2 => UiText.T("ディスクの拡張・整理は、それぞれの操作ボタンで実行します。"),
+            1 when hardwareCategory == 5 => UiText.T("USB の登録・解除は即時反映。転送方式は「変更を保存」で確定します。"),
+            1 when hardwareCategory == 7 => UiText.T("解像度を macOS に適用すると、次回起動の設定も保存します。カーソル操作はすぐに反映します。"),
+            1 => UiText.T("「変更を保存」で確定した設定は、次回の VM 起動から使用します。"),
+            2 => UiText.T("自動共有のオン・オフは、この VM の設定としてすぐに保存します。"),
+            3 => UiText.T("識別情報は保存時に確認します。起動・GPU の操作は、その場で実行します。"),
+            4 => UiText.T("スナップショットの保存・復元は、このページの操作ボタンで実行します。"),
+            5 => UiText.T("インストーラーを選択し、「仮想マシンを作成」でディスクを準備します。"),
+            6 => UiText.T("接続は「指紋を照合して接続」で実行します。"),
+            7 => UiText.T("接続の準備・解除は、それぞれの操作ボタンで実行します。"),
             _ => ""
         };
 
@@ -149,32 +157,32 @@ public partial class MainWindow
         SettingsRefreshButton.IsEnabled = HasVm && HasEngine && !IsUiBusy && !refreshing;
         string? action = null, label = null;
         if (!HasEngine) {
-            SettingsStateHeading.Text = "エンジンを準備してください";
-            SettingsStateDescription.Text = "エンジンの保存先を設定すると、VM の構成と動作状態を確認できます。";
-            action = "SetupEngine"; label = "エンジンを設定…";
+            SettingsStateHeading.Text = UiText.T("エンジンを準備してください");
+            SettingsStateDescription.Text = UiText.T("エンジンの保存先を設定すると、VM の構成と動作状態を確認できます。");
+            action = "SetupEngine"; label = UiText.T("エンジンを設定…");
         } else if (currentState == "running") {
-            SettingsStateHeading.Text = "VM は実行中です";
+            SettingsStateHeading.Text = UiText.T("VM は実行中です");
             SettingsStateDescription.Text = Tabs.SelectedIndex == 1 && hardwareCategory == 7
-                ? "解像度・カーソルの操作は実行できます。その他の起動時設定は、VM の完全終了後に保存できます。"
+                ? UiText.T("解像度・カーソルの操作は実行できます。その他の起動時設定は、VM の完全終了後に保存できます。")
                 : Tabs.SelectedIndex == 1 && hardwareCategory == 5
-                    ? "USB の接続操作は実行できます。転送方式の変更は、VM の完全終了後に保存できます。"
-                    : "設定変更・ディスク操作には完全停止が必要です。macOS をシャットダウンしてから、VM を完全終了してください。";
-            action = "PowerOff"; label = "シャットダウン";
+                    ? UiText.T("USB の接続操作は実行できます。転送方式の変更は、VM の完全終了後に保存できます。")
+                    : UiText.T("設定変更・ディスク操作には完全停止が必要です。macOS をシャットダウンしてから、VM を完全終了してください。");
+            action = "PowerOff"; label = UiText.T("シャットダウン");
         } else if (currentState == "shutdown") {
-            SettingsStateHeading.Text = "macOS は電源オフです。VM はまだ完全停止していません";
-            SettingsStateDescription.Text = "VM を完全終了すると、ハードウェア設定やディスクを変更できます。";
-            action = "Exit"; label = "VM を完全終了";
+            SettingsStateHeading.Text = UiText.T("macOS は電源オフです。VM はまだ完全停止していません");
+            SettingsStateDescription.Text = UiText.T("VM を完全終了すると、ハードウェア設定やディスクを変更できます。");
+            action = "Exit"; label = UiText.T("VM を完全終了");
         } else if (currentState is "paused" or "prelaunch" or "suspended") {
-            SettingsStateHeading.Text = "一時停止中は構成を変更できません";
-            SettingsStateDescription.Text = "再開して macOS をシャットダウンし、VM を完全終了してから変更できます。";
-            action = "Resume"; label = "VM を再開";
+            SettingsStateHeading.Text = UiText.T("一時停止中は構成を変更できません");
+            SettingsStateDescription.Text = UiText.T("再開して macOS をシャットダウンし、VM を完全終了してから変更できます。");
+            action = "Resume"; label = UiText.T("VM を再開");
         } else if (currentState == "unprepared") {
-            SettingsStateHeading.Text = "セットアップがまだ完了していません";
-            SettingsStateDescription.Text = "インストーラーと仮想ディスクを準備してから、構成を変更できます。";
-            action = "SetupPage"; label = "セットアップを開く";
+            SettingsStateHeading.Text = UiText.T("セットアップがまだ完了していません");
+            SettingsStateDescription.Text = UiText.T("インストーラーと仮想ディスクを準備してから、構成を変更できます。");
+            action = "SetupPage"; label = UiText.T("セットアップを開く");
         } else {
-            SettingsStateHeading.Text = currentState == "stopped" ? "構成を読み込んでいます" : "VM の状態を確認してください";
-            SettingsStateDescription.Text = "「状態を更新」で再確認できます。入力中の変更は保持します。";
+            SettingsStateHeading.Text = currentState == "stopped" ? UiText.T("構成を読み込んでいます") : UiText.T("VM の状態を確認してください");
+            SettingsStateDescription.Text = UiText.T("「状態を更新」で再確認できます。入力中の変更は保持します。");
         }
         SettingsStateActionButton.Tag = action;
         SettingsStateActionButton.Content = label;
@@ -208,6 +216,6 @@ public partial class MainWindow
         if (MaximizeCommand is null || ChromeRoot is null) return;
         MaximizeCommand.Content = WindowState == WindowState.Maximized ? "\uE923" : "\uE922";
         // WindowChrome preserves native resizing; keep content inside its maximized frame.
-        ChromeRoot.Margin = WindowState == WindowState.Maximized ? SystemParameters.WindowResizeBorderThickness : new Thickness(0);
+        ChromeRoot.Margin = !fullScreen && WindowState == WindowState.Maximized ? SystemParameters.WindowResizeBorderThickness : new Thickness(0);
     }
 }

@@ -42,11 +42,11 @@ public partial class MainWindow
     private bool RequireAction(string action)
     {
         if (CanOperate(action)) return true;
-        string reason = busy || completingOperation ? "別の操作を処理しています。" : !HasEngine ? "先に Reims エンジンを設定してください。" :
-            !HasVm ? "操作する VM を選択してください。" : currentState == "unknown" ? "VM の状態を確認できません。更新してから再試行してください。" :
-            currentState is "paused" or "suspended" or "prelaunch" ? "先に VM を再開してください。設定変更には、その後の完全終了が必要です。" :
-            currentState == "shutdown" ? "macOS は電源オフですが QEMU は残っています。「••• → 完全終了」を選択してください。" :
-            "現在の状態では実行できません。ディスク・設定変更は VM の完全停止後に行ってください。";
+        string reason = busy || completingOperation ? UiText.T("別の操作を処理しています。") : !HasEngine ? UiText.T("先に Reims エンジンを設定してください。") :
+            !HasVm ? UiText.T("操作する VM を選択してください。") : currentState == "unknown" ? UiText.T("VM の状態を確認できません。更新してから再試行してください。") :
+            currentState is "paused" or "suspended" or "prelaunch" ? UiText.T("先に VM を再開してください。設定変更には、その後の完全終了が必要です。") :
+            currentState == "shutdown" ? UiText.T("macOS は電源オフですが QEMU は残っています。「••• → 完全終了」を選択してください。") :
+            UiText.T("現在の状態では実行できません。ディスク・設定変更は VM の完全停止後に行ってください。");
         ShowError(reason);
         return false;
     }
@@ -65,6 +65,7 @@ public partial class MainWindow
     private void ShowError(string message)
     {
         if (closing || ErrorNotice is null) return;
+        ExitFullScreen();
         ErrorNotice.Text = message;
         Feedback.Visibility = Visibility.Visible;
     }
@@ -80,7 +81,7 @@ public partial class MainWindow
             return true;
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException) {
-            ShowError("アプリ設定を保存できませんでした。VM のディスクは変更していません。\n" + error.Message);
+            ShowError(UiText.T("アプリ設定を保存できませんでした。VM のディスクは変更していません。\n") + error.Message);
             AppendLog(error.Message + "\n"); return false;
         }
     }
@@ -105,17 +106,18 @@ public partial class MainWindow
     {
         if (!hardwareDirty && !identityDirty) return true;
         if (selfTest) return false;
-        return MessageBox.Show(this, "保存していないハードウェア設定または Mac の識別情報があります。変更を破棄して続けますか？",
-            "未保存の変更", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) == MessageBoxResult.Yes;
+        return MessageBox.Show(this, UiText.T("保存していないハードウェア設定または Mac の識別情報があります。変更を破棄して続けますか？"),
+            UiText.T("未保存の変更"), MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) == MessageBoxResult.Yes;
     }
 
     private void ConfirmWindowClose(object? sender, CancelEventArgs e)
     {
-        if (IsUiBusy) { ShowError("処理中は閉じられません。ディスクへの書き込みが完了してから閉じてください。"); e.Cancel = true; return; }
+        if (IsUiBusy) { ShowError(UiText.T("処理中は閉じられません。ディスクへの書き込みが完了してから閉じてください。")); e.Cancel = true; return; }
         if (!selfTest && !DiscardPendingChanges()) { e.Cancel = true; return; }
+        ExitFullScreen();
         try { ConsoleView.Detach(); }
         catch (Exception error) {
-            ShowError("VM 画面を復元できないため、管理ウィンドウを閉じられません。" + error.Message);
+            ShowError(UiText.T("VM 画面を復元できないため、管理ウィンドウを閉じられません。") + error.Message);
             e.Cancel = true; return;
         }
         closing = true;
@@ -146,7 +148,7 @@ public partial class MainWindow
         loadingIdentity = loadingHardware = true;
         try {
             foreach (TextBox field in new[] { IdentityModel, IdentitySerial, IdentityMlb, IdentityRom, IdentityUuid, Iso, HardwareIsoPath, GuestHost, GuestUser, Fingerprint }) field.Clear();
-            Memory.Text = "4096"; Cpus.Text = Math.Min(4, Environment.ProcessorCount).ToString(); DiskSize.Text = "300"; DiskInfo.Text = "構成を読み込んでいます。";
+            Memory.Text = "4096"; Cpus.Text = Math.Min(4, Environment.ProcessorCount).ToString(); DiskSize.Text = "300"; DiskInfo.Text = UiText.T("構成を読み込んでいます。");
             Sound.IsChecked = Microphone.IsChecked = HardwareIso.IsChecked = ConnectIso.IsChecked = false;
             Nat.IsChecked = true; UsbBackend.SelectedIndex = 0; Resolution.SelectedIndex = 1;
             Tap.ItemsSource = BridgeTap.ItemsSource = Physical.ItemsSource = Uplink.ItemsSource = Snapshots.ItemsSource = null;
@@ -155,8 +157,8 @@ public partial class MainWindow
             ResetUsbInventory();
         } finally { loadingIdentity = loadingHardware = false; }
         RememberHardwareDraft(); RememberIdentityDraft();
-        State.Text = "確認中"; StatusDetail.Text = "選択した VM の状態を取得しています。";
-        VmSummary.Text = "構成を読み込んでいます。";
+        State.Text = UiText.T("確認中"); StatusDetail.Text = UiText.T("選択した VM の状態を取得しています。");
+        VmSummary.Text = UiText.T("構成を読み込んでいます。");
         UpdatePowerControls();
     }
 
@@ -181,7 +183,7 @@ public partial class MainWindow
         restoringSelection = true;
         try { Library.ItemsSource = visible; Library.SelectedItem = visible.FirstOrDefault(x => x == selectedEntry); }
         finally { restoringSelection = false; }
-        LibraryEmpty.Text = query.Length == 0 ? "「新規」または「開く」から追加" : "一致する VM はありません";
+        LibraryEmpty.Text = query.Length == 0 ? UiText.T("「新規」または「開く」から追加") : UiText.T("一致する VM はありません");
         LibraryEmpty.Visibility = visible.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
@@ -239,6 +241,9 @@ public partial class MainWindow
 
     private async void WindowKeyDown(object sender, KeyEventArgs e)
     {
+        if (!IsUiBusy && e.Key == Key.F11 && Keyboard.Modifiers == ModifierKeys.None) {
+            e.Handled = true; ToggleFullScreen(sender, e); return;
+        }
         // Do not consume guest Ctrl+N/O/S or F5 while the focused console is active.
         if (IsUiBusy || ConsoleFocused) return;
         if (e.Key == Key.F5 && Keyboard.Modifiers == ModifierKeys.None) { e.Handled = true; await RefreshDisplayedState(); }
@@ -263,28 +268,28 @@ public partial class MainWindow
     private bool ValidateHardware()
     {
         if (!ManagerValidation.Integer(Cpus.Text, 1, 64, 1, out int cpus) || cpus > Environment.ProcessorCount)
-            return InvalidField(Cpus, $"CPU は 1〜{Math.Min(64, Environment.ProcessorCount)} の整数で指定してください。");
+            return InvalidField(Cpus, UiText.Format($"CPU は 1〜{Math.Min(64, Environment.ProcessorCount)} の整数で指定してください。"));
         if (!ManagerValidation.Integer(Memory.Text, 4096, 131072, 4, out _))
-            return InvalidField(Memory, "メモリは 4096〜131072 MiB、4 MiB 単位で指定してください。");
-        if (!ManagerValidation.Resolution(Selected(Resolution))) return InvalidField(Resolution, "対応する起動時の解像度を選び直してください。");
-        if (HardwareIso.IsChecked == true && !File.Exists(HardwareIsoPath.Text.Trim())) return InvalidField(HardwareIsoPath, "インストーラーを接続するには、存在する ISO / IMG を選択してください。");
-        if (!string.IsNullOrWhiteSpace(HardwareIsoPath.Text) && !File.Exists(HardwareIsoPath.Text.Trim())) return InvalidField(HardwareIsoPath, "ISO が見つかりません。選び直すか、接続をオフにしてパスを空にしてください。");
+            return InvalidField(Memory, UiText.T("メモリは 4096〜131072 MiB、4 MiB 単位で指定してください。"));
+        if (!ManagerValidation.Resolution(Selected(Resolution))) return InvalidField(Resolution, UiText.T("対応する起動時の解像度を選び直してください。"));
+        if (HardwareIso.IsChecked == true && !File.Exists(HardwareIsoPath.Text.Trim())) return InvalidField(HardwareIsoPath, UiText.T("インストーラーを接続するには、存在する ISO / IMG を選択してください。"));
+        if (!string.IsNullOrWhiteSpace(HardwareIsoPath.Text) && !File.Exists(HardwareIsoPath.Text.Trim())) return InvalidField(HardwareIsoPath, UiText.T("ISO が見つかりません。選び直すか、接続をオフにしてパスを空にしてください。"));
         if (NetworkDraftChanged) {
             if (Bridge.IsChecked == true) {
                 bool legacy = latest.ValueKind == System.Text.Json.JsonValueKind.Object && latest.TryGetProperty("network", out var mode) && mode.GetString() == "bridge" &&
                     (!latest.TryGetProperty("network_uplink_id", out var saved) || string.IsNullOrEmpty(saved.GetString()));
-                if (SelectedUplink.Length == 0 && !legacy) return NetworkPreparationRequired("ホストの Wi-Fi・有線 LAN を選び、「LAN 接続の準備」から接続を準備してください。");
+                if (SelectedUplink.Length == 0 && !legacy) return NetworkPreparationRequired(UiText.T("ホストの Wi-Fi・有線 LAN を選び、「LAN 接続の準備」から接続を準備してください。"));
                 bool wifi=Uplink.SelectedItem is NetworkUplink { Kind:"wifi" } || WifiForwarderState.IsMacNat(hardwareForwarder);
                 if (wifi) {
                     string savedId=latest.TryGetProperty("network_uplink_id",out var id) ? id.GetString() ?? "" : "";
                     if (wifiForwarder is not { Kind:WifiForwarderState.MacNat,Configured:true,Ipv6Enabled:true } || SelectedUplink!=savedId)
-                        return NetworkPreparationRequired("先に「LAN 接続の準備」で、この Wi-Fi の互換接続を準備してください。ほかの未保存の変更は保持しています。");
-                } else if (string.IsNullOrWhiteSpace(Selected(Tap))) { NetworkTapDetails.IsExpanded = true; return InvalidField(Tap, "ブリッジの準備で選択した Reims 専用 TAP を指定してください。"); }
+                        return NetworkPreparationRequired(UiText.T("先に「LAN 接続の準備」で、この Wi-Fi の互換接続を準備してください。ほかの未保存の変更は保持しています。"));
+                } else if (string.IsNullOrWhiteSpace(Selected(Tap))) { NetworkTapDetails.IsExpanded = true; return InvalidField(Tap, UiText.T("ブリッジの準備で選択した Reims 専用 TAP を指定してください。")); }
             }
-            if (WifiForwarderState.IsMacNat(hardwareForwarder) && Nat.IsChecked==true) return NetworkPreparationRequired("Wi-Fi 互換接続の解除ボタンで、専用 TAP の設定を復元してから NAT に戻してください。ほかの未保存の変更は保持しています。");
-            if (!ManagerValidation.Host(GuestHost.Text.Trim())) return InvalidField(GuestHost, "macOS の IP アドレスまたはホスト名を確認してください。");
+            if (WifiForwarderState.IsMacNat(hardwareForwarder) && Nat.IsChecked==true) return NetworkPreparationRequired(UiText.T("Wi-Fi 互換接続の解除ボタンで、専用 TAP の設定を復元してから NAT に戻してください。ほかの未保存の変更は保持しています。"));
+            if (!ManagerValidation.Host(GuestHost.Text.Trim())) return InvalidField(GuestHost, UiText.T("macOS の IP アドレスまたはホスト名を確認してください。"));
         }
-        if (Microphone.IsChecked == true && Sound.IsChecked != true) return InvalidField(Microphone, "マイクを使用するには、スピーカー共有も有効にしてください。");
+        if (Microphone.IsChecked == true && Sound.IsChecked != true) return InvalidField(Microphone, UiText.T("マイクを使用するには、スピーカー共有も有効にしてください。"));
         return true;
     }
 

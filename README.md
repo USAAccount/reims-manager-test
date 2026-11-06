@@ -31,6 +31,18 @@ between official OpenCore binaries and authored configuration patches.
 - **Import disk:** select a stopped VM's VMDK, QCOW2 or RAW disk. The source
   remains intact and a managed copy is created separately.
 - **Console:** operate macOS inside the manager or detach its window.
+- **Full screen:** use the console's full-screen button or **View → Full screen**.
+  The toolbar stays hidden until the pointer remains near the top of the screen
+  for three seconds. It hides when the pointer leaves it and its open menus.
+  Detection follows the physical pointer over the owned VM window even when
+  the guest, rather than Manager, has keyboard focus. Dragging does not open it.
+  Use the toolbar's **Exit full screen** button to return. F11 also toggles
+  the mode when Manager's own UI has keyboard focus; guest F11 is not captured.
+- **Language:** under **Registrations and locations**, select **English**,
+  **日本語**, or **Use Windows display language**. Changes apply without
+  restarting Manager or the VM. Automatic selection uses Japanese for a
+  Japanese Windows display language and English otherwise. Backend diagnostic
+  details and device/user-provided names retain their original text.
 - **Settings:** manage CPU, memory, storage, ISO, networking, USB, audio and
   display. **Save changes** commits pending fields; **Discard changes** restores
   those fields while keeping the current page open. Disk and firmware changes

@@ -10,6 +10,7 @@ internal sealed class ManagerSettings
     public string EngineRoot { get; set; } = "";
     public string QemuExecutable { get; set; } = "";
     public string? SelectedVm { get; set; }
+    public string Language { get; set; } = "auto";
     public List<string> VirtualMachines { get; set; } = [];
     public Dictionary<string, bool> ClipboardByVm { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
@@ -25,6 +26,7 @@ internal sealed class ManagerSettings
     private const long MaximumBytes = 1024 * 1024;
     private string originalEngine = "", originalQemu = "";
     private string? originalSelection;
+    private string originalLanguage = "auto";
     private Dictionary<string, bool> originalClipboard = new(StringComparer.OrdinalIgnoreCase);
     internal string? LastSaveWarning { get; private set; }
 
@@ -46,6 +48,7 @@ internal sealed class ManagerSettings
     private void Remember()
     {
         originalEngine = EngineRoot; originalQemu = QemuExecutable; originalSelection = SelectedVm;
+        originalLanguage = Language;
         originalClipboard = new(ClipboardByVm, StringComparer.OrdinalIgnoreCase);
     }
 
@@ -54,6 +57,7 @@ internal sealed class ManagerSettings
         if (new FileInfo(file).Length > MaximumBytes) throw new JsonException("Settings exceed 1 MiB");
         var settings = JsonSerializer.Deserialize<ManagerSettings>(File.ReadAllText(file)) ?? throw new JsonException("Empty settings");
         settings.EngineRoot ??= ""; settings.QemuExecutable ??= ""; settings.VirtualMachines ??= [];
+        if (settings.Language is not ("auto" or "ja" or "en")) settings.Language = "auto";
         settings.VirtualMachines = settings.VirtualMachines.Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         var clipboard = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
         foreach (var pair in settings.ClipboardByVm ?? [])
@@ -70,15 +74,15 @@ internal sealed class ManagerSettings
             return Read(SettingsFile);
         } catch (Exception error) when (error is IOException or JsonException or UnauthorizedAccessException) {
             bool missing = error is FileNotFoundException or DirectoryNotFoundException;
-            if (!missing) warning = "アプリ設定を読み込めません。元のファイルは保持しています。「登録・保存先」から設定を取り込めます。";
+            if (!missing) warning = UiText.T("アプリ設定を読み込めません。元のファイルは保持しています。「登録・保存先」から設定を取り込めます。");
             try {
                 var backup = Read(BackupFile);
-                warning = missing ? "アプリ設定のファイルが見つからないため、バックアップから設定を復元しました。" :
-                    "アプリ設定のバックアップを復元しました。読み込めなかった元のファイルは保持しています。";
+                warning = missing ? UiText.T("アプリ設定のファイルが見つからないため、バックアップから設定を復元しました。") :
+                    UiText.T("アプリ設定のバックアップを復元しました。読み込めなかった元のファイルは保持しています。");
                 return backup;
             } catch (Exception backupError) when (backupError is IOException or JsonException or UnauthorizedAccessException) {
                 if (missing && backupError is not (FileNotFoundException or DirectoryNotFoundException))
-                    warning = "アプリ設定のファイルが見つからず、バックアップも読み込めません。バックアップは保持しています。";
+                    warning = UiText.T("アプリ設定のファイルが見つからず、バックアップも読み込めません。バックアップは保持しています。");
                 return new();
             }
         }
@@ -92,9 +96,11 @@ internal sealed class ManagerSettings
             EngineRoot = EngineRoot.Length == 0 ? imported.EngineRoot : EngineRoot,
             QemuExecutable = EngineRoot.Length == 0 ? imported.QemuExecutable : QemuExecutable,
             SelectedVm = SelectedVm ?? imported.SelectedVm,
+            Language = Language,
             VirtualMachines = VirtualMachines.Concat(imported.VirtualMachines).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
             ClipboardByVm = new(ClipboardByVm, StringComparer.OrdinalIgnoreCase),
             originalEngine = originalEngine, originalQemu = originalQemu, originalSelection = originalSelection,
+            originalLanguage = originalLanguage,
             originalClipboard = new(originalClipboard, StringComparer.OrdinalIgnoreCase)
         };
         foreach (var pair in imported.ClipboardByVm) candidate.ClipboardByVm.TryAdd(pair.Key, pair.Value);
@@ -135,7 +141,7 @@ internal sealed class ManagerSettings
         bool acquired;
         try { acquired = mutex.WaitOne(TimeSpan.FromSeconds(3)); }
         catch (AbandonedMutexException) { acquired = true; }
-        if (!acquired) throw new IOException("別の Reims Manager が設定を保存しています。少し待って再試行してください。");
+        if (!acquired) throw new IOException(UiText.T("別の Reims Manager が設定を保存しています。少し待って再試行してください。"));
         string temporary = SettingsFile + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try {
             ManagerSettings? latest = null;
@@ -157,25 +163,27 @@ internal sealed class ManagerSettings
                 EngineRoot = !engineChanged && latest is not null ? latest.EngineRoot : EngineRoot,
                 QemuExecutable = !engineChanged && latest is not null ? latest.QemuExecutable : QemuExecutable,
                 SelectedVm = SelectedVm == originalSelection && latest is not null ? latest.SelectedVm : SelectedVm,
+                Language = Language == originalLanguage && latest is not null ? latest.Language : Language,
                 VirtualMachines = (latest?.VirtualMachines ?? []).Concat(VirtualMachines).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
                 ClipboardByVm = clipboard
             };
             using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None)) {
                 JsonSerializer.Serialize(stream, merged, new JsonSerializerOptions { WriteIndented = true });
-                if (stream.Length > MaximumBytes) throw new IOException("アプリ設定が保存可能なサイズを超えています。元の設定は保持しています。");
+                if (stream.Length > MaximumBytes) throw new IOException(UiText.T("アプリ設定が保存可能なサイズを超えています。元の設定は保持しています。"));
                 stream.Flush(flushToDisk: true);
             }
             if (File.Exists(SettingsFile)) File.Replace(temporary, SettingsFile, primaryReadable ? BackupFile : null);
             else File.Move(temporary, SettingsFile);
             VirtualMachines = merged.VirtualMachines;
             ClipboardByVm = merged.ClipboardByVm;
+            Language = merged.Language;
             Remember();
             // A rejected primary write must never leave a recoverable candidate.
             // Seed the first backup only after the settings themselves are committed.
             if (!primaryReadable && latest is null) {
                 try { SeedBackup(SettingsFile); }
                 catch (Exception error) when (error is IOException or UnauthorizedAccessException) {
-                    LastSaveWarning = "アプリ設定は保存しましたが、復元用のバックアップを作成できませんでした。\n" + error.Message;
+                    LastSaveWarning = UiText.T("アプリ設定は保存しましたが、復元用のバックアップを作成できませんでした。\n") + error.Message;
                 }
             }
         } finally {

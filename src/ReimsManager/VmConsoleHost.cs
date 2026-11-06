@@ -64,12 +64,12 @@ public sealed class VmConsoleHost : HwndHost
             var snapshot = Snapshot.Capture(candidate);
             guest = candidate; runtime = process; saved = snapshot;
             try {
-                if (GetWindow(guest, 4) != snapshot.Owner) throw new InvalidOperationException("VM 画面の所有者が変更されました。");
+                if (GetWindow(guest, 4) != snapshot.Owner) throw new InvalidOperationException(UiText.T("VM 画面の所有者が変更されました。"));
                 // SDL remains top-level. The static HwndHost is only a physical viewport anchor.
                 Position(guest, 0, default, Passive | 0x0002 | 0x0001 | 0x0080);
                 WriteLong(guest, StyleIndex, (nint)(((long)snapshot.Style & ~0x71CF0000L) | PopupStyle));
                 WriteLong(guest, ExStyleIndex, (nint)(((long)snapshot.ExStyle & ~(AppWindow | NoActivate | Topmost | 0x301L)) | ToolWindow));
-                if (GetWindow(guest, 4) != snapshot.Owner) throw new InvalidOperationException("VM 画面の所有者が変更されました。");
+                if (GetWindow(guest, 4) != snapshot.Owner) throw new InvalidOperationException(UiText.T("VM 画面の所有者が変更されました。"));
                 WriteLong(guest, OwnerIndex, ownerRoot);
                 ownerClaimed = true;
                 bool wasTopmost = ((long)snapshot.ExStyle & Topmost) != 0;
@@ -80,7 +80,7 @@ public sealed class VmConsoleHost : HwndHost
             } catch (Exception error) {
                 try { Detach(); }
                 catch (Exception restore) {
-                    syncFailure = "VM 画面の接続と復元に失敗しました。" + error.Message + " / " + restore.Message;
+                    syncFailure = UiText.T("VM 画面の接続と復元に失敗しました。") + error.Message + " / " + restore.Message;
                     throw new InvalidOperationException(syncFailure, error);
                 }
                 throw;
@@ -95,7 +95,7 @@ public sealed class VmConsoleHost : HwndHost
         if (Attached && saved is not null) {
             nint expectedOwner = ownerClaimed ? ownerRoot : saved.Owner;
             if (GetWindow(guest, 4) != expectedOwner)
-                throw new InvalidOperationException("VM 画面の所有者が変更されたため、元の状態を上書きできません。");
+                throw new InvalidOperationException(UiText.T("VM 画面の所有者が変更されたため、元の状態を上書きできません。"));
             saved.Restore(guest);
         }
         saved?.Dispose(); saved = null;
@@ -107,7 +107,7 @@ public sealed class VmConsoleHost : HwndHost
     {
         if (!Attached || saved is null || Handle == 0) return;
         if (GetAncestor(guest, 2) != guest || ((long)ReadLong(guest, StyleIndex) & ChildStyle) != 0 ||
-            GetWindow(guest, 4) != ownerRoot) throw new InvalidOperationException("VM 画面の所有関係が変更されました。");
+            GetWindow(guest, 4) != ownerRoot) throw new InvalidOperationException(UiText.T("VM 画面の所有関係が変更されました。"));
         if (!IsVisible || !IsEnabled || !IsWindowVisible(ownerRoot) || !IsWindowEnabled(ownerRoot) || IsIconic(ownerRoot)) {
             HideGuest(); return;
         }
@@ -156,9 +156,9 @@ public sealed class VmConsoleHost : HwndHost
     {
         try { Synchronize(); }
         catch (Exception error) when (error is Win32Exception or InvalidOperationException) {
-            string message = "VM 画面の配置を維持できませんでした。別ウィンドウ表示を使用してください。" + error.Message;
+            string message = UiText.T("VM 画面の配置を維持できませんでした。別ウィンドウ表示を使用してください。") + error.Message;
             try { Detach(); }
-            catch (Exception restore) { message += " 復元にも失敗しました: " + restore.Message; }
+            catch (Exception restore) { message += UiText.T(" 復元にも失敗しました: ") + restore.Message; }
             syncFailure = message; // Existing normal status/Attach reports this through UI feedback.
         }
     }
@@ -196,7 +196,7 @@ public sealed class VmConsoleHost : HwndHost
         if (anchor == 0) throw new Win32Exception(Marshal.GetLastPInvokeError());
         ownerRoot = GetAncestor(parent.Handle, 2);
         ownerSource = HwndSource.FromHwnd(ownerRoot);
-        if (ownerSource is null) { DestroyWindow(anchor); throw new InvalidOperationException("Manager のウィンドウが見つかりません。"); }
+        if (ownerSource is null) { DestroyWindow(anchor); throw new InvalidOperationException(UiText.T("Manager のウィンドウが見つかりません。")); }
         ownerSource.AddHook(OwnerMessage);
         return new(this, anchor);
     }
@@ -234,7 +234,7 @@ public sealed class VmConsoleHost : HwndHost
                 copy = CreateRectRgn(0, 0, 0, 0);
                 if (copy == 0 || CombineRgn(copy, Region, 0, 5) == 0) {
                     if (copy != 0) DeleteObject(copy);
-                    throw new Win32Exception(Marshal.GetLastPInvokeError(), "VM 画面の領域を復元できませんでした。");
+                    throw new Win32Exception(Marshal.GetLastPInvokeError(), UiText.T("VM 画面の領域を復元できませんでした。"));
                 }
             }
             ApplyRegion(window, copy);
@@ -255,7 +255,7 @@ public sealed class VmConsoleHost : HwndHost
     {
         if (SetWindowRgn(window, region, true) != 0) return; // Successful transfer belongs to User32.
         int error = Marshal.GetLastPInvokeError(); if (region != 0) DeleteObject(region);
-        throw new Win32Exception(error, "VM 画面の表示領域を設定できませんでした。");
+        throw new Win32Exception(error, UiText.T("VM 画面の表示領域を設定できませんでした。"));
     }
     private static nint ReadLong(nint window, int index)
     {
@@ -271,7 +271,7 @@ public sealed class VmConsoleHost : HwndHost
     private static void Position(nint window, nint after, RectNative bounds, uint flags)
     {
         if (!SetWindowPos(window, after, bounds.Left, bounds.Top, bounds.Right - bounds.Left, bounds.Bottom - bounds.Top, flags))
-            throw new Win32Exception(Marshal.GetLastPInvokeError(), "VM 画面の配置を変更できませんでした。");
+            throw new Win32Exception(Marshal.GetLastPInvokeError(), UiText.T("VM 画面の配置を変更できませんでした。"));
     }
     private static RectNative ScreenClientRect(nint window)
     {

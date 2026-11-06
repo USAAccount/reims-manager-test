@@ -13,7 +13,7 @@ internal static class BackendCommand
         // Only read-only helper processes may be cancelled. Never kill a disk copy or QEMU to meet a UI timeout.
         if (readOnly) deadline.CancelAfter(TimeSpan.FromSeconds(30));
         if (readOnly) cancellation.ThrowIfCancellationRequested();
-        using var process = Process.Start(info) ?? throw new IOException("管理プロセスを起動できませんでした。");
+        using var process = Process.Start(info) ?? throw new IOException(UiText.T("管理プロセスを起動できませんでした。"));
         using var kill = deadline.Token.Register(() => {
             if (!readOnly) return;
             try { if (!process.HasExited) process.Kill(entireProcessTree: true); }
@@ -30,7 +30,7 @@ internal static class BackendCommand
             capture.CancelAfter(TimeSpan.FromSeconds(2));
             string output = await stdout.ConfigureAwait(false), error = await stderr.ConfigureAwait(false);
             deadline.Token.ThrowIfCancellationRequested();
-            if (process.ExitCode != 0) throw new IOException(string.IsNullOrWhiteSpace(error) ? $"操作に失敗しました ({process.ExitCode})。" : error.Trim());
+            if (process.ExitCode != 0) throw new IOException(string.IsNullOrWhiteSpace(error) ? UiText.Format($"操作に失敗しました ({process.ExitCode})。") : error.Trim());
             return output.Trim();
         } finally {
             capture.Cancel();
@@ -54,7 +54,7 @@ internal static class BackendCommand
                 if (available > 0) result.Append(buffer, 0, Math.Min(available, count));
             }
         } catch (OperationCanceledException) when (token.IsCancellationRequested) { }
-        if (truncated) throw new InvalidDataException("管理プロセスの出力が上限を超えました。診断ログを確認してください。");
+        if (truncated) throw new InvalidDataException(UiText.T("管理プロセスの出力が上限を超えました。診断ログを確認してください。"));
         return result.ToString();
     }
 }
