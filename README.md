@@ -32,7 +32,7 @@ between official OpenCore binaries and authored configuration patches.
   remains intact and a managed copy is created separately.
 - **Console:** operate macOS inside the manager or detach its window.
 - **Full screen:** use the console's full-screen button or **View → Full screen**.
-  The toolbar stays hidden until the pointer remains at the screen's top edge
+  The toolbar stays hidden until the pointer remains near the top of the screen
   for three seconds. It hides when the pointer leaves it and its open menus.
   Use the toolbar's **Exit full screen** button to return. F11 also toggles
   the mode when Manager's own UI has keyboard focus; guest F11 is not captured.

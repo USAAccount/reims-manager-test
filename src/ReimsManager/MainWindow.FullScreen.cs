@@ -14,7 +14,7 @@ public partial class MainWindow
 {
     private bool fullScreen;
     private Window? fullScreenToolbar;
-    private readonly DispatcherTimer fullScreenTimer = new() { Interval = TimeSpan.FromMilliseconds(100) };
+    private readonly DispatcherTimer fullScreenTimer = new(DispatcherPriority.Normal) { Interval = TimeSpan.FromMilliseconds(100) };
     private readonly Stopwatch topEdgeHover = new();
     private Rect windowedBounds;
     private WindowState windowedState;
@@ -137,7 +137,7 @@ public partial class MainWindow
         }
         if (!FullScreenCursor(out var cursor)) { topEdgeHover.Reset(); return; }
         bool atTop = cursor.X >= fullScreenBounds.Left && cursor.X < fullScreenBounds.Right &&
-            cursor.Y >= fullScreenBounds.Top && cursor.Y < fullScreenBounds.Top + 3;
+            cursor.Y >= fullScreenBounds.Top && cursor.Y < fullScreenBounds.Top + 32 * VisualTreeHelper.GetDpi(this).DpiScaleY;
         if (fullScreenToolbar.IsVisible) {
             nint toolbar = new WindowInteropHelper(fullScreenToolbar).Handle;
             bool overToolbar = FullScreenWindowRect(toolbar, out var bounds) && cursor.X >= bounds.Left && cursor.X < bounds.Right &&

@@ -13,6 +13,8 @@ public partial class MainWindow
             schema = 1, ok, manager_pid = Environment.ProcessId, busy = IsUiBusy,
             selected_descriptor = selectedEntry?.File, state = currentState,
             consoleAttached = ConsoleView.Attached, consoleDetached, runtime_pid = runtimePid, error, message
+            , fullScreen, fullScreenToolbarVisible = fullScreenToolbar?.IsVisible == true,
+            fullScreenDwellMilliseconds = topEdgeHover.ElapsedMilliseconds
         });
     }
 
