@@ -17,7 +17,8 @@ Manager process from the same executable path exists in the session. Executable
 paths are compared case-insensitively; inaccessible processes are skipped during
 discovery and rejected as explicit targets. Commands are `status`, `start`,
 `poweroff`, `restart`, `exit` (normal QEMU exit), `pause`, `resume`,
-`dock-console` and `popout-console`. No command force-kills a VM, changes the
+`dock-console`, `popout-console`, `full-screen` and `windowed`. The last two
+change only Manager's view. No command force-kills a VM, changes the
 selected VM, sends guest keys, executes arbitrary code or accepts credentials.
 
 Each invocation emits one schema-1 JSON response to redirected stdout and,

@@ -11,7 +11,7 @@ namespace ReimsManager;
 internal static class ManagerControl
 {
     internal const int MaximumMessage = 64 * 1024;
-    internal static readonly string[] Commands = ["status", "start", "poweroff", "restart", "exit", "pause", "resume", "dock-console", "popout-console"];
+    internal static readonly string[] Commands = ["status", "start", "poweroff", "restart", "exit", "pause", "resume", "dock-console", "popout-console", "full-screen", "windowed"];
     internal static string PipeName(int pid) => $"ReimsManager.{Process.GetCurrentProcess().SessionId}.{pid}";
 
     internal static bool IsManager(Process process)
@@ -67,7 +67,7 @@ internal static class ManagerControl
         string? output = null;
         JsonElement reply;
         try {
-            if (arguments.Length < 2 || !Commands.Contains(arguments[1])) throw new ArgumentException("Use --control status|start|poweroff|restart|exit|pause|resume|dock-console|popout-console [--pid PID] [--output file.json].");
+            if (arguments.Length < 2 || !Commands.Contains(arguments[1])) throw new ArgumentException("Use --control status|start|poweroff|restart|exit|pause|resume|dock-console|popout-console|full-screen|windowed [--pid PID] [--output file.json].");
             int? pid = null;
             for (int i = 2; i < arguments.Length; i++) {
                 string option = arguments[i];

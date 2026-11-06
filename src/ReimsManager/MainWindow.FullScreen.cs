@@ -16,6 +16,8 @@ public partial class MainWindow
     private Window? fullScreenToolbar;
     private readonly DispatcherTimer fullScreenTimer = new(DispatcherPriority.Normal) { Interval = TimeSpan.FromMilliseconds(100) };
     private readonly Stopwatch topEdgeHover = new();
+    private long fullScreenTicks, fullScreenTopSamples, fullScreenLongestDwell, fullScreenToolbarShows;
+    private string fullScreenHoverState = "windowed";
     private Rect windowedBounds;
     private WindowState windowedState;
     private ResizeMode windowedResize;
@@ -43,6 +45,8 @@ public partial class MainWindow
         sessionCommandParent = (Grid)SessionCommands.Parent;
         sessionCommandIndex = sessionCommandParent.Children.IndexOf(SessionCommands);
         fullScreen = true;
+        fullScreenTicks = fullScreenTopSamples = fullScreenLongestDwell = fullScreenToolbarShows = 0;
+        fullScreenHoverState = "waiting";
         try {
             WindowChrome.SetWindowChrome(this, null);
             MinWidth = MinHeight = 0;
@@ -81,6 +85,7 @@ public partial class MainWindow
         fullScreen = false;
         fullScreenTimer.Stop(); fullScreenTimer.Tick -= FullScreenTick;
         topEdgeHover.Reset();
+        fullScreenHoverState = "windowed";
         if (fullScreenToolbar is { } toolbar) {
             if (toolbar.Content is Border { Child: ScrollViewer commands } surface) { commands.Content = null; surface.Child = null; }
             toolbar.Content = null;
@@ -120,11 +125,10 @@ public partial class MainWindow
     private void FullScreenTick(object? sender, EventArgs e)
     {
         if (!fullScreen || fullScreenToolbar is null) return;
-        nint foreground = FullScreenForeground();
-        bool ownedForeground = foreground == MainHandle || FullScreenAncestor(foreground, 3) == MainHandle;
-        if (!ownedForeground || !FullScreenWindowEnabled(MainHandle) || WindowState == WindowState.Minimized || !ConsoleView.Attached) {
+        fullScreenTicks++;
+        if (!FullScreenWindowEnabled(MainHandle) || WindowState == WindowState.Minimized || !ConsoleView.Attached) {
             SessionPowerButton.ContextMenu.IsOpen = SessionCursorMenuButton.ContextMenu.IsOpen = false;
-            fullScreenToolbar.Hide(); topEdgeHover.Reset(); return;
+            fullScreenToolbar.Hide(); topEdgeHover.Reset(); fullScreenHoverState = "unavailable"; return;
         }
         var monitor = new FullScreenMonitor { Size = Marshal.SizeOf<FullScreenMonitor>() };
         if (GetFullScreenMonitorInfo(MonitorFromFullScreenWindow(MainHandle, 2), ref monitor) &&
@@ -135,22 +139,36 @@ public partial class MainWindow
             catch (Win32Exception error) { ShowError(error.Message); }
             return;
         }
-        if (!FullScreenCursor(out var cursor)) { topEdgeHover.Reset(); return; }
+        if (!FullScreenCursor(out var cursor)) { topEdgeHover.Reset(); fullScreenHoverState = "cursor-unavailable"; return; }
+        bool menu = SessionPowerButton.ContextMenu.IsOpen || SessionCursorMenuButton.ContextMenu.IsOpen;
+        // A foreign guest owns its input queue; pointer hit-testing must not require Manager focus.
+        nint pointedWindow = FullScreenWindowAt(cursor);
+        bool ownedPointer = pointedWindow == MainHandle || FullScreenAncestor(pointedWindow, 3) == MainHandle;
+        if (!ownedPointer && !menu) {
+            fullScreenToolbar.Hide(); topEdgeHover.Reset(); fullScreenHoverState = "outside-console"; return;
+        }
         bool atTop = cursor.X >= fullScreenBounds.Left && cursor.X < fullScreenBounds.Right &&
             cursor.Y >= fullScreenBounds.Top && cursor.Y < fullScreenBounds.Top + 32 * VisualTreeHelper.GetDpi(this).DpiScaleY;
         if (fullScreenToolbar.IsVisible) {
             nint toolbar = new WindowInteropHelper(fullScreenToolbar).Handle;
             bool overToolbar = FullScreenWindowRect(toolbar, out var bounds) && cursor.X >= bounds.Left && cursor.X < bounds.Right &&
                 cursor.Y >= bounds.Top && cursor.Y < bounds.Bottom + 6;
-            bool menu = SessionPowerButton.ContextMenu.IsOpen || SessionCursorMenuButton.ContextMenu.IsOpen;
             if (!atTop && !overToolbar && !menu) { fullScreenToolbar.Hide(); topEdgeHover.Reset(); }
             return;
         }
-        if (!atTop) { topEdgeHover.Reset(); return; }
+        if (!atTop) { topEdgeHover.Reset(); fullScreenHoverState = "below-top-strip"; return; }
+        if ((FullScreenMouseButton(1) & 0x8000) != 0 || (FullScreenMouseButton(2) & 0x8000) != 0 || (FullScreenMouseButton(4) & 0x8000) != 0) {
+            topEdgeHover.Reset(); fullScreenHoverState = "dragging"; return;
+        }
+        fullScreenTopSamples++;
         if (!topEdgeHover.IsRunning) topEdgeHover.Start();
+        fullScreenLongestDwell = Math.Max(fullScreenLongestDwell, topEdgeHover.ElapsedMilliseconds);
+        fullScreenHoverState = "dwelling";
         if (topEdgeHover.Elapsed < TimeSpan.FromSeconds(3)) return;
         // A sibling owned window can cover the foreign SDL viewport without activating it.
         fullScreenToolbar.Show();
+        fullScreenToolbarShows++;
+        fullScreenHoverState = "shown";
         nint bar = new WindowInteropHelper(fullScreenToolbar).Handle;
         if (FullScreenWindowRect(bar, out var rect))
             PositionFullScreenWindow(bar, 0, fullScreenBounds.Left + (fullScreenBounds.Right - fullScreenBounds.Left - rect.Right + rect.Left) / 2,
@@ -163,8 +181,9 @@ public partial class MainWindow
     [DllImport("user32.dll", EntryPoint = "MonitorFromWindow")] private static extern nint MonitorFromFullScreenWindow(nint window, uint flags);
     [DllImport("user32.dll", EntryPoint = "GetMonitorInfoW", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool GetFullScreenMonitorInfo(nint monitor, ref FullScreenMonitor info);
     [DllImport("user32.dll", EntryPoint = "SetWindowPos", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool PositionFullScreenWindow(nint window, nint after, int x, int y, int width, int height, uint flags);
-    [DllImport("user32.dll", EntryPoint = "GetCursorPos")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool FullScreenCursor(out FullScreenPoint point);
-    [DllImport("user32.dll", EntryPoint = "GetForegroundWindow")] private static extern nint FullScreenForeground();
+    [DllImport("user32.dll", EntryPoint = "GetPhysicalCursorPos")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool FullScreenCursor(out FullScreenPoint point);
+    [DllImport("user32.dll", EntryPoint = "WindowFromPhysicalPoint")] private static extern nint FullScreenWindowAt(FullScreenPoint point);
+    [DllImport("user32.dll", EntryPoint = "GetAsyncKeyState")] private static extern short FullScreenMouseButton(int key);
     [DllImport("user32.dll", EntryPoint = "GetAncestor")] private static extern nint FullScreenAncestor(nint window, uint flags);
     [DllImport("user32.dll", EntryPoint = "IsWindowEnabled")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool FullScreenWindowEnabled(nint window);
     [DllImport("user32.dll", EntryPoint = "GetWindowRect")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool FullScreenWindowRect(nint window, out FullScreenRect rect);

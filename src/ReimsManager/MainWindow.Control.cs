@@ -12,9 +12,11 @@ public partial class MainWindow
         return JsonSerializer.SerializeToElement(new {
             schema = 1, ok, manager_pid = Environment.ProcessId, busy = IsUiBusy,
             selected_descriptor = selectedEntry?.File, state = currentState,
-            consoleAttached = ConsoleView.Attached, consoleDetached, runtime_pid = runtimePid, error, message
-            , fullScreen, fullScreenToolbarVisible = fullScreenToolbar?.IsVisible == true,
-            fullScreenDwellMilliseconds = topEdgeHover.ElapsedMilliseconds
+            consoleAttached = ConsoleView.Attached, consoleDetached, runtime_pid = runtimePid, error, message,
+            fullScreen, fullScreenToolbarVisible = fullScreenToolbar?.IsVisible == true,
+            fullScreenDwellMilliseconds = topEdgeHover.ElapsedMilliseconds,
+            fullScreenTicks, fullScreenTopSamples, fullScreenLongestDwell,
+            fullScreenToolbarShows, fullScreenHoverState
         });
     }
 
@@ -31,10 +33,15 @@ public partial class MainWindow
         if (hardwareDirty || identityDirty) return ControlSnapshot(false, "unsaved_changes", "Save or discard the pending settings first.");
         string? action = command switch {
             "start" => "Start", "poweroff" => "PowerOff", "restart" => "Restart", "exit" => "Exit",
-            "pause" => "Pause", "resume" => "Resume", "dock-console" or "popout-console" => "Console", _ => null
+            "pause" => "Pause", "resume" => "Resume", "dock-console" or "popout-console" or "full-screen" or "windowed" => "Console", _ => null
         };
         if (action is null) return ControlSnapshot(false, "unsupported_command", "Unsupported control command.");
         if (!CanOperate(action)) return ControlSnapshot(false, "unavailable", "The selected VM is not ready for this operation.");
+        if (command == "full-screen") {
+            if (!fullScreen) ToggleFullScreen(this, new RoutedEventArgs());
+            return ControlSnapshot(fullScreen, fullScreen ? null : "console_unavailable");
+        }
+        if (command == "windowed") { ExitFullScreen(); return ControlSnapshot(); }
         if (command == "dock-console") { DockConsole(this, new RoutedEventArgs()); return ControlSnapshot(); }
         if (command == "popout-console") { PopOutConsole(this, new RoutedEventArgs()); return ControlSnapshot(); }
         bool success = await Operate(action);
