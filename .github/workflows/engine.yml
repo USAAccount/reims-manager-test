@@ -34,6 +34,8 @@ jobs:
         shell: pwsh
         env:
           REIMS_BUILD_MSYS: ${{ steps.msys.outputs.msys2-location }}
+          WINDRES: D:/a/_temp/msys64/ucrt64/bin/llvm-windres.exe
+          RC: D:/a/_temp/msys64/ucrt64/bin/llvm-windres.exe
         run: ./tools/build-engine.ps1 -MsysRoot $env:REIMS_BUILD_MSYS
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
