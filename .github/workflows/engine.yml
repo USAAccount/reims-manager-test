@@ -63,3 +63,8 @@ jobs:
           $assets=@(Get-ChildItem engine-release -File | ForEach-Object FullName)
           gh release create $pin.id @assets --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title "Reims Windows engine $($pin.id)" --notes-file docs/engine-release.md
           if ($LASTEXITCODE -ne 0) { throw 'Release publication failed; existing releases are never overwritten.' }
+      - name: Workaround libtool windres path
+        shell: msys2 {0}
+        run: |
+          printf '#!/bin/sh\nexec /ucrt64/bin/llvm-windres.exe "$@"\n' > '/ucrt64/bin/D:a_tempmsys64ucrt64binllvm-windres.exe'
+          chmod +x '/ucrt64/bin/D:a_tempmsys64ucrt64binllvm-windres.exe'
